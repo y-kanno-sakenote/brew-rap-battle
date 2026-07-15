@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>醸造ラップバトル ジェネレーター｜SAKENOTE</title>
+<style>
+  :root{
+    --bg:#0d0b10; --bg2:#15121b; --ink:#f5f0e6; --sub:#b7a98f;
+    --gold:#e8c15a; --gold2:#c99a2e; --red:#d24b4b; --blue:#5b8cc9;
+    --line:#2a2533; --card:#1a1622;
+    --sans:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+    --mincho:"Hiragino Mincho ProN","Yu Mincho",serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(120% 80% at 50% -10%,#241a2e 0%,var(--bg) 55%) fixed;
+       color:var(--ink);font-family:var(--sans);line-height:1.7;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 20px 80px}
+  header{text-align:center;margin-bottom:22px}
+  .brand{letter-spacing:.5em;font-size:12px;color:var(--gold);margin:0 0 8px;font-weight:700}
+  h1{font-family:var(--mincho);font-size:clamp(28px,6vw,46px);margin:0;font-weight:900;
+     background:linear-gradient(180deg,#fff 0%,var(--gold) 60%,var(--gold2) 100%);
+     -webkit-background-clip:text;background-clip:text;color:transparent;
+     text-shadow:0 2px 20px rgba(232,193,90,.15)}
+  .tag{color:var(--sub);font-size:13px;margin-top:8px}
+  .panel{background:linear-gradient(180deg,var(--card),#151019);border:1px solid var(--line);
+         border-radius:18px;padding:20px;margin-top:18px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+  .panel h2{font-size:13px;letter-spacing:.2em;color:var(--gold);margin:0 0 14px;font-weight:700}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .fighter{position:relative;background:var(--bg2);border:1.5px solid var(--line);border-radius:14px;
+           padding:14px 12px;cursor:pointer;transition:.18s;text-align:center;user-select:none}
+  .fighter:hover{transform:translateY(-3px);border-color:var(--gold2)}
+  .fighter .emoji{font-size:34px;line-height:1;display:block;margin-bottom:6px}
+  .fighter .fname{font-family:var(--mincho);font-size:19px;font-weight:800}
+  .fighter .fdesc{font-size:11px;color:var(--sub);margin-top:4px;min-height:28px}
+  .fighter.sel-a{border-color:var(--red);box-shadow:0 0 0 2px rgba(210,75,75,.35),0 0 24px rgba(210,75,75,.25)}
+  .fighter.sel-b{border-color:var(--blue);box-shadow:0 0 0 2px rgba(91,140,201,.35),0 0 24px rgba(91,140,201,.25)}
+  .fighter .badge{position:absolute;top:-9px;right:-9px;font-size:10px;font-weight:800;padding:3px 8px;
+                  border-radius:20px;color:#fff}
+  .badge.a{background:var(--red)} .badge.b{background:var(--blue)}
+  .hint{font-size:12px;color:var(--sub);margin-top:12px;text-align:center}
+  .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:18px}
+  .opt{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--sub)}
+  select{background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:8px;
+         padding:7px 10px;font-family:var(--sans);font-size:13px}
+  .btn{border:none;border-radius:999px;padding:14px 30px;font-size:16px;font-weight:800;cursor:pointer;
+       font-family:var(--mincho);letter-spacing:.08em;transition:.15s}
+  .btn-main{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#2a1e00;
+            box-shadow:0 8px 24px rgba(232,193,90,.3)}
+  .btn-main:hover{transform:translateY(-2px)}
+  .btn-main:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .btn-ghost{background:transparent;color:var(--gold);border:1px solid var(--gold2);font-size:13px;padding:9px 18px}
+  .btn-ghost:hover{background:rgba(232,193,90,.1)}
+  #stage{margin-top:22px;display:none}
+  .vs-head{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px}
+  .vs-head .who{font-family:var(--mincho);font-size:22px;font-weight:900}
+  .vs-head .who.a{color:var(--red)} .vs-head .who.b{color:var(--blue)}
+  .vs-head .vs{font-size:14px;color:var(--gold);font-weight:800;letter-spacing:.2em}
+  .beat{display:flex;gap:5px;justify-content:center;margin:0 0 18px;height:20px;align-items:flex-end}
+  .beat i{width:5px;background:var(--gold2);border-radius:3px;animation:bounce 1s ease-in-out infinite}
+  @keyframes bounce{0%,100%{height:6px;opacity:.4}50%{height:20px;opacity:1}}
+  .verse{background:var(--card);border-radius:14px;padding:16px 18px;margin-bottom:14px;border-left:4px solid;
+         opacity:0;transform:translateY(12px);animation:rise .5s forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .verse.a{border-color:var(--red)} .verse.b{border-color:var(--blue)}
+  .verse .head{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-family:var(--mincho);font-weight:800}
+  .verse .head .em{font-size:22px}
+  .verse .head .rk{font-size:10px;color:var(--sub);font-weight:600;letter-spacing:.05em;margin-left:auto}
+  .verse.a .head{color:var(--red)} .verse.b .head{color:var(--blue)}
+  .verse .bars{font-size:17px;font-family:var(--mincho);white-space:pre-line;line-height:2}
+  .verse .rhyme{color:var(--gold);font-weight:700}
+  .drop{text-align:center;margin:22px 0 4px;font-family:var(--mincho);font-size:clamp(22px,5vw,34px);
+        font-weight:900;color:var(--gold);opacity:0;animation:rise .5s .2s forwards}
+  .cheer{text-align:center;color:var(--sub);font-size:13px;margin-bottom:6px;opacity:0;animation:rise .5s .35s forwards}
+  .stage-ctrls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;
+         background:var(--gold);color:#2a1e00;padding:10px 20px;border-radius:999px;font-weight:800;
+         font-size:13px;transition:.25s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  footer{text-align:center;color:var(--sub);font-size:11px;margin-top:34px;line-height:1.9}
+  .kicker{display:inline-block;font-size:10px;color:#7a6f5c;border:1px solid var(--line);
+          border-radius:6px;padding:2px 8px;margin-top:6px}
+  .updated{display:inline-block;font-size:10px;color:#8a7f6c;letter-spacing:.04em;margin-top:8px;opacity:.85}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="brand">SAKENOTE PRESENTS</p>
+    <h1>醸造ラップバトル</h1>
+    <p class="tag">麹・酵母・杜氏・乳酸菌・酒米 ── 蔵の中の MC たちが韻を踏む</p>
+  </header>
+
+  <div class="panel">
+    <h2>① 対戦カードを選べ</h2>
+    <div class="grid" id="roster"></div>
+    <p class="hint" id="selHint">上から2体を選ぶと対戦成立。1体目が <span style="color:var(--red)">赤コーナー</span>、2体目が <span style="color:var(--blue)">青コーナー</span>。</p>
+    <div class="controls">
+      <label class="opt">小節数
+        <select id="bars"><option value="4">4小節（ショート）</option><option value="8" selected>8小節（スタンダード）</option><option value="12">12小節（ロング）</option></select>
+      </label>
+      <label class="opt">韻モード
+        <select id="mode"><option value="solo" selected>ソロ（各自の韻）</option><option value="cross">キャラ跨ぎ韻（踏み返し）</option></select>
+      </label>
+      <button class="btn btn-main" id="go" disabled>▶ バトル開始</button>
+    </div>
+  </div>
+
+  <div id="stage">
+    <div class="vs-head">
+      <span class="who a" id="nameA"></span>
+      <span class="vs">VS</span>
+      <span class="who b" id="nameB"></span>
+    </div>
+    <div class="beat" id="beat"></div>
+    <div id="battle"></div>
+    <div class="stage-ctrls">
+      <button class="btn btn-main" id="regen">🎲 もう一本</button>
+      <button class="btn btn-ghost" id="copy">📋 リリックをコピー</button>
+      <button class="btn btn-ghost" id="swap">🔁 攻守交代</button>
+      <button class="btn btn-ghost" id="reset">← 対戦選び直す</button>
+    </div>
+  </div>
+
+  <footer>
+    単語シグネチャ・エンジン方式 ── 醸造語を単一辞書に集約し、末尾3母音を自動計算してバケット化。文テンプレの韻スロットに、韻の合う語を差し込んで毎回違うリリックを生成（韻は母音バケットで保証）。用語は麹菌・清酒酵母・生酛の乳酸菌・酒造好適米など醸造の実際にもとづく。<br>
+    <span class="kicker">単一HTML / オフライン動作 / APIキー不要</span><br>
+    © SAKENOTE ｜ 遊び心の社内ツール<br>
+    <span class="updated" id="updated">最終更新: 2026-07-13 01:41</span>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   醸造ラップバトル ジェネレーター  (単語シグネチャ・エンジン方式)
+   ① 単一グローバル辞書 VOCAB（語→よみ・役割）
+   ② ロード時に末尾3母音シグネチャを自動計算し、役割ごとにバケット化
+   ③ キャラは「使う役割」＋「文テンプレ」だけを持ち、韻の合う語を差し込む
+   語彙ソース：日本酒の基（原料/香味特性別分類/製法/テイスティング）, 清酒酵母講演資料 ほか
+   ========================================================= */
+
+const R = s => `<span class="rhyme">${s}</span>`;
+function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return((s>>>0)%100000)/100000;};}
+function shuffle(a,rnd){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+// ---- かな→母音 ----
+const _V={};
+{const rows={a:"あかさたなはまやらわがざだばぱぁゃ",i:"いきしちにひみりゐぎじぢびぴぃ",u:"うくすつぬふむゆるぐずづぶぷぅゅ",e:"えけせてねへめれゑげぜでべぺぇ",o:"おこそとのほもよろをごぞどぼぽぉょ"};
+ for(const v in rows)for(const c of rows[v])_V[c]=v;}
+function vowels(s){const o=[];for(const ch of s){if(_V[ch])o.push(_V[ch]);else if(ch==="ー"||ch==="〜"){if(o.length)o.push(o[o.length-1]);}else if("んンっッ".includes(ch)){}else o.push("?");}return o.join("");}
+
+// ---- ① 単一グローバル辞書：語→{よみ, 役割}（役割名は全体でユニーク＝同一母音の意味グループ）----
+const VOCAB = {
+  // koji / person（末尾 o,u,i）
+  "麹":{y:"こうじ",r:"koji"},"黄麹":{y:"きこうじ",r:"koji"},"白麹":{y:"しろこうじ",r:"koji"},"黒麹":{y:"くろこうじ",r:"koji"},"種麹":{y:"たねこうじ",r:"koji"},"米麹":{y:"こめこうじ",r:"koji"},
+  "杜氏":{y:"とうじ",r:"person"},"王子":{y:"おうじ",r:"person"},"講師":{y:"こうじ",r:"person"},"同志":{y:"どうし",r:"person"},
+  // gin / degree（末尾 i,o,u）
+  "吟醸":{y:"ぎんじょう",r:"gin"},"大吟醸":{y:"だいぎんじょう",r:"gin"},
+  "異常":{y:"いじょう",r:"degree"},"非常":{y:"ひじょう",r:"degree"},"日常":{y:"にちじょう",r:"degree"},"清涼":{y:"せいりょう",r:"degree"},
+  // fruit / aroma（末尾 u,o,u）
+  "白桃":{y:"はくとう",r:"fruit"},"黄桃":{y:"おうとう",r:"fruit"},"葡萄":{y:"ぶどう",r:"fruit"},
+  "吟醸香":{y:"ぎんじょうこう",r:"aroma"},"原料香":{y:"げんりょうこう",r:"aroma"},"芳香":{y:"ほうこう",r:"aroma"},"果実香":{y:"かじつこう",r:"aroma"},
+  // hanayaka（末尾 a,a,a）香味の形容 → 清酒酵母の新バケット
+  "華やか":{y:"はなやか",r:"hanayaka"},"爽やか":{y:"さわやか",r:"hanayaka"},"鮮やか":{y:"あざやか",r:"hanayaka"},"しなやか":{y:"しなやか",r:"hanayaka"},"艶やか":{y:"つややか",r:"hanayaka"},"やわらか":{y:"やわらか",r:"hanayaka"},
+  // awa（末尾 a,a,a／form=物）発酵の泡 → 清酒酵母。hanayaka(様子)と同母音・別formで同居
+  "高泡":{y:"たかあわ",r:"awa"},"玉泡":{y:"たまあわ",r:"awa"},"岩泡":{y:"いわあわ",r:"awa"},
+  // type（末尾 u,i,u）
+  "薫酒":{y:"くんしゅ",r:"type"},"爽酒":{y:"そうしゅ",r:"type"},"濃醇":{y:"のうじゅん",r:"type"},"醇酒":{y:"じゅんしゅ",r:"type"},"熟酒":{y:"じゅくしゅ",r:"type"},"芳醇":{y:"ほうじゅん",r:"type"},
+  // mill / bitter / spirit（末尾 i,a,i）
+  "精米":{y:"せいまい",r:"mill"},"蒸米":{y:"むしまい",r:"mill"},
+  "苦味":{y:"にがみ",r:"bitter"},
+  "気合い":{y:"きあい",r:"spirit"},"気概":{y:"きがい",r:"spirit"},
+  // grain / sweet / banzai / yamahai（末尾 a,a,i）
+  "酒米":{y:"さかまい",r:"grain"},
+  "甘味":{y:"あまみ",r:"sweet"},
+  "乾杯":{y:"かんぱい",r:"banzai"},"万歳":{y:"ばんざい",r:"banzai"},
+  "山廃":{y:"やまはい",r:"yamahai"},
+  // bug / umami / junmai / pear / shukuhai（末尾 u,a,i）
+  "乳酸菌":{y:"にゅうさんきん",r:"bug"},
+  "旨味":{y:"うまみ",r:"umami"},
+  "純米":{y:"じゅんまい",r:"junmai"},
+  "洋梨":{y:"ようなし",r:"pear"},
+  "祝杯":{y:"しゅくはい",r:"shukuhai"},
+  "白米":{y:"はくまい",r:"hakumai"},
+  // variety（末尾 i,i,i）酒米の名門品種
+  "山田錦":{y:"やまだにしき",r:"variety"},"美山錦":{y:"みやまにしき",r:"variety"},"八反錦":{y:"はったんにしき",r:"variety"},"雄山錦":{y:"おやまにしき",r:"variety"},"神力":{y:"しんりき",r:"variety"},
+  // moto（末尾 i,o,o）生酛系酒母
+  "生酛":{y:"きもと",r:"moto"},"菩提酛":{y:"ぼだいもと",r:"moto"},"山廃酛":{y:"やまはいもと",r:"moto"},
+  // vessel（末尾 o,u,i）酒器 ※サービス編より。杜氏の「振る舞い」に使用
+  "徳利":{y:"とっくり",r:"vessel"},"銚子":{y:"ちょうし",r:"vessel"},"一升瓶":{y:"いっしょうびん",r:"vessel"},"四合瓶":{y:"よんごうびん",r:"vessel"},"鳩徳利":{y:"はとどっくり",r:"vessel"},
+  // ▼ 論文キーワード集（LLM抽出）より追加 ─ 母音は自動計算で該当バケットへ編入
+  // koubo（末尾 o,u,o）酵母・酵素 → 清酒酵母の新バケット
+  "酵母":{y:"こうぼ",r:"koubo"},"酵素":{y:"こうそ",r:"koubo"},"清酒酵母":{y:"せいしゅこうぼ",r:"koubo"},"蔵付き酵母":{y:"くらつきこうぼ",r:"koubo"},"野生酵母":{y:"やせいこうぼ",r:"koubo"},"焼酎酵母":{y:"しょうちゅうこうぼ",r:"koubo"},"泡盛酵母":{y:"あわもりこうぼ",r:"koubo"},"花酵母":{y:"はなこうぼ",r:"koubo"},"協会酵母":{y:"きょうかいこうぼ",r:"koubo"},"出芽酵母":{y:"しゅつがこうぼ",r:"koubo"},
+  // komeu（末尾 u,a,i）米・精米まわり → 弱かった uai バケットを強化（麹菌・酒米）
+  "精白米":{y:"せいはくまい",r:"komeu"},"原料米":{y:"げんりょうまい",r:"komeu"},"精米歩合":{y:"せいまいぶあい",r:"komeu"},"麹歩合":{y:"こうじぶあい",r:"komeu"},
+  // type（末尾 u,i,u）酒質分類の追加 → 既存 type 役割へ（酵母/杜氏/乳酸菌）
+  "吟醸酒":{y:"ぎんじょうしゅ",r:"type"},"貴醸酒":{y:"きじょうしゅ",r:"type"},"醸造酒":{y:"じょうぞうしゅ",r:"type"},"蒸留酒":{y:"じょうりゅうしゅ",r:"type"},
+  // variety（末尾 i,i,i）品種の追加 → 既存 variety 役割へ（酒米）
+  "たかね錦":{y:"たかねにしき",r:"variety"},"千本錦":{y:"せんぼんにしき",r:"variety"},
+  // koji（末尾 o,u,i）麹一族の追加 → 既存 koji 役割へ（麹菌/杜氏）
+  "紅麹":{y:"べにこうじ",r:"koji"},"餅麹":{y:"もちこうじ",r:"koji"},"出麹":{y:"でこうじ",r:"koji"},"留麹":{y:"とめこうじ",r:"koji"},"塩麹":{y:"しおこうじ",r:"koji"},"醤油麹":{y:"しょうゆこうじ",r:"koji"},"味噌麹":{y:"みそこうじ",r:"koji"},"生麹":{y:"なまこうじ",r:"koji"},"掛麹":{y:"かけこうじ",r:"koji"},"酒母麹":{y:"しゅぼこうじ",r:"koji"},
+  // kojikin（末尾 u,i,i）麹菌の新バケット（麹菌）
+  "麹菌":{y:"こうじきん",r:"kojikin"},"黒麹菌":{y:"くろこうじきん",r:"kojikin"},"白麹菌":{y:"しろこうじきん",r:"kojikin"},"黄麹菌":{y:"きこうじきん",r:"kojikin"},
+  // shubo（末尾 i,u,o）酒母系の新バケット（乳酸菌）
+  "酒母":{y:"しゅぼ",r:"shubo"},"速醸酒母":{y:"そくじょうしゅぼ",r:"shubo"},
+  // bug 追加（末尾 u,a,i）酢酸菌 → 乳酸菌の既存 bug 役割へ
+  "酢酸菌":{y:"さくさんきん",r:"bug"},
+  // acid（末尾 a,u,a）有機酸 → 乳酸菌の新バケット
+  "コハク酸":{y:"こはくさん",r:"acid"},"酢酸":{y:"さくさん",r:"acid"},"酪酸":{y:"らくさん",r:"acid"},
+  // karakuchi（末尾 a,u,i）辛口系 → 杜氏の新バケット
+  "辛口":{y:"からくち",r:"karakuchi"},"淡麗辛口":{y:"たんれいからくち",r:"karakuchi"},"甘口":{y:"あまくち",r:"karakuchi"},"旨口":{y:"うまくち",r:"karakuchi"},
+  // kanban（末尾 i,a,a）蔵の看板 → 杜氏の新バケット
+  "銘柄":{y:"めいがら",r:"kanban"},"杉玉":{y:"すぎだま",r:"kanban"},
+  // nobiyaka（末尾 i,a,a／form=様子）酒質の形容 → 杜氏。kanban(物)と同母音・別formで同居
+  "のびやか":{y:"のびやか",r:"nobiyaka"},"きらびやか":{y:"きらびやか",r:"nobiyaka"},
+  // nameraka（末尾 e,a,a／form=様子）口当たりの形容 → 杜氏。soft韻 iaa で nobiyaka/kanban と近似で踏み合う（響き韻）
+  "なめらか":{y:"なめらか",r:"nameraka"},
+  // moromi（末尾 o,o,i）生酛・酒母・仕込み → 乳酸菌の新バケット
+  "醪":{y:"もろみ",r:"moromi"},"山卸し":{y:"やまおろし",r:"moromi"},"踊り":{y:"おどり",r:"moromi"},"床もみ":{y:"とこもみ",r:"moromi"},
+  // sakerui（末尾 i,a,e）蔵の酒・振る舞い → 杜氏の新バケット
+  "地酒":{y:"じざけ",r:"sakerui"},"にごり酒":{y:"にごりざけ",r:"sakerui"},"おり酒":{y:"おりざけ",r:"sakerui"},"隠し酒":{y:"かくしざけ",r:"sakerui"},
+  // shikomi（末尾 i,o,i）酒造工程 → 杜氏の新バケット
+  "搾り":{y:"しぼり",r:"shikomi"},"仕込み":{y:"しこみ",r:"shikomi"},"三段仕込み":{y:"さんだんじこみ",r:"shikomi"},"濁り":{y:"にごり",r:"shikomi"},"二段仕込み":{y:"にだんじこみ",r:"shikomi"},"木桶仕込み":{y:"きおけじこみ",r:"shikomi"},
+  // shinshu（末尾 i,i,u）蔵の酒と水 → 酒米の新バケット
+  "新酒":{y:"しんしゅ",r:"shinshu"},"銘酒":{y:"めいしゅ",r:"shinshu"},"仕込み水":{y:"しこみみず",r:"shinshu"},"割水":{y:"わりみず",r:"shinshu"},"清酒":{y:"せいしゅ",r:"shinshu"},"純米酒":{y:"じゅんまいしゅ",r:"shinshu"},
+  // genshu（末尾 e,i,u／form=産酒）搾ったままの酒 → 酒米。soft韻 iiu で shinshu と近似で踏み合う（響き韻）
+  "原酒":{y:"げんしゅ",r:"genshu"},"生原酒":{y:"なまげんしゅ",r:"genshu"},
+  // hakkou（末尾 a,o,u）発酵 → 酵母・杜氏の新バケット
+  "発酵":{y:"はっこう",r:"hakkou"},"並行複発酵":{y:"へいこうふくはっこう",r:"hakkou"},
+  // mill 追加（末尾 i,a,i）好適米 → 既存 mill 役割へ（麹菌・酒米）
+  "好適米":{y:"こうてきまい",r:"mill"},"酒造好適米":{y:"しゅぞうこうてきまい",r:"mill"},"麹米":{y:"こうじまい",r:"mill"},"低温精米":{y:"ていおんせいまい",r:"mill"},
+  // kakemai（末尾 e,a,i）掛け米/洗米 → 麹菌・酒米の新バケット
+  "掛け米":{y:"かけまい",r:"kakemai"},"洗米":{y:"せんまい",r:"kakemai"},"玄米":{y:"げんまい",r:"kakemai"},
+};
+
+// ---- ② オート・バケット化：役割→語リスト, 役割→末尾3母音シグネチャ（自動計算）----
+const yomiOf = w => VOCAB[w] ? VOCAB[w].y : w;
+const sig3 = w => vowels(yomiOf(w)).slice(-3);
+const ROLE_WORDS = {}, ROLE_SIG = {};
+for(const [w,{r}] of Object.entries(VOCAB)) (ROLE_WORDS[r]=ROLE_WORDS[r]||[]).push(w);
+for(const r in ROLE_WORDS) ROLE_SIG[r] = sig3(ROLE_WORDS[r][0]);   // 役割内は同一母音（辞書設計で保証）
+
+// ---- ②' 響き韻（ソフト韻）：近似母音クラスでバケットを束ねる ----
+//   気持ちよさのロジック: (1)最終母音は完全一致＝行末の響きが韻の錨
+//                         (2)手前の母音は音声学的に近いペア i≈e(前舌)/u≈o(後舌) を同クラス扱い
+//   例: 精米(iai)×玄米(eai)、麹(oui)×醪(ooi) は完全一致でなくても踏めて聞こえる
+const _NEAR={a:"a",i:"i",e:"i",u:"u",o:"u"};
+const softKey = s => s ? s.slice(0,-1).split("").map(c=>_NEAR[c]||c).join("")+s.slice(-1) : s;
+const ROLE_SOFT = {}; for(const r in ROLE_SIG) ROLE_SOFT[r]=softKey(ROLE_SIG[r]);
+// ---- ②'' グラデーション韻：末尾2母音キー（緩い韻の器）。3母音で痩せたバケットを2母音でまとめて太らせる ----
+const ROLE_V2 = {}; for(const r in ROLE_SOFT) ROLE_V2[r]=ROLE_SOFT[r].slice(-2);
+
+// ---- ③ キャラクター：使う役割＋文テンプレ（フレーム）。b や母音キーは持たず、役割から自動導出 ----
+//   フレーム：{p:位置, ra:スロットaの役割, rb:スロットbの役割(省略可＝単一韻語), f:文型}
+const FIGHTERS = {
+  koji:{ name:"麹菌", emoji:"🌾", desc:"糖化を司る酒の設計者。国菌にして静かな実力者。", wordRhyme:true,
+    roles:["koji","person","mill","bitter","spirit","fruit","aroma","umami","junmai","hakumai","komeu","kojikin","kakemai"], frames:[
+      // 3語韻（3スロット・ソリッド）─ 両句末＋中間で計3語が踏む見せ場
+      {p:"end",ra:"koji",rb:"koji",rc:"koji",f:`蔵に舞うは {a}／束ねて動かす {b} と {c}`},
+      {p:"multi",ra:"person",rb:"koji",rc:"koji",f:`{a}が育てる {b}／蔵に放つは 我が{c}`},
+      // ソリッド（両句末で踏み合う）─ oui を4位置そろえて全行ソリッド化
+      {p:"head",ra:"person",rb:"koji",f:`采配ふるうは 蔵の{a}／糖化を担う 我が{b}`},
+      {p:"mid", ra:"koji",rb:"koji",f:`蔵を染めるは この{a}／芯まで届く 我が{b}`},
+      {p:"end", ra:"koji",rb:"person",f:`糖化まかせろ この{a}／すべて束ねる 蔵の{b}`},
+      {p:"multi",ra:"koji",rb:"koji",f:`舞い上がるは この{a}／束ねて動かす 我が{b}`},
+      {p:"end", ra:"aroma",rb:"fruit",f:`立ちのぼるは 甘き{a}／熟れて香る 白き{b}`},
+      {p:"multi",ra:"mill",rb:"bitter",f:`削って磨いた {a}／雑味を抑えた {b}`},
+      // 語尾を揃える（行末が韻語）─ 弱バケット uai/uii/eai を行末で踏む
+      {p:"head",ra:"komeu",f:`菌糸を這わす 蒸した米／削って磨いた この{a}`},
+      {p:"mid", ra:"umami",f:`削られた米 溶かしてく／糖化が生むは 深き{a}`},
+      {p:"end", ra:"junmai",f:`これぞ製麹 底力／蒸米溶かして 醸す{a}`},
+      {p:"multi",ra:"hakumai",f:`芯まで這わす 白き菌糸／削って磨いた この{a}`},
+      {p:"head",ra:"kojikin",f:`蔵に放って 糖化する／国菌の名は 我が{a}`},
+      {p:"mid", ra:"kojikin",f:`白き菌糸を 這わすのは／製麹極めた この{a}`},
+      {p:"end", ra:"kojikin",f:`糖化の頂 極めるぜ／蔵を統べるは この{a}`},
+      {p:"mid", ra:"kakemai",f:`糖化まかせろ 隙見せねぇ／蒸して溶かした この{a}`},
+      {p:"end", ra:"kakemai",f:`製麹こそが 品質決める／芯まで攻める 蒸れた{a}`},
+      {p:"multi",ra:"kakemai",f:`菌糸を伸ばす 蒸れた米／削って磨いた この{a}`},
+      {p:"head",ra:"kakemai",f:`蒸した{a}に 菌糸を這わす／糖化まかせろ 隙は見せねぇ`},
+      {p:"mid", ra:"kakemai",f:`その{a} 芯まで攻める／製麹こそが 品質決める`},
+      {p:"end", ra:"kakemai",f:`菌糸を伸ばすは 蒸れた{a}／糖化の頂 極めるぜ`},
+      {p:"multi",ra:"kakemai",f:`{a}を溶かして 旨味を出す／製麹こそが 品質決める`},
+      {p:"head",ra:"kojikin",rb:"kojikin",f:`{a}に{b} 蔵に放って／糖化の采配 隙は見せねぇ`},
+      {p:"mid", ra:"kojikin",rb:"kojikin",f:`{a}も{b}も 俺の眷属／製麹こそが 品質決める`},
+      {p:"end", ra:"kojikin",f:`国菌の名は 我が{a}／糖化の頂 極めるぜ`},
+      {p:"multi",ra:"kojikin",f:`{a}が這わす 白き菌糸／製麹こそが 品質決める`},
+      {p:"head",ra:"komeu",f:`{a}を蒸して 菌糸を這わす／糖化まかせろ 隙は見せねぇ`},
+      {p:"mid", ra:"komeu",f:`削った{a} 芯まで攻める／製麹こそが 品質決める`},
+      {p:"head",ra:"umami",f:`糖化が生むは 深き{a}／米の甘みを 引き出すぜ`},
+      {p:"mid", ra:"umami",f:`その{a} 麹の仕事／削られた米 溶かしてく`},
+      {p:"end", ra:"junmai",f:`蒸米溶かして 醸す{a}／これぞ製麹 底力`},
+      {p:"multi",ra:"junmai",rb:"umami",f:`{a}に宿る 深き{b}／麹あってこそ 酒になる`},
+      {p:"head",ra:"hakumai",f:`削って磨いた この{a}／菌糸を芯まで 這わすんだ`},
+      {p:"mid", ra:"hakumai",f:`蒸した{a}に 菌糸を伸ばす／糖化まかせろ 隙は見せねぇ`},
+      {p:"multi",ra:"hakumai",rb:"umami",f:`{a}に宿す 深き{b}／麹あってこそ 酒になる`},
+      {p:"head",ra:"koji",rb:"koji",f:`{a}に{b} 蔵に舞わせ／糖化の采配 隙は見せねぇ`},
+      {p:"mid", ra:"koji",rb:"koji",f:`研ぎ澄ました{a} 極めた{b}／蔵の奥から 攻め続ける`},
+      {p:"multi",ra:"koji",rb:"koji",f:`{a}も{b}も 俺が束ねる／製麹こそが 品質決める`},
+      {p:"head",ra:"person",rb:"koji",f:`{a}が采配 蔵を仕切る／育て上げるは 我が{b}`},
+      {p:"end", ra:"person",rb:"koji",f:`糖化の主役は 育てた{b}／それを束ねる 蔵の{a}`},
+      {p:"end", ra:"person",rb:"person",f:`蔵に号令 かける{a}／誰もが認める 我が{b}`},
+      {p:"end", ra:"koji",rb:"koji",f:`蔵を染めるは この{a}／芯まで届くは 我が{b}`},
+      {p:"mid", ra:"koji",rb:"koji",f:`比べてみろよ {a}と{b}／製麹の格が まるで違う`},
+      {p:"multi",ra:"person",rb:"koji",f:`{a}が指させ 舞う{b}／製麹こそが 品質決める`},
+      {p:"head",ra:"mill",rb:"spirit",f:`{a}削るは 職人の{b}／雑味を落として 芯を残す`},
+      {p:"end", ra:"mill",rb:"bitter",f:`磨き抜かれて 生きる{a}／雑味残さぬ 抑えた{b}`},
+      {p:"mid", ra:"mill",rb:"mill",f:`{a}に{b} 削り抜く／芯まで澄んで 一級品`},
+      {p:"multi",ra:"mill",rb:"spirit",f:`{a}に込める 職人の{b}／製麹こそが 品質決める`},
+      {p:"end", ra:"bitter",rb:"spirit",f:`最後に抑える この{a}／裏で支える 俺の{b}`},
+      {p:"mid", ra:"bitter",rb:"spirit",f:`効かせた{a} 込めた{b}／芯まで通して 隙は見せねぇ`},
+      {p:"end", ra:"mill",rb:"mill",f:`丁寧に磨く この{a}／さばけ極めた 我が{b}`},
+      {p:"head",ra:"mill",rb:"bitter",f:`{a}を磨けば 締まる{b}／雑味を落として 芯を残す`},
+      {p:"multi",ra:"bitter",rb:"spirit",f:`{a}に{b} 全部乗せ／製麹こそが 品質決める`},
+      {p:"mid", ra:"mill",rb:"spirit",f:`研いだ{a} 込めた{b}／蔵の奥から 攻め続ける`},
+      {p:"head",ra:"aroma",rb:"fruit",f:`{a}立ち上り 甘き{b}／糖化が生むは 芳しき香`},
+      {p:"end", ra:"aroma",rb:"fruit",f:`蒸米溶かして 生む{a}／鼻をくすぐる 熟れた{b}`},
+      {p:"mid", ra:"aroma",rb:"fruit",f:`その{a} 香る{b}／糖化の設計 俺が描く`},
+      {p:"multi",ra:"aroma",rb:"aroma",f:`{a}に{b} 立ちのぼる／糖化の土台 これぞ底力`},
+      {p:"multi",ra:"fruit",rb:"fruit",f:`{a}に{b} 香り重ね／甘き誘惑 客を酔わす`},
+    ]},
+  yeast:{ name:"清酒酵母", emoji:"🫧", desc:"香りとアルコールのスター。セレビシエの申し子。", wordRhyme:true,
+    roles:["fruit","aroma","type","gin","degree","koubo","hakkou","hanayaka","awa"], frames:[
+      // 3語韻（3スロット・ソリッド）─ 酵母一族を3語で踏む見せ場
+      {p:"end",ra:"koubo",rb:"koubo",rc:"koubo",f:`もろみ沸かすは {a}／香りを操る {b} {c}`},
+      // 発酵の泡（aaa・物）─ 高泡/玉泡/岩泡。hanayaka(様子)と同母音で同居し踏み合う
+      {p:"head",ra:"awa",f:`もろみを沸かせ 攻めまくる／タンクに立つは 我が{a}`},
+      {p:"mid", ra:"awa",f:`二億の同胞 湧き上がる／もろみに躍るは この{a}`},
+      {p:"end", ra:"awa",f:`香りの頂 俺が獲る／もろみが立てる この{a}`},
+      {p:"multi",ra:"awa",rb:"awa",f:`もろみに湧くは この{a}／攻めて盛り立つ 我が{b}`},
+      // 香味の形容（aaa）─ 華やか/爽やか/鮮やか/しなやか で踏む新バケット（行末で踏む）
+      {p:"head",ra:"hanayaka",f:`鼻をくすぐる 攻めの香り／グラスに咲くは {a}`},
+      {p:"mid", ra:"hanayaka",f:`二億の同胞 攻める舞台／立ちのぼる香り 実に{a}`},
+      {p:"end", ra:"hanayaka",f:`香りの頂 俺が獲る／極めた吟醸 実に{a}`},
+      {p:"end", ra:"hanayaka",f:`セレビシエ仕込み 誰も敵わねぇ／俺が生む香り どこまでも{a}`},
+      {p:"multi",ra:"hanayaka",rb:"hanayaka",f:`攻めの一手は {a}／引きの余韻は {b}`},
+      // ソリッド（両句末で踏み合う）─ uiu を4位置そろえて全行ソリッド化
+      {p:"head",ra:"type",rb:"type",f:`攻めて極める {a}／香り高める {b}`},
+      {p:"mid", ra:"type",rb:"type",f:`華やぎ攻める {a}／深く漂う {b}`},
+      {p:"end", ra:"type",rb:"type",f:`華やぎ極めた {a}／深く漂う {b}`},
+      {p:"multi",ra:"type",rb:"type",f:`次々仕掛ける {a}／濃く仕上げる {b}`},
+      {p:"head",ra:"aroma",rb:"fruit",f:`鼻を抜けるは {a}／甘く香る 熟れた{b}`},
+      {p:"end", ra:"gin",rb:"degree",f:`華やぎ極めた {a}／匂い立つは {b}`},
+      {p:"multi",ra:"koubo",rb:"koubo",f:`もろみ沸かすは {a}／香りを操る {b}`},
+      {p:"head",ra:"hakkou",f:`{a}を沸かせ 香り立てる／二億の同胞 攻める舞台`},
+      // 語尾を揃える（行末が韻語）─ 弱バケット aou を行末で踏む
+      {p:"mid", ra:"hakkou",f:`グラス開ければ 場が湧く／もろみ沸かせる この{a}`},
+      {p:"end", ra:"hakkou",f:`香りの頂 俺が獲る／攻めて極める この{a}`},
+      {p:"multi",ra:"hakkou",f:`誰も敵わねぇ セレビシエ／もろみ操る この{a}`},
+      {p:"mid", ra:"hakkou",f:`その{a} 俺の独壇場／グラス開ければ 場が湧く`},
+      {p:"end", ra:"hakkou",f:`もろみを沸かす この{a}／香りの頂 俺が獲る`},
+      {p:"multi",ra:"hakkou",f:`{a}の力で 攻めまくる／セレビシエ仕込み 誰も敵わねぇ`},
+      {p:"head",ra:"koubo",rb:"koubo",f:`{a}を操り 香り生む{b}／セレビシエ仕込み 誰も敵わねぇ`},
+      {p:"mid", ra:"koubo",rb:"koubo",f:`その{a} 攻めの{b}／グラス開ければ 場が湧く`},
+      {p:"end", ra:"koubo",rb:"koubo",f:`香りを決めるは 我が{a}／発酵極める この{b}`},
+      {p:"multi",ra:"koubo",rb:"koubo",f:`{a}に{b} 沸き立つもろみ／二億の同胞 攻める舞台`},
+      {p:"head",ra:"aroma",rb:"fruit",f:`{a}放てば 甘き{b}／鼻腔を抜けて 客を酔わす`},
+      {p:"end", ra:"aroma",rb:"fruit",f:`グラスに満ちる この{a}／立ちのぼるは 熟れた{b}`},
+      {p:"mid", ra:"aroma",rb:"fruit",f:`その{a} 香る{b}／薫りの高さで 場を攫う`},
+      {p:"multi",ra:"aroma",rb:"aroma",f:`{a}に{b} 立ちのぼる／セレビシエ仕込み 誰も敵わねぇ`},
+      {p:"multi",ra:"fruit",rb:"fruit",f:`{a}に{b} 香り重ね／甘き誘惑 客を酔わす`},
+      {p:"head",ra:"fruit",rb:"aroma",f:`甘き{a} 立ちのぼる{b}／グラスの中で 魅せる舞台`},
+      {p:"head",ra:"type",rb:"type",f:`{a}を極めて 攻める{b}／香りの高さで 頂を取る`},
+      {p:"mid", ra:"type",rb:"type",f:`その{a} 攻めの{b}／グラス開ければ 場が湧く`},
+      {p:"end", ra:"type",rb:"type",f:`華やぎ極めりゃ 生む{a}／深く漂う 濃き{b}`},
+      {p:"multi",ra:"type",rb:"type",f:`{a}に{b} 攻め立てて／セレビシエ仕込み 誰も敵わねぇ`},
+      {p:"head",ra:"gin",rb:"degree",f:`{a}の香り キレが{b}／鼻を掴んで 離しゃしねぇ`},
+      {p:"end", ra:"gin",rb:"degree",f:`華やぎ極める 我が{a}／立ち上る香り もはや{b}`},
+      {p:"mid", ra:"degree",rb:"degree",f:`匂い{a} キレも{b}／グラス開ければ 場が湧く`},
+      {p:"multi",ra:"gin",rb:"gin",f:`{a}に{b} 攻める毎日／香りの頂 俺が獲る`},
+      {p:"multi",ra:"degree",rb:"degree",f:`{a}に{b} 攻め続け／香りの頂 俺が獲る`},
+    ]},
+  toji:{ name:"杜氏", emoji:"👘", desc:"蔵を統べる総司令。経験と貫禄の頭領。", wordRhyme:true,
+    roles:["person","koji","gin","degree","type","vessel","karakuchi","hakkou","kanban","sakerui","shikomi","nobiyaka","nameraka"], frames:[
+      // 3語韻（3スロット・ソリッド）─ 酒質を3語で踏む見せ場
+      {p:"end",ra:"type",rb:"type",rc:"type",f:`自在に操る {a}／狙って仕上げる {b} {c}`},
+      // 口当たりの形容（eaa・様子）─ なめらか。soft韻 iaa で nobiyaka/kanban と近似で踏み合う（響き韻）
+      {p:"head",ra:"nameraka",f:`蔵の一年 磨き込む／仕上がる口当たり 実に{a}`},
+      {p:"end", ra:"nameraka",f:`温度も日数も 読み切って／喉を通るは どこまでも{a}`},
+      {p:"multi",ra:"kanban",rb:"nameraka",f:`軒に掲げる 我が{a}／口当たりは 実に{b}`},
+      // 酒質の形容（iaa・様子）─ のびやか/きらびやか。kanban(物)と同母音で同居し踏み合う
+      {p:"head",ra:"nobiyaka",f:`蔵の一年 詰め込んだ／仕上がる酒質 実に{a}`},
+      {p:"mid", ra:"nobiyaka",f:`温度も日数も 読み切って／狙った味わい どこまでも{a}`},
+      {p:"end", ra:"nobiyaka",f:`寸分違わず 決めてやる／出来た酒質 なんとも{a}`},
+      {p:"multi",ra:"kanban",rb:"nobiyaka",f:`軒に掲げる 我が{a}／仕上がりゃ酒は 実に{b}`},
+      // 酒造工程（ioi）─ 搾り/仕込み/三段仕込み/濁り で踏む新バケット（行末で踏む）
+      {p:"head",ra:"shikomi",f:`蔵の一年 詰め込むぜ／すべてを懸けた 俺の{a}`},
+      {p:"mid", ra:"shikomi",f:`温度も日数も 読み切って／狙い違わず 決める{a}`},
+      {p:"end", ra:"shikomi",f:`蔵の秩序は 俺が敷く／一切妥協せぬ この{a}`},
+      {p:"end", ra:"shikomi",f:`米と麹を 操って／寸分違わぬ 俺の{a}`},
+      {p:"multi",ra:"shikomi",rb:"shikomi",f:`任せておけよ この{a}／全部見切った 我が{b}`},
+      // 蔵の酒・振る舞い（iae）─ 地酒/にごり酒/おり酒/隠し酒で踏む新バケット（行末で踏む）
+      {p:"head",ra:"sakerui",f:`蔵の一年 詰め込んだ／飲んでみやがれ 我が{a}`},
+      {p:"mid", ra:"sakerui",f:`酌み交わすのが 蔵の粋／今宵振る舞う この{a}`},
+      {p:"end", ra:"sakerui",f:`全国轟く 我が名前／杜氏が誇る この{a}`},
+      {p:"end", ra:"sakerui",f:`一年かけて 醸したぜ／飲んで確かめろ この{a}`},
+      {p:"multi",ra:"sakerui",rb:"sakerui",f:`ずらり並べた この{a}／蔵が誇るは 我が{b}`},
+      // 蔵の看板（iaa）─ 銘柄・杉玉で踏む新バケット
+      {p:"end", ra:"kanban",f:`蔵の誇りを 背負ってる／軒に掲げる 我が{a}`},
+      {p:"end", ra:"kanban",f:`蔵の格なら 負けやせん／全国轟く この{a}`},
+      {p:"head",ra:"kanban",f:`{a}掲げりゃ 蔵が締まる／杜氏の意地が 酒に出る`},
+      {p:"mid", ra:"kanban",f:`その{a} 蔵の看板／一年通して 味を守る`},
+      {p:"multi",ra:"kanban",f:`{a}を背負って 立つ蔵元／杜氏の技を 世に示す`},
+      // ソリッド（両句末で踏み合う）─ oui を4位置そろえて全行ソリッド化
+      {p:"head",ra:"person",rb:"koji",f:`采配ふるうは 蔵の{a}／糖化を担う 我が{b}`},
+      {p:"mid", ra:"koji",rb:"koji",f:`蔵を染めるは この{a}／芯まで届く 我が{b}`},
+      {p:"end", ra:"person",rb:"vessel",f:`采配きめるは 蔵の{a}／酒を満たす この{b}`},
+      {p:"multi",ra:"person",rb:"person",f:`蔵を仕切る {a}／束ねて率いる {b}`},
+      {p:"mid", ra:"type",rb:"type",f:`自在に操る {a}／狙って仕上げる {b}`},
+      {p:"end", ra:"gin",rb:"degree",f:`三段で生む {a}／完成度は もはや{b}`},
+      {p:"head",ra:"karakuchi",f:`狙った{a} 寸分違わず／温度管理は 俺の技`},
+      // 語尾を揃える（行末が韻語）─ 弱バケット aui/aou を行末で踏む
+      {p:"mid", ra:"karakuchi",f:`酒質は 俺の思うまま／攻めて削り出す この{a}`},
+      {p:"end", ra:"karakuchi",f:`蔵の一年 詰めてやる／狙い違わず 決める{a}`},
+      {p:"multi",ra:"karakuchi",f:`一発で出す 狙った酒／振り切るは この{a}`},
+      {p:"head",ra:"hakkou",f:`蔵を回すは 俺の采配／自在に操る この{a}`},
+      {p:"mid", ra:"hakkou",f:`温度管理は 俺の技／狙って仕切る この{a}`},
+      {p:"end", ra:"hakkou",f:`蔵の頂 俺が獲る／寸分違わず 決める{a}`},
+      {p:"mid", ra:"karakuchi",f:`その{a} 攻めの設計／酒質は 俺の思うまま`},
+      {p:"end", ra:"karakuchi",f:`削り極めて 生む{a}／蔵の一年 詰めてやる`},
+      {p:"multi",ra:"karakuchi",f:`{a}に振り切る この一本／狙った酒質 一発で出す`},
+      {p:"head",ra:"hakkou",f:`{a}を操り 蔵を回す／狙った酒質 一発で出す`},
+      {p:"mid", ra:"hakkou",f:`その{a} 俺の采配／温度管理は 俺の技`},
+      {p:"end", ra:"hakkou",f:`寸分違わず 決める{a}／蔵の一年 詰めてやる`},
+      {p:"multi",ra:"hakkou",f:`{a}を仕切る この頭／蔵の頂 俺が獲る`},
+      {p:"head",ra:"person",rb:"vessel",f:`{a}が満たす 蔵の{b}／今宵の一献 振る舞うぜ`},
+      {p:"mid", ra:"vessel",rb:"vessel",f:`{a}に{b} 酒を湛えて／飲みねぇ今宵は 無礼講`},
+      {p:"end", ra:"person",rb:"vessel",f:`酒を注ぐは 蔵の{a}／受けて飲み干せ この{b}`},
+      {p:"multi",ra:"vessel",rb:"vessel",f:`{a}に{b} ずらり並べて／蔵の一年 今 振る舞う`},
+      {p:"head",ra:"person",rb:"koji",f:`{a}が采配 蔵を仕切る／育て上げるは 我が{b}`},
+      {p:"end", ra:"person",rb:"koji",f:`温度を決めるは この{a}／芯まで届くは 蔵の{b}`},
+      {p:"mid", ra:"person",rb:"person",f:`その{a} 蔵の{b}／若い蔵人 束ねてく`},
+      {p:"multi",ra:"person",rb:"koji",f:`{a}が指させ 舞う{b}／狙った酒質 一発で出す`},
+      {p:"head",ra:"person",rb:"person",f:`{a}が先頭 続くは{b}／蔵の秩序は 俺が決める`},
+      {p:"end", ra:"koji",rb:"koji",f:`蔵を染めるは この{a}／束ねて動かす 我が{b}`},
+      {p:"mid", ra:"koji",rb:"koji",f:`比べてみろよ {a}と{b}／采配ひとつで 蔵が動く`},
+      {p:"head",ra:"gin",rb:"degree",f:`{a}造りは もはや{b}／狙った香り 寸分違わず`},
+      {p:"end", ra:"gin",rb:"degree",f:`三段仕込みで 生む{a}／その完成度 もはや{b}`},
+      {p:"mid", ra:"degree",rb:"degree",f:`精度は{a} キレも{b}／温度管理は 俺の技`},
+      {p:"multi",ra:"gin",rb:"gin",f:`{a}に{b} 毎年通す／狙った酒質 一発で出す`},
+      {p:"head",ra:"type",rb:"type",f:`{a}も{b}も 俺の設計／狙った酒質 自在に操る`},
+      {p:"mid", ra:"type",rb:"type",f:`その{a} 攻めの{b}／酒質設計 俺の頭`},
+      {p:"end", ra:"type",rb:"type",f:`濃く深く攻めりゃ 生む{a}／熟成任せりゃ 化ける{b}`},
+      {p:"multi",ra:"type",rb:"type",f:`{a}に{b} 操る俺／蔵の頂 俺が獲る`},
+    ]},
+  lactic:{ name:"乳酸菌", emoji:"🦠", desc:"生酛の守護神。雑菌を駆逐する縁の下の力持ち。", wordRhyme:true,
+    roles:["type","bug","umami","junmai","pear","shukuhai","yamahai","sweet","banzai","moto","shubo","acid","moromi"], frames:[
+      // 3語韻（3スロット・ソリッド）─ 酒質を3語で踏む見せ場
+      {p:"end",ra:"type",rb:"type",rc:"type",f:`生酛が生む {a}／時をかけ醸す {b} {c}`},
+      // 生酛・酒母・仕込み（ooi）─ 醪/山卸し/踊り/床もみ で踏む新バケット（行末で踏む）
+      {p:"head",ra:"moromi",f:`酸を利かせて 蔵を守る／じっくり育てる この{a}`},
+      {p:"mid", ra:"moromi",f:`雑菌散らして 場を整え／泡が沸き立つ 我が{a}`},
+      {p:"end", ra:"moromi",f:`寒の仕込みで 練り上げる／生酛が生きる この{a}`},
+      {p:"end", ra:"moromi",f:`縁の下から 酒を守る／静かに滾る この{a}`},
+      {p:"multi",ra:"moromi",rb:"moromi",f:`蔵が湧くは この{a}／生酛が育てる 我が{b}`},
+      // ソリッド（両句末で踏み合う）─ uiu を4位置そろえて全行ソリッド化（typeは6語）
+      {p:"head",ra:"type",rb:"type",f:`生酛が生む {a}／時をかけ醸す {b}`},
+      {p:"mid", ra:"type",rb:"type",f:`深く仕上げる {a}／攻めて極む {b}`},
+      {p:"end", ra:"type",rb:"type",f:`酸で支える {a}／深く仕上げる {b}`},
+      {p:"multi",ra:"type",rb:"type",f:`次々攻める {a}／深く残す {b}`},
+      {p:"head",ra:"acid",f:`{a}を効かせ 骨格締める／雑菌散らして 蔵を守る`},
+      // 語尾を揃える（行末が韻語）─ uai/aai を行末で踏む
+      {p:"head",ra:"umami",f:`雑菌散らして 蔵を守る／じわり広がる 深き{a}`},
+      {p:"mid", ra:"junmai",f:`pH下げて 場を整える／だから仕上がる 上等{a}`},
+      {p:"end", ra:"pear",f:`縁の下から 深み出す／甘く香るは 熟れた{a}`},
+      {p:"multi",ra:"bug",f:`生酛の底で 酸を効かせ／蔵を動かす この{a}`},
+      {p:"end", ra:"shukuhai",f:`仕上がる酒を 高く掲げ／飲み干す一杯 我が{a}`},
+      {p:"head",ra:"yamahai",f:`雑菌散らして 蔵を守る／丹精込めた この{a}`},
+      {p:"mid", ra:"sweet",f:`時間かけても 価値がある／じわり広がる 深き{a}`},
+      {p:"end", ra:"banzai",f:`生酛仕込みの 底力／仕上がる酒に 皆で{a}`},
+      {p:"multi",ra:"yamahai",f:`酵母の舞台 整えて／蔵を支える この{a}`},
+      {p:"mid", ra:"acid",f:`その{a} キレの源／縁の下から 深み出す`},
+      {p:"end", ra:"acid",f:`じわり広がる 深き{a}／それが乳酸の 生き様だ`},
+      {p:"multi",ra:"acid",f:`{a}が生むは 味の背骨／生酛の底力 深く残す`},
+      {p:"head",ra:"shubo",f:`{a}育てりゃ 酸が効く／雑菌散らして 蔵を守る`},
+      {p:"mid", ra:"shubo",f:`その{a} 乳酸の砦／時をかけても 価値がある`},
+      {p:"end", ra:"shubo",f:`丹精込めた この{a}／それが乳酸の 生き様だ`},
+      {p:"multi",ra:"shubo",f:`{a}に宿る 乳酸の伝統／生酛の底力 深く残す`},
+      {p:"head",ra:"type",rb:"type",f:`生酛が生むは 深き{a}／時をかけ醸す 我が{b}`},
+      {p:"mid", ra:"type",rb:"type",f:`その{a} 攻めの{b}／縁の下から 深み出す`},
+      {p:"end", ra:"type",rb:"type",f:`酸で骨格 支える{a}／深く仕上げる 極み{b}`},
+      {p:"multi",ra:"type",rb:"type",f:`{a}に{b} 攻め立てて／生酛の底力 深く残す`},
+      {p:"head",ra:"bug",f:`{a}が動けば 蔵が変わる／雑菌散らして 底を支える`},
+      {p:"end", ra:"umami",f:`縁の下から 押し出す{a}／それが乳酸の 生き様だ`},
+      {p:"head",ra:"umami",f:`じわり広がる 深き{a}／pH下げて 蔵を守る`},
+      {p:"mid", ra:"junmai",f:`狙うは{a} 生酛仕込み／時をかけても 価値がある`},
+      {p:"end", ra:"junmai",f:`だから仕上がる 上等{a}／縁の下から 酒を支え`},
+      {p:"multi",ra:"pear",f:`香り立つのは まるで{a}／生酛の底力 深く残す`},
+      {p:"mid", ra:"pear",f:`甘く香るは 熟れた{a}／陰の主役は この俺だ`},
+      {p:"multi",ra:"shukuhai",f:`仕上がる酒に みなで{a}／縁の下から 酒を支え`},
+      {p:"end", ra:"shukuhai",f:`飲み干す一杯 高く{a}／それが乳酸の 生き様だ`},
+      {p:"multi",ra:"bug",rb:"umami",f:`{a}が育む 深き{b}／雑菌駆逐 陰の主役`},
+      {p:"head",ra:"yamahai",f:`丹精込めた この{a}／雑菌散らして 蔵を守る`},
+      {p:"mid", ra:"yamahai",f:`酵母の舞台 整える{a}／時間かけても 価値がある`},
+      {p:"end", ra:"sweet",f:`じわり広がる 深き{a}／生酛仕込みの 底力`},
+      {p:"mid", ra:"banzai",f:`仕上がる酒に みなで{a}／生酛の底力 深く残す`},
+      {p:"multi",ra:"yamahai",rb:"sweet",f:`骨太の{a} 豊かな{b}／時間かけても 価値がある`},
+      {p:"head",ra:"sweet",rb:"banzai",f:`深き{a} 飲めば{b}／生酛仕込みの 底力`},
+      {p:"head",ra:"moto",f:`{a}仕込みで 酸を効かせ／雑菌散らして 蔵を守る`},
+      {p:"mid", ra:"moto",f:`その{a} 乳酸の魂／時をかけても 価値がある`},
+      {p:"end", ra:"moto",f:`古式ゆかしき この{a}／それが乳酸の 生き様だ`},
+      {p:"multi",ra:"moto",f:`{a}に宿る 受け継ぐ伝統／生酛の底力 深く残す`},
+    ]},
+  rice:{ name:"酒米", emoji:"🍚", desc:"すべての原点。心白を抱く酒造好適米の王様。", wordRhyme:true,
+    roles:["mill","bitter","spirit","grain","sweet","banzai","umami","junmai","pear","shukuhai","variety","type","komeu","kakemai","shinshu","genshu"], frames:[
+      // 3語韻（3スロット・ソリッド）─ 酒質を3語で踏む見せ場（varietyは7語で3枠には小さく反復増→typeを使用）
+      {p:"end",ra:"type",rb:"type",rc:"type",f:`磨き抜いて 生む{a}／芯まで攻めて {b} {c}`},
+      // 搾ったままの酒（eiu・産酒）─ 原酒/生原酒。soft韻 iiu で shinshu と近似で踏み合う（響き韻）
+      {p:"head",ra:"genshu",f:`原料あってこそ 酒になる／搾ってそのまま この{a}`},
+      {p:"end", ra:"genshu",f:`削りの果てに 光る力／薄めず届ける この{a}`},
+      {p:"multi",ra:"shinshu",rb:"genshu",f:`蔵が抱えた この{a}／搾りたて届ける 我が{b}`},
+      // 蔵の酒と水（iiu）─ 新酒/銘酒/仕込み水 で踏む新バケット（行末で踏む・蔵視点で仕込み水も自然に）
+      {p:"head",ra:"shinshu",f:`原料あってこそ 酒になる／蔵が誇るは この{a}`},
+      {p:"mid", ra:"shinshu",f:`磨いた米が 土台を作る／蔵を潤す この{a}`},
+      {p:"end", ra:"shinshu",f:`削りの果てに 光る力／蔵の宝は この{a}`},
+      {p:"multi",ra:"shinshu",rb:"shinshu",f:`米が生み出す この{a}／蔵が抱えた 我が{b}`},
+      // ソリッド（両句末で踏み合う）─ 品種(iii)を4位置そろえて全行ソリッド化（6語）
+      {p:"head",ra:"variety",rb:"variety",f:`蔵が惚れ込む {a}／王座に君臨 {b}`},
+      {p:"mid", ra:"variety",rb:"variety",f:`名だたる系譜 {a}／血統を継ぐ {b}`},
+      {p:"end", ra:"variety",rb:"variety",f:`磨きの果ての {a}／芯まで澄んだ {b}`},
+      {p:"multi",ra:"variety",rb:"variety",f:`王者と呼ばれる {a}／頂に立つ {b}`},
+      {p:"head",ra:"kakemai",f:`蔵に運ばれ 蒸される{a}／芯の心白 崩れやしねぇ`},
+      // 語尾を揃える（行末が韻語）─ aai/uai を行末で踏む
+      {p:"head",ra:"grain",f:`磨き抜かれて 蔵へ向かう／田から旅する この{a}`},
+      {p:"mid", ra:"sweet",f:`心白抱いて どっしり構え／喉越し豊かな 深き{a}`},
+      {p:"end", ra:"banzai",f:`酒米あっての 良い酒だ／飲んだ皆が 叫ぶ{a}`},
+      {p:"multi",ra:"banzai",f:`原料あってこそ 酒になる／蔵に響くは 高き{a}`},
+      {p:"head",ra:"umami",f:`芯の心白 崩れやしねぇ／削りの果てに 宿る{a}`},
+      {p:"mid", ra:"junmai",f:`原料あってこそ 酒になる／その名を名乗る 上等{a}`},
+      {p:"end", ra:"pear",f:`磨き抜かれた 底力／甘く香るは まるで{a}`},
+      {p:"multi",ra:"shukuhai",f:`削りの果てに 光る力／蔵に響くは 高き{a}`},
+      {p:"mid", ra:"kakemai",f:`その{a} 磨きの果て／原料あってこそ 酒になる`},
+      {p:"end", ra:"kakemai",f:`もろみを支える この{a}／削りの果てに 光る力`},
+      {p:"multi",ra:"kakemai",f:`{a}が下地 蔵を満たす／磨き抜かれた 底力`},
+      {p:"head",ra:"komeu",f:`磨き抜かれた この{a}／芯の心白 崩れやしねぇ`},
+      {p:"mid", ra:"komeu",f:`削りの果ての {a}／原料あってこそ 酒になる`},
+      {p:"head",ra:"type",rb:"type",f:`磨いた米が 生む{a}／芯まで澄んで 極む{b}`},
+      {p:"mid", ra:"type",rb:"type",f:`その{a} 攻めの{b}／原料あってこそ 酒になる`},
+      {p:"end", ra:"type",rb:"type",f:`削り極めりゃ 生む{a}／熟成映えるは 深き{b}`},
+      {p:"multi",ra:"type",rb:"type",f:`{a}に{b} 支える米／磨き抜かれた 底力`},
+      {p:"head",ra:"mill",rb:"spirit",f:`{a}削られ それでも{b}／芯の心白 崩れやしねぇ`},
+      {p:"end", ra:"mill",rb:"bitter",f:`磨き抜かれて 生きる{a}／雑味残さぬ 抑えた{b}`},
+      {p:"mid", ra:"mill",rb:"mill",f:`{a}に{b} 削り抜く／芯まで澄んで 一級品`},
+      {p:"multi",ra:"mill",rb:"spirit",f:`{a}に込める 職人の{b}／良い酒の道は これで決まる`},
+      {p:"end", ra:"bitter",rb:"spirit",f:`最後に抑える この{a}／芯を支える 俺の{b}`},
+      {p:"head",ra:"mill",rb:"bitter",f:`{a}を磨けば 締まる{b}／雑味を落として 芯を残す`},
+      {p:"mid", ra:"bitter",rb:"spirit",f:`効かせた{a} 込めた{b}／芯まで通して 隙は見せねぇ`},
+      {p:"head",ra:"spirit",f:`削られてなお 燃える{a}／芯の心白 崩れやしねぇ`},
+      {p:"head",ra:"grain",f:`磨き抜かれた この{a}／心白抱いて どっしり構え`},
+      {p:"mid", ra:"grain",f:`田から蔵まで 旅する{a}／原料あってこそ 酒になる`},
+      {p:"multi",ra:"grain",f:`磨き抜かれた この{a}／削りの果てに 光る力`},
+      {p:"multi",ra:"sweet",f:`喉越し豊かな 深き{a}／原料あってこそ 酒になる`},
+      {p:"end", ra:"banzai",f:`飲んだ皆が 叫ぶ{a}／酒米あっての 良い酒だ`},
+      {p:"mid", ra:"banzai",f:`蔵に響くは 高き{a}／原料あってこそ 酒になる`},
+      {p:"head",ra:"grain",rb:"sweet",f:`{a}の中の 王者の{b}／磨き抜かれて 蔵へ向かう`},
+      {p:"end", ra:"grain",rb:"banzai",f:`田から蔵まで 旅する{a}／飲んだ皆が 叫ぶ{b}`},
+      {p:"head",ra:"umami",f:`削りの果てに 宿る{a}／芯の心白 崩れやしねぇ`},
+      {p:"mid", ra:"junmai",f:`その名を名乗る 上等{a}／削りの果てに 光る力`},
+      {p:"end", ra:"pear",f:`甘く香るは まるで{a}／原料あってこそ 酒になる`},
+      {p:"multi",ra:"umami",f:`磨きが生むは 深き{a}／磨き抜かれた 底力`},
+      {p:"multi",ra:"shukuhai",f:`蔵に響くは 高き{a}／原料あってこそ 酒になる`},
+      {p:"end", ra:"umami",rb:"pear",f:`芯の心白 生むは{a}／甘く香るは まるで{b}`},
+      {p:"head",ra:"junmai",rb:"umami",f:`{a}の名乗り 秘めた{b}／原料あってこそ 酒になる`},
+      {p:"head",ra:"variety",rb:"variety",f:`{a}に{b} 名だたる系譜／磨き抜かれて 蔵へ向かう`},
+      {p:"mid", ra:"variety",f:`その{a} 王者の風格／心白抱いて どっしり構え`},
+      {p:"end", ra:"variety",f:`田から蔵まで 名乗るは{a}／原料あってこそ 酒になる`},
+      {p:"multi",ra:"variety",rb:"variety",f:`{a}に{b} 血統誇り／磨き抜かれた 底力`},
+      {p:"mid", ra:"variety",rb:"variety",f:`比べてみろよ {a}と{b}／酒米の格が まるで違う`},
+    ]},
+};
+
+// ---- 香味特性別分類：締めの一献 ----
+const FLAVORS = [
+  "薫酒 ── 華やかフルーティー、吟醸香のタイプ",
+  "爽酒 ── 淡麗でキレのある軽快なタイプ",
+  "醇酒 ── コク深い、生酛系のフルボディ",
+  "熟酒 ── 熟成した複雑な余韻の古酒タイプ",
+  "無濾過生原酒 ── 搾りたての濃厚ジューシー",
+  "ひやおろし ── 夏を越して秋あがりの円熟",
+  "斗瓶囲いの雫酒 ── 袋から滴る一滴の贅",
+];
+
+// ---- リリック生成エンジン（単語シグネチャ方式）----
+// キャラが使えるフレームだけを抽出（役割保有・母音一致・語数）
+function usableFrames(me){
+  const rs = new Set(me.roles);
+  return me.frames.filter(fr=>{
+    if(!rs.has(fr.ra) || !ROLE_WORDS[fr.ra]) return false;
+    const extra=[fr.rb,fr.rc].filter(Boolean);              // {b}{c}（3スロット韻＝3語韻に対応）
+    for(const r of extra){
+      if(!rs.has(r) || !ROLE_WORDS[r]) return false;
+      if(ROLE_SOFT[r] !== ROLE_SOFT[fr.ra]) return false;   // 響き韻で全スロットが揃うこと（自動チェック）
+    }
+    // 同一役割が複数スロットに入る場合、重複回避のため語数が足りること
+    const need={}; [fr.ra,...extra].forEach(r=>need[r]=(need[r]||0)+1);
+    for(const r in need){ if(ROLE_WORDS[r].length < need[r]) return false; }
+    return true;
+  });
+}
+// キャラが生成できる響きバケット一覧（キャラ跨ぎ韻の共通探索に使用）
+function availableSigs(me){ return [...new Set(usableFrames(me).map(fr=>ROLE_SOFT[fr.ra]))]; }
+
+// 1バース生成。forcedKey を渡すと、その母音バケットで踏む（キャラ跨ぎ韻＝相手と同じ母音で返す）
+function buildVerse(me, rnd, forcedKey){
+  const rpk = fr => fr.ra+"|"+(fr.rb||"")+"|"+(fr.rc||"");
+  const usable = usableFrames(me);
+  const sigs = [...new Set(usable.map(fr=>ROLE_SOFT[fr.ra]))];
+  const key = (forcedKey && sigs.includes(forcedKey)) ? forcedKey : sigs[Math.floor(rnd()*sigs.length)];
+  // ---- グラデーション韻：基本は3母音の深い韻。時々2母音まで器を広げて語数を増やす（緩い韻） ----
+  //   痩せキャラ(酒米/清酒酵母)は3母音だと同韻語が9語前後 → 2母音に緩めると15〜23語に増え、反復減＆選択肢増。
+  //   forcedKey(キャラ跨ぎ)は3母音で踏み返すので広げない。広げて実際に語が増える時だけ確率的に緩める。
+  const v2 = key.slice(-2);
+  const tightPool = usable.filter(fr=>ROLE_SOFT[fr.ra]===key);
+  const widePool  = usable.filter(fr=>ROLE_V2[fr.ra]===v2);
+  const wide = !forcedKey && widePool.length>tightPool.length && rnd()<0.5;
+  const fam = wide ? v2 : key;
+  const inBucket = r => wide ? ROLE_V2[r]===v2 : ROLE_SOFT[r]===key;
+  const pool = wide ? widePool : tightPool;
+  // ソリッド行＝前半末尾も後半末尾も韻語（両句末で踏み合う＝一番しっかり決まる形）
+  const solid = fr => { const h=fr.f.split("／"); return h.length===2 && /\{[abc]\}$/.test(h[0].trim()) && /\{[abc]\}$/.test(h[1].trim()); };
+  // このバケットの語数（少ないと2韻語フレーム多用で語が被るため、ソリッド優先は語数の多いバケットのみ）
+  const bucketWords = me.roles.filter(inBucket).reduce((n,r)=>n+(ROLE_WORDS[r]?ROLE_WORDS[r].length:0),0);
+  const preferSolid = bucketWords>=6;
+  const byPos={}; pool.forEach(f=>{(byPos[f.p]=byPos[f.p]||[]).push(f);});
+  const order = shuffle(["head","mid","end","multi"],rnd);
+  const chosen=[]; const usedF=new Set();
+  const endRhyme = fr => /\{[abc]\}$/.test(fr.f.trim());    // 行(バー)が韻語で終わる＝語尾が韻でそろう
+  for(const p of order){
+    let cand=(byPos[p]||[]).filter(f=>!usedF.has(f));
+    const er=cand.filter(endRhyme);                         // ① 行末が韻語＝語尾を揃える行を優先
+    if(er.length) cand=er;
+    const sol=cand.filter(solid);                           // ② さらに両句末で踏むソリッド行を優先（語数の多いバケットのみ）
+    if(preferSolid && sol.length) cand=sol;
+    const used=new Set(chosen.map(rpk));
+    const fresh=cand.filter(f=>!used.has(rpk(f)));           // ③ 未使用の役割ペアを優先→語が分散
+    if(fresh.length) cand=fresh;
+    if(cand.length){ const fr=cand[Math.floor(rnd()*cand.length)]; chosen.push(fr); usedF.add(fr); }
+  }
+  const rest=shuffle(pool.filter(f=>!usedF.has(f)),rnd);
+  while(chosen.length<4 && rest.length) chosen.push(rest.pop());
+  while(chosen.length<4 && pool.length) chosen.push(pool[Math.floor(rnd()*pool.length)]);
+  // KREVA深化：このバケット内で「より長い末尾母音（5→4音）」でそろう最大グループを狙い、韻を深くする
+  //   ただし語数が少ないグループだと同語反復が増えるため、4語以上のグループのみ採用
+  const wl = [...new Set(me.roles.filter(inBucket).flatMap(r=>ROLE_WORDS[r]||[]))];
+  const groupsAt = N => { const g={}; wl.forEach(w=>{const v=vowels(yomiOf(w)); if(v.length>=N){const t=v.slice(-N);(g[t]=g[t]||[]).push(w);}}); return Object.values(g); };
+  let deepSet=null, hardDeep=false;
+  // 強優先する深グループ：5母音は4語以上、4母音は5語以上（少語だと同語反復が増えるため）。深い方(N=5→4)から採用
+  for(const N of [5,4]){ const min=(N===5)?4:5; const big=groupsAt(N).filter(a=>a.length>=min).sort((a,b)=>b.length-a.length)[0]; if(big){ deepSet=new Set(big); hardDeep=true; break; } }
+  // 無ければ 2語以上の最大グループ（同点内でのソフト優先用）
+  if(!deepSet){ for(const N of [5,4]){ const b=groupsAt(N).filter(a=>a.length>=2).sort((a,b)=>b.length-a.length)[0]; if(b){ deepSet=new Set(b); break; } } }
+  // hardDeep(4語以上の深グループ)なら強く優先＝バース全体を4母音以上で踏む(KREVA)。それ以外は反復を避け同点内で優先
+  const cnt={};
+  const pickW = list => {
+    let base=list;
+    if(hardDeep){ const d=list.filter(w=>deepSet.has(w)); if(d.length) base=d; }   // 大グループは強く優先（多母音韻）
+    let mn=Infinity; base.forEach(w=>{const c=cnt[w]||0; if(c<mn)mn=c;});
+    let cd=base.filter(w=>(cnt[w]||0)===mn);                                        // 重複最小
+    if(deepSet && !hardDeep){ const d=cd.filter(w=>deepSet.has(w)); if(d.length) cd=d; }  // 小グループは同点内で優先
+    const w=cd[Math.floor(rnd()*cd.length)]; cnt[w]=(cnt[w]||0)+1; return w;
+  };
+  const lines = shuffle(chosen,rnd).map(fr=>{
+    const used=[];
+    const fill = role => { const av=ROLE_WORDS[role].filter(w=>!used.includes(w)); const w=pickW(av.length?av:ROLE_WORDS[role]); used.push(w); return w; };
+    let t = fr.f.replace("{a}", R(fill(fr.ra)));       // {a}{b}{c} を左から充填。同一役割でも used で重複回避（3語韻対応）
+    if(fr.rb) t = t.replace("{b}", R(fill(fr.rb)));
+    if(fr.rc) t = t.replace("{c}", R(fill(fr.rc)));
+    return t;
+  });
+  // 表示用: この響きバケットを構成する実母音（例 "oui/ooi"＝近似母音で束ねた響き韻）
+  const disp = [...new Set(me.roles.filter(inBucket).map(r=>ROLE_SIG[r]))].join(wide?"+":"/");
+  return {key, disp, fam, wide, lines};
+}
+
+function verseHTML(meId, side, delay, rnd, forcedKey){
+  const me = FIGHTERS[meId];
+  const {disp, lines} = buildVerse(me, rnd, forcedKey);
+  const rk = me.wordRhyme ? `単語韻:-${disp}` : `韻:-${disp}`;
+  return `<div class="verse ${side}" style="animation-delay:${delay}s">
+    <div class="head"><span class="em">${me.emoji}</span>${me.name}<span class="rk">${rk}</span></div>
+    <div class="bars">${lines.join("\n")}</div>
+  </div>`;
+}
+
+function renderBattle(){
+  const [aId,bId] = selected;
+  const bars = parseInt(barsSel.value,10);
+  const seed = (Date.now() ^ (bars*7)) >>> 0;
+
+  const a = FIGHTERS[aId], b = FIGHTERS[bId];
+  nameA.textContent = `${a.emoji} ${a.name}`;
+  nameB.textContent = `${b.emoji} ${b.name}`;
+
+  // キャラ跨ぎ韻：2体が共通で踏める母音バケットを探す
+  const cross = modeSel.value === 'cross';
+  const shared = cross ? availableSigs(a).filter(s=>availableSigs(b).includes(s)) : [];
+  const crossOK = cross && shared.length>0;
+
+  const rounds = Math.max(1, Math.round(bars/4)); // 4小節×往復で1ラウンド
+  let html = "", delay = 0;
+  if(cross && !crossOK){
+    html += `<div class="cheer" style="animation-delay:0s">※ この2体は共通の韻がないため、今回はソロ韻で生成します</div>`;
+  }
+  for(let r=0;r<rounds;r++){
+    // キャラ跨ぎ韻ONなら、このラウンドの共通母音を1つ選び、両者に踏ませる（踏み返し）
+    const fk = crossOK ? shared[Math.floor(rng(seed^((r+7)*911))()*shared.length)] : undefined;
+    html += verseHTML(aId,'a',delay,rng(seed^((r*2+1)*131)),fk); delay+=0.15;
+    html += verseHTML(bId,'b',delay,rng(seed^((r*2+2)*197)),fk); delay+=0.15;
+  }
+  const flavor = FLAVORS[Math.floor(rng(seed^999)()*FLAVORS.length)];
+  html += `<div class="drop">🎤 …mic drop.</div>`;
+  html += `<div class="cheer">🍶 今宵の一杯は「${flavor}」で乾杯</div>`;
+  battle.innerHTML = html;
+
+  beat.innerHTML = Array.from({length:16}).map((_,i)=>`<i style="animation-delay:${(i*0.06).toFixed(2)}s"></i>`).join("");
+  stage.style.display="block";
+  stage.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+// ---- 選択UI ----
+const roster = document.getElementById('roster');
+const barsSel = document.getElementById('bars');
+const modeSel = document.getElementById('mode');
+const go = document.getElementById('go');
+const stage = document.getElementById('stage');
+const battle = document.getElementById('battle');
+const beat = document.getElementById('beat');
+const nameA = document.getElementById('nameA');
+const nameB = document.getElementById('nameB');
+const selHint = document.getElementById('selHint');
+let selected = [];
+
+Object.entries(FIGHTERS).forEach(([id,f])=>{
+  const el = document.createElement('div');
+  el.className='fighter'; el.dataset.id=id;
+  el.innerHTML=`<span class="emoji">${f.emoji}</span><span class="fname">${f.name}</span><span class="fdesc">${f.desc}</span>`;
+  el.onclick=()=>toggle(id);
+  roster.appendChild(el);
+});
+
+function toggle(id){
+  const idx = selected.indexOf(id);
+  if(idx>=0){ selected.splice(idx,1); }
+  else if(selected.length<2){ selected.push(id); }
+  else { selected=[selected[1],id]; }
+  refreshSel();
+}
+function refreshSel(){
+  document.querySelectorAll('.fighter').forEach(el=>{
+    el.classList.remove('sel-a','sel-b');
+    const oldBadge = el.querySelector('.badge'); if(oldBadge) oldBadge.remove();
+    const i = selected.indexOf(el.dataset.id);
+    if(i===0){ el.classList.add('sel-a'); el.insertAdjacentHTML('beforeend','<span class="badge a">赤</span>'); }
+    if(i===1){ el.classList.add('sel-b'); el.insertAdjacentHTML('beforeend','<span class="badge b">青</span>'); }
+  });
+  go.disabled = selected.length!==2;
+  if(selected.length===2){
+    const [a,b]=selected;
+    selHint.innerHTML = `<b style="color:var(--red)">${FIGHTERS[a].name}</b> × <b style="color:var(--blue)">${FIGHTERS[b].name}</b> ── 準備OK！`;
+  }else{
+    selHint.innerHTML = `上から2体を選ぶと対戦成立。1体目が <span style="color:var(--red)">赤コーナー</span>、2体目が <span style="color:var(--blue)">青コーナー</span>。`;
+  }
+}
+
+go.onclick = renderBattle;
+document.getElementById('regen').onclick = renderBattle;
+document.getElementById('swap').onclick = ()=>{ selected.reverse(); refreshSel(); renderBattle(); };
+document.getElementById('reset').onclick = ()=>{ stage.style.display='none'; window.scrollTo({top:0,behavior:'smooth'}); };
+document.getElementById('copy').onclick = ()=>{
+  const text = battle.innerText.replace(/\n{2,}/g,'\n\n');
+  navigator.clipboard.writeText(`🎤 醸造ラップバトル｜${FIGHTERS[selected[0]].name} VS ${FIGHTERS[selected[1]].name}\n\n${text}\n\n— SAKENOTE 醸造ラップバトル ジェネレーター`)
+    .then(()=>toast('リリックをコピーしました！'))
+    .catch(()=>toast('コピーに失敗…手動で選択してください'));
+};
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1800);
+}
+</script>
+</body>
+</html>
