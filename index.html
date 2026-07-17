@@ -38,6 +38,20 @@
   .fighter .badge{position:absolute;top:-9px;right:-9px;font-size:10px;font-weight:800;padding:3px 8px;
                   border-radius:20px;color:#fff}
   .badge.a{background:var(--red)} .badge.b{background:var(--blue)}
+  .pinfo{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--sub);font-size:15px;cursor:pointer;padding:2px 4px;line-height:1;z-index:2;transition:.15s}
+  .pinfo:hover{color:var(--gold);transform:scale(1.15)}
+  .pmodal{position:fixed;inset:0;background:rgba(0,0,0,.66);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+  .pcard{background:var(--bg2);border:1px solid var(--line);border-radius:16px;max-width:640px;width:100%;max-height:85vh;overflow:auto;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .pcard h3{font-family:var(--mincho);font-size:22px;margin:0 0 4px}
+  .pcard .pdesc{color:var(--sub);font-size:12px;margin-bottom:14px}
+  .pcard .prow{font-size:13px;margin:5px 0;line-height:1.65}
+  .pcard .prow b{color:var(--gold2)}
+  .pcard table{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px}
+  .pcard th,.pcard td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;line-height:1.5}
+  .pcard th{color:var(--sub);font-weight:700;white-space:nowrap}
+  .pcard .pdis{color:#e8b0a0} .pcard .presp{color:#a8c8e0}
+  .pcard .pclose{float:right;background:none;border:1px solid var(--line);border-radius:8px;color:var(--sub);cursor:pointer;padding:4px 12px;font-size:12px}
+  .pcard .pclose:hover{color:var(--ink);border-color:var(--gold2)}
   .hint{font-size:12px;color:var(--sub);margin-top:12px;text-align:center}
   .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:18px}
   .opt{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--sub)}
@@ -96,13 +110,43 @@
     <div class="grid" id="roster"></div>
     <p class="hint" id="selHint">上から2体を選ぶと対戦成立。1体目が <span style="color:var(--red)">赤コーナー</span>、2体目が <span style="color:var(--blue)">青コーナー</span>。</p>
     <div class="controls">
+      <label class="opt">生成エンジン
+        <select id="engine"><option value="template" selected>テンプレート (A案)</option><option value="ollama">ローカルLLM (C案)</option><option value="gemini">Gemini AI (B案)</option></select>
+      </label>
       <label class="opt">小節数
         <select id="bars"><option value="4">4小節（ショート）</option><option value="8" selected>8小節（スタンダード）</option><option value="12">12小節（ロング）</option></select>
       </label>
-      <label class="opt">韻モード
+      <label class="opt">ビート
+        <select id="beatSel"><option value="off">なし</option><option value="boombap" selected>ブンバップ</option><option value="lofi">ローファイ</option><option value="trap">トラップ</option><option value="funk">ファンク</option></select>
+      </label>
+      <label class="opt" id="modeOpt">韻モード
         <select id="mode"><option value="solo" selected>ソロ（各自の韻）</option><option value="cross">キャラ跨ぎ韻（踏み返し）</option></select>
       </label>
+      <label class="opt" id="styleOpt" style="display:none;">バトルスタイル
+        <select id="battleStyle"><option value="standard" selected>標準（敬意で締め）</option><option value="savage">ガチ煽り（フルディス）</option></select>
+      </label>
       <button class="btn btn-main" id="go" disabled>▶ バトル開始</button>
+    </div>
+
+    <div class="controls" id="apiKeyArea" style="display:none; margin-top: 14px; width: 100%; justify-content: center; gap: 8px; flex-wrap: wrap;">
+      <label class="opt" style="display: flex; align-items: center; gap: 8px; width: 100%; max-width: 450px;">
+        <span style="white-space: nowrap;">Gemini APIキー:</span>
+        <input type="password" id="apiKey" placeholder="AI Studioで取得したAPIキーを入力" style="flex-grow:1; background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px;">
+        <button class="btn btn-ghost" id="toggleApiKey" style="padding:6px 12px; font-size:12px; margin:0;">表示</button>
+      </label>
+      <span style="font-size:11px; color:var(--sub); display:block; text-align:center; width:100%; margin-top:4px;">※ キーはローカル（localStorage）に保存され、Google APIと直接通信します。</span>
+    </div>
+
+    <div class="controls" id="ollamaArea" style="display:none; margin-top: 14px; width: 100%; justify-content: center; gap: 8px; flex-wrap: wrap;">
+      <label class="opt" style="display:flex; align-items:center; gap:8px;">
+        <span style="white-space:nowrap;">モデル:</span>
+        <input type="text" id="ollamaModel" placeholder="qwen2.5:7b" style="background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px; width:160px;">
+      </label>
+      <label class="opt" style="display:flex; align-items:center; gap:8px;">
+        <span style="white-space:nowrap;">ホスト:</span>
+        <input type="text" id="ollamaHost" placeholder="http://localhost:11434" style="background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px; width:200px;">
+      </label>
+      <span style="font-size:11px; color:var(--sub); display:block; text-align:center; width:100%; margin-top:4px;">※ ローカルのOllamaと直接通信（無料・オフライン）。蓄積したB案の出力を手本にします。要 <code>ollama serve</code> ／ CORSは <code>OLLAMA_ORIGINS=*</code> で許可。</span>
     </div>
   </div>
 
@@ -122,14 +166,21 @@
     </div>
   </div>
 
+  <div id="corpusTray" style="display:none; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin:18px auto 0; max-width:720px; padding:10px 14px; border:1px solid var(--line); border-radius:10px; background:var(--bg2); font-size:12px; color:var(--sub);">
+    <span>🧪 B案コーパス <b id="corpusCount" style="color:var(--ink);">0</b> バトル蓄積（採掘用素材）</span>
+    <button class="btn btn-ghost" id="corpusExport" style="font-size:12px; padding:5px 10px;">⬇ 書き出し(.jsonl)</button>
+    <button class="btn btn-ghost" id="corpusClear" style="font-size:12px; padding:5px 10px;">🗑 クリア</button>
+  </div>
+
   <footer>
     単語シグネチャ・エンジン方式 ── 醸造語を単一辞書に集約し、末尾3母音を自動計算してバケット化。文テンプレの韻スロットに、韻の合う語を差し込んで毎回違うリリックを生成（韻は母音バケットで保証）。用語は麹菌・清酒酵母・生酛の乳酸菌・酒造好適米など醸造の実際にもとづく。<br>
     <span class="kicker">単一HTML / オフライン動作 / APIキー不要</span><br>
     © SAKENOTE ｜ 遊び心の社内ツール<br>
-    <span class="updated" id="updated">最終更新: 2026-07-13 01:41</span>
+    <span class="updated" id="updated">最終更新: 2026-07-17 11:18</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
+<div class="pmodal" id="pmodal" style="display:none;"><div class="pcard" id="pcard"></div></div>
 
 <script>
 /* =========================================================
@@ -681,7 +732,7 @@ function verseHTML(meId, side, delay, rnd, forcedKey){
   </div>`;
 }
 
-function renderBattle(){
+async function renderBattle(){
   const [aId,bId] = selected;
   const bars = parseInt(barsSel.value,10);
   const seed = (Date.now() ^ (bars*7)) >>> 0;
@@ -689,6 +740,17 @@ function renderBattle(){
   const a = FIGHTERS[aId], b = FIGHTERS[bId];
   nameA.textContent = `${a.emoji} ${a.name}`;
   nameB.textContent = `${b.emoji} ${b.name}`;
+
+  startBeat();   // バトル開始でビート再生（クリック=ユーザー操作なので自動再生ブロックに掛からない）
+
+  if (engineSel.value === 'gemini') {
+    await renderBattleGemini(aId, bId, bars);
+    return;
+  }
+  if (engineSel.value === 'ollama') {
+    await renderBattleOllama(aId, bId, bars);
+    return;
+  }
 
   // キャラ跨ぎ韻：2体が共通で踏める母音バケットを探す
   const cross = modeSel.value === 'cross';
@@ -716,6 +778,272 @@ function renderBattle(){
   stage.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
+// ---- キャラクターシート（人格＋相手別ディス）。B案/C案のプロンプトに注入し、演じ分けと論理的ディスを一貫させる ----
+//   dis の攻め口は醸造の実際の関係性に基づく：麹→糖化→酵母が糖を食う／乳酸菌→pH低下で雑菌駆逐→酒母を守る／酵母は高アルコール高酸に弱い／杜氏は全工程を采配／酒米は全ての原料。
+const PERSONA = {
+  koji: { pronoun:"俺（静かな威厳）", tone:"騒がず理詰めで断言する国菌の風格", pride:"国菌。デンプンを糖に変える糖化の設計者。麹なくして酒なし＝並行複発酵の起点", weakness:"製麹は温度湿度に繊細。単体では酒にならず酵母頼み", signature:["糖化","製麹","破精","国菌","眷属"],
+    dis:{ yeast:"糖を作るのは俺、糖がなきゃお前は飢えて踊れない", toji:"采配は認める、だが糖化の設計は俺の領分", lactic:"お前が守るのは酒母だけ、蔵全体を甘くするのは俺", rice:"米は素材、それを酒へ変える魔法が俺" },
+    respect:{ yeast:"だが香りとアルコールを生むのはお前、糖を託す相手として認める", toji:"温度を読み俺を導くその技、確かに本物だ", lactic:"雑菌から守ってくれるお前がいて、安心して糖化できる", rice:"心白という上質な土台をくれるお前あってこそ" } },
+  yeast: { pronoun:"俺（派手なスター気取り）", tone:"華やかで自信家、香りで魅せる、感嘆多め", pride:"アルコールと吟醸香を生む主役セレビシエ。カプロン酸エチル＝りんご様、二億の同胞で泡立て発酵", weakness:"自ら生んだ高アルコール高酸に弱い、麹の糖に依存", signature:["香り","華やか","セレビシエ","もろみ","泡"],
+    dis:{ koji:"糖は作れても酒の華は俺、香りもアルコールも無きゃただの甘い水", lactic:"地味な酸菌、俺の香りの前じゃ影", toji:"操るつもりでも香りを生むのは俺", rice:"磨いた米も俺が香らせなきゃただの飯" },
+    respect:{ koji:"糖をくれるお前なしじゃ俺は始まらない、そこは感謝してる", toji:"俺が暴れられる温度を作るお前の采配は本物だ", lactic:"雑菌を消して舞台を整えるお前、陰の功労者と認める", rice:"お前の心白があるから俺の香りが乗る" } },
+  toji: { pronoun:"儂（わし）／俺、貫禄の頭領", tone:"威厳と統率、経験を語る司令官の命令調", pride:"蔵の全工程を統べる。温度日数配合を読み切る采配。菌を束ねる人の技", weakness:"自らは発酵できない、菌がいなければただの人", signature:["采配","蔵","一年","読み切る","束ねる"],
+    dis:{ koji:"糖化も俺の温度管理あってこそ", yeast:"香りを出させてるのは俺の采配", lactic:"生かすも殺すも俺の手の内", rice:"米を選び磨かせる目も俺" },
+    respect:{ koji:"糖化の設計、お前の仕事は蔵の要だ", yeast:"香りを生むお前は蔵の華、そこは讃える", lactic:"生酛の守りは時間をかけた本物の仕事", rice:"良い米は良い酒の半分、お前が原点だ" } },
+  lactic: { pronoun:"俺（縁の下の凄み）", tone:"地味だがじわり効く、黙って効かせる守護者", pride:"乳酸でpHを下げ雑菌と野生酵母を駆逐し酒母を守る（生酛・山廃）。酵母の舞台を整える陰の主役", weakness:"地味で時間がかかる、速醸に押される、主役ではない", signature:["生酛","山卸し","酸","雑菌駆逐","縁の下","じわり"],
+    dis:{ yeast:"お前が暴れられるのは俺が雑菌を消し舞台を作ったから、酸に守られてるだけ", koji:"その糖が腐らぬよう守るのは俺", toji:"速醸で俺を省くな、生酛の深みは時間をかけた俺だけ", rice:"良い米も雑菌にやられりゃ終わり、守るのは俺" },
+    respect:{ yeast:"俺が守った舞台で華やかに舞うお前は、確かに主役だ", koji:"糖化の力は蔵の生命線、そこは認める", toji:"俺を生酛に選ぶその目利き、さすがだ", rice:"お前という素材が良いほど、守り甲斐がある" } },
+  rice: { pronoun:"俺（原点の王）", tone:"どっしり構えた土台、すべての始まりの風格", pride:"すべての原料。心白（デンプンの核）を抱き磨かれる。山田錦等の血統。米なくして酒なし", weakness:"自らは何もせず、麹酵母人が加工して初めて酒、素材と侮られがち", signature:["心白","磨き","原点","品種","土台"],
+    dis:{ koji:"俺という土台がなきゃお前ら菌は何も食えない", yeast:"香る前にまず俺、始まりは米", lactic:"守る米があってこそのお前", toji:"采配も米あってこそ、原点は俺" },
+    respect:{ koji:"俺を溶かして酒に変えるお前の糖化は、まさに魔法だ", yeast:"俺の心白から香りを咲かせるお前は職人だ", lactic:"俺を雑菌から守るお前がいて、価値が保たれる", toji:"俺を選び磨くその目、蔵の頭領の技だ" } },
+};
+function personaBlock(id, oppId){
+  const f = FIGHTERS[id], p = PERSONA[id]; if(!p) return `【${f?f.name:id}】`;
+  const dis = (p.dis && p.dis[oppId]) || "相手の役割の弱点を突く";
+  const resp = (p.respect && p.respect[oppId]) || "相手の役割を認める";
+  const opp = FIGHTERS[oppId] ? FIGHTERS[oppId].name : "相手";
+  return `【${f.name}】一人称:${p.pronoun}／口調:${p.tone}／誇り:${p.pride}／弱点:${p.weakness}／口癖:${p.signature.join("・")}／${opp}への攻め口(ディス):${dis}／${opp}へのリスペクト:${resp}`;
+}
+// バトルスタイル別の構成指示（B案/C案共通）。savage=最後まで煽り倒す／standard=敵意→敬意で締める
+function styleDirective(){
+  const s = document.getElementById('battleStyle');
+  return (s && s.value === 'savage')
+    ? `【構成：ガチ煽り（フルディス）】終始、容赦なく相手を煽り倒せ。上の"攻め口"の弱点を執拗かつ挑発的に突き、パンチラインで畳みかける。リスペクトや和解では締めず、最後まで勝ち誇れ。ただしディスの根拠は醸造の実際の弱点を保ち、各キャラの口調・誇りは崩さない。人格や容姿の下品な攻撃ではなく、あくまで醸造の役割・技術のマウントの取り合いにすること。`
+    : `【構成：標準】序盤〜中盤は"攻め口"の論理で相手の弱点を鋭く突く。最後のバースでは"リスペクト"の論理で相手の役割を認め、「揃わなければ酒にならない＝共に酒を醸す仲間」という余韻で締める（敵意から敬意への転換）。醸造は相互依存である点を効かせること。`;
+}
+
+async function renderBattleGemini(aId, bId, bars) {
+  const apiKey = apiKeyInput.value.trim();
+  if (!apiKey) {
+    toast('Gemini APIキーを入力してください。');
+    engineSel.value = 'template';
+    engineSel.dispatchEvent(new Event('change'));
+    return;
+  }
+
+  // ローディング表示
+  battle.innerHTML = `<div class="cheer" style="animation-delay: 0s; font-size: 16px; color: var(--gold);">
+    🔮 Gemini AIが極上のリリックを醸造中...<br>
+    <span style="font-size: 12px; color: var(--sub);">（初回は少し時間がかかる場合があります）</span>
+  </div>`;
+  beat.innerHTML = Array.from({length:16}).map((_,i)=>`<i style="animation-delay:${(i*0.06).toFixed(2)}s"></i>`).join("");
+  stage.style.display="block";
+  stage.scrollIntoView({behavior:"smooth",block:"start"});
+
+  const rounds = Math.max(1, Math.round(bars/4)); // 4小節で1バース
+
+  const a = FIGHTERS[aId];
+  const b = FIGHTERS[bId];
+
+  const systemInstruction = `あなたは日本最高峰の日本語ラッパーであり、日本酒醸造の歴史と科学に精通した専門家です。
+与えられた2つのキャラクターによる、熱量が高く知的なラップバトル（交互のバース）を生成してください。
+バトルの長さは合計 ${rounds * 2} バース（交互に各 ${rounds} バースずつ）、1バースは正確に4小節（4行）です。
+
+【対戦カード】
+先攻（赤）：${a.name}（${a.desc}）
+後攻（青）：${b.name}（${b.desc}）
+
+【キャラクターの人格（一貫して演じ分け、口調・誇り・口癖を保つこと）】
+${personaBlock(aId, bId)}
+${personaBlock(bId, aId)}
+
+${styleDirective()}
+
+【超重要ルール：強烈なライミング（韻）の追求】
+1. **脚韻（行末の韻）と中間韻（行中の韻）の両立**:
+   - 各バースの行末では、必ず「3文字〜5文字以上」の長い母音で韻を踏んでください（AABB形式またはAAAA形式）。
+   - さらに、**行の途中（中間）や行の始まり（頭）でも韻を積極的に散りばめてください。**
+   - 1行の中で同じ母音の単語を連続して踏んで畳み掛ける（例：「**精米**（e-i-a-i）して**限界**（e-i-a-i）突破の**展開**（e-i-a-i）」、「**仕込み**（s-i-k-o-m-i）の段階、**絞り**（s-i-b-o-r-i）の限界」など）ことで、リズムに躍動感を出してください。
+2. **アンサーでの踏み返し**: 
+   - 後攻（青）は、先攻（赤）が吐いたリリックの最後の韻（母音）を聞き取り、同じ母音で1行目を踏み返しながらアンサーを返してください。
+3. **韻の可視化**: 
+   - **行末の韻だけでなく、行の途中で踏んでいる韻もすべて**、必ず \`<span class="rhyme">単語</span>\` で囲んでください。母音が一致していることが画面上で一目でわかるようにしてください。
+
+【その他のルール】
+- **キャラクター性**: お互いの醸造における役割（糖化、アルコール生成、酸による殺菌、職人技など）のプライドをぶつけ合ってください。
+- **ディスとアンサー**: 相手の役割の弱点（例：酵母は酸に弱い、麹は温度変化に弱い、等）を論理的かつユーモアを交えて攻撃し、それに対してアンサーを返してください。
+- **専門用語**: 「無濾過生原酒」「並行複発酵」「山卸し」「心白」などの実在する醸造用語をライミングの中に自然に溶け込ませてください。`;
+
+  const prompt = `先攻：${a.name}（${aId}） VS 後攻：${b.name}（${bId}）のラップバトル（合計 ${rounds * 2} バース、各バース4小節）を開始してください。必ず指定されたJSONスキーマに従って出力してください。`;
+
+  const schema = {
+    type: "OBJECT",
+    properties: {
+      verses: {
+        type: "ARRAY",
+        description: "交互に行われるラップバトルの各バースの配列",
+        items: {
+          type: "OBJECT",
+          properties: {
+            characterId: { type: "STRING", description: "キャラクターID ('" + aId + "' または '" + bId + "')" },
+            characterName: { type: "STRING", description: "キャラクター名" },
+            displayRhyme: { type: "STRING", description: "このバースで主に踏んだ韻の母音（例：o-u-i、a-a-i、u-a-iなど）" },
+            lines: {
+              type: "ARRAY",
+              items: { type: "STRING", description: "リリックの1行（4小節なので4要素）。韻を踏んでいるすべての単語は <span class=\"rhyme\">単語</span> のように囲んでください。" }
+            }
+          },
+          required: ["characterId", "characterName", "displayRhyme", "lines"]
+        }
+      },
+      flavor: { type: "STRING", description: "バトル終了後の今宵の一杯としておすすめするお酒のタイプ（FLAVORSから選択するか、新しく考案）" }
+    },
+    required: ["verses", "flavor"]
+  };
+
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: schema,
+          temperature: 0.8
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error?.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const resJson = await response.json();
+    const resultText = resJson.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!resultText) {
+      throw new Error('AIからのレスポンスが空でした。');
+    }
+
+    const data = JSON.parse(resultText);
+    
+    // バトルのHTML組み立て
+    let html = "";
+    let delay = 0;
+    
+    data.verses.forEach((v) => {
+      const side = v.characterId === aId ? 'a' : 'b';
+      const char = FIGHTERS[v.characterId] || { emoji: "🎤", name: v.characterName };
+      html += `<div class="verse ${side}" style="animation-delay:${delay}s">
+        <div class="head"><span class="em">${char.emoji}</span>${char.name}<span class="rk">AI韻:-${v.displayRhyme}</span></div>
+        <div class="bars">${v.lines.join("\n")}</div>
+      </div>`;
+      delay += 0.15;
+    });
+
+    html += `<div class="drop">🎤 …mic drop.</div>`;
+    html += `<div class="cheer">🍶 今宵の一杯は「${data.flavor}」で乾杯</div>`;
+
+    battle.innerHTML = html;
+
+    // 採掘用コーパスへ蓄積（構造化出力そのまま。APIキーは含めない）
+    saveToCorpus({ ts:new Date().toISOString(), model:'gemini-3.5-flash', aId, bId, bars, mode: modeSel.value, data });
+  } catch (error) {
+    console.error(error);
+    battle.innerHTML = `<div class="cheer" style="color:var(--red);">
+      ⚠️ エラーが発生しました。<br>
+      ${error.message}<br>
+      <button class="btn btn-ghost" onclick="engineSel.value='template'; engineSel.dispatchEvent(new Event('change')); renderBattle();" style="margin-top: 10px;">テンプレート方式で実行する</button>
+    </div>`;
+  }
+}
+
+// ---- C案：ローカルLLM(Ollama)。無料・オフラインで中品質を大量生成。蓄積したB案を手本(few-shot)にする ----
+//   設計要点: 7B級モデルは <span class="rhyme"> のクォート入りJSONを壊すため、モデルには韻語を【】で囲ませ、
+//   HTML化はこちら側で行う。行の分割・余分な括弧・バース数不足も頑健に吸収する。
+function spanToBracket(line){ return String(line).replace(/<span class="rhyme">([^<]+)<\/span>/g, '【$1】'); }
+function bracketToSpan(line){ return String(line).replace(/【([^【】]+)】/g, '<span class="rhyme">$1</span>').replace(/[【】]/g, ''); }
+function buildFewShot(){
+  // コーパスから Gemini(B案) のバースを最大2つ手本化（無ければ内蔵例）
+  const gem = loadCorpus().filter(r => (r.model||'').startsWith('gemini')).flatMap(r => (r.data?.verses)||[]);
+  const pick = gem.slice(-2);
+  if(pick.length){
+    return pick.map(v => `${v.characterName}『${(v.lines||[]).map(spanToBracket).join('／')}』`).join('\n');
+  }
+  return `麹菌『蔵に舞う【白麹】、糖化操る【種麹】／芯まで攻める【突破精】、隙見せぬ我が【采配】／米を溶かして生む甘み、これぞ国菌の底力／お前ら酵母は俺の下、糖なきゃ踊れぬその身体』`;
+}
+
+async function renderBattleOllama(aId, bId, bars){
+  const model = (ollamaModelInput.value.trim() || 'qwen2.5:7b');
+  const host = (ollamaHostInput.value.trim() || 'http://localhost:11434').replace(/\/$/, '');
+  const rounds = Math.max(1, Math.round(bars/4));
+  const a = FIGHTERS[aId], b = FIGHTERS[bId];
+
+  battle.innerHTML = `<div class="cheer" style="animation-delay:0s; font-size:16px; color:var(--gold);">
+    🖥 ローカルLLM（${model}）がリリックを醸造中...<br>
+    <span style="font-size:12px; color:var(--sub);">（初回のモデル読み込みは時間がかかります）</span></div>`;
+  beat.innerHTML = Array.from({length:16}).map((_,i)=>`<i style="animation-delay:${(i*0.06).toFixed(2)}s"></i>`).join("");
+  stage.style.display="block";
+  stage.scrollIntoView({behavior:"smooth",block:"start"});
+
+  const system = `あなたは日本酒醸造に精通した日本語ラッパー。2キャラのラップバトルを生成する。厳守：
+(1)出力はJSONのみ。前後に文章やコードフェンスを付けない。
+(2)verses配列はちょうど${rounds*2}要素（先攻→後攻→…と交互）。
+(3)各バースのlines配列はちょうど4要素、1要素=1行。行の中に／や改行を入れない。
+(4)韻を踏む単語は全角の【】で囲む（例:【白麹】）。HTMLタグは書かない。
+(5)手本は質感の参考であり、内容は真似ず新しく作る。麹/糖化/生酛/心白/山卸し等の醸造語を使い、相手の弱点を突くディスとアンサーにする。
+形式:{"verses":[{"characterId":"id","characterName":"名","displayRhyme":"o-u-i","lines":["行1","行2","行3","行4"]}],"flavor":"酒のタイプ"}`;
+  const user = `手本の質感:\n${buildFewShot()}\n\n【人格（保つこと）】\n${personaBlock(aId,bId)}\n${personaBlock(bId,aId)}\n\n${styleDirective()}\n本番：先攻=${a.name}(id:${aId})、後攻=${b.name}(id:${bId})。合計${rounds*2}バース・各4行のバトルをJSONで出力。`;
+
+  try{
+    const response = await fetch(`${host}/api/chat`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model, stream:false, format:"json", options:{ temperature:0.85, num_predict: 500 + rounds*400 },
+        messages:[{role:'system',content:system},{role:'user',content:user}] })
+    });
+    if(!response.ok){ const t=await response.text().catch(()=> ''); throw new Error(`Ollama HTTP ${response.status} ${t.slice(0,200)}`); }
+    const resJson = await response.json();
+    const content = resJson.message?.content || '';
+    const m = content.match(/\{[\s\S]*\}/);
+    if(!m) throw new Error('モデル出力からJSONを取り出せませんでした。');
+    const data = JSON.parse(m[0]);
+
+    let html = "", delay = 0;
+    const cleanVerses = [];
+    (data.verses||[]).forEach(v => {
+      // 行の頑健化：配列でなければ／で分割、各行内の／も割る、空行を除く、4行に整える
+      let lines = Array.isArray(v.lines) ? v.lines : [String(v.lines||'')];
+      // 行の頑健化：全角／半角スラッシュ・改行で分割、末尾に漏れたJSON構造（}]",）を除去、空行を落とす
+      lines = lines.flatMap(l => String(l).split(/[／\/\n]+/))
+                   .map(s => s.replace(/[\s\}\]",]+$/, '').trim())
+                   .filter(Boolean);
+      if(!lines.length) return;
+      const cid = (v.characterId===aId || v.characterId===bId) ? v.characterId : (cleanVerses.length%2===0?aId:bId);
+      const char = FIGHTERS[cid] || { emoji:"🎤", name: v.characterName||"?" };
+      const side = cid===aId ? 'a' : 'b';
+      const disp = v.displayRhyme || '';
+      const barsHtml = lines.map(bracketToSpan).join("\n");
+      html += `<div class="verse ${side}" style="animation-delay:${delay}s">
+        <div class="head"><span class="em">${char.emoji}</span>${char.name}<span class="rk">ローカルAI韻:-${disp}</span></div>
+        <div class="bars">${barsHtml}</div></div>`;
+      delay += 0.15;
+      cleanVerses.push({ characterId: cid, characterName: char.name, displayRhyme: disp, lines: lines.map(bracketToSpan) });
+    });
+    if(!cleanVerses.length) throw new Error('有効なバースが得られませんでした（モデルを qwen2.5:7b 等に変えてみてください）。');
+
+    html += `<div class="drop">🎤 …mic drop.</div>`;
+    html += `<div class="cheer">🍶 今宵の一杯は「${data.flavor||'一献'}」で乾杯</div>`;
+    battle.innerHTML = html;
+
+    // 採掘用コーパスへ蓄積（B案と同じ器。model名で出所が分かる）
+    saveToCorpus({ ts:new Date().toISOString(), model:`ollama:${model}`, aId, bId, bars, mode:'ollama', data:{ verses: cleanVerses, flavor: data.flavor||'' } });
+  }catch(error){
+    console.error(error);
+    const hint = /Failed to fetch|NetworkError|load failed/i.test(error.message)
+      ? 'Ollamaに接続できません。<code>ollama serve</code> が起動しているか、<code>OLLAMA_ORIGINS=*</code> でCORS許可しているか確認してください。'
+      : error.message;
+    battle.innerHTML = `<div class="cheer" style="color:var(--red);">
+      ⚠️ ローカルLLMでエラー。<br>${hint}<br>
+      <button class="btn btn-ghost" onclick="engineSel.value='template'; engineSel.dispatchEvent(new Event('change')); renderBattle();" style="margin-top:10px;">テンプレート方式で実行する</button>
+    </div>`;
+  }
+}
+
 // ---- 選択UI ----
 const roster = document.getElementById('roster');
 const barsSel = document.getElementById('bars');
@@ -727,15 +1055,105 @@ const beat = document.getElementById('beat');
 const nameA = document.getElementById('nameA');
 const nameB = document.getElementById('nameB');
 const selHint = document.getElementById('selHint');
+const engineSel = document.getElementById('engine');
+const apiKeyArea = document.getElementById('apiKeyArea');
+const apiKeyInput = document.getElementById('apiKey');
+const toggleApiKeyBtn = document.getElementById('toggleApiKey');
+const modeOpt = document.getElementById('modeOpt');
+const ollamaArea = document.getElementById('ollamaArea');
+const ollamaModelInput = document.getElementById('ollamaModel');
+const ollamaHostInput = document.getElementById('ollamaHost');
 let selected = [];
+
+// ---- B案コーパス：Gemini出力を溜めてA案採掘の素材にする（localStorage蓄積→.jsonl書き出し） ----
+//   ブラウザは任意ファイルへ直接書けないため、localStorageに蓄積し、書き出しボタンで gemini_corpus.jsonl を保存→docs/ へ。
+//   APIキーは絶対にコーパスへ含めない（下の saveToCorpus のレコードに apiKey を入れていないこと）。
+const CORPUS_KEY = 'brew_corpus';
+const corpusTray = document.getElementById('corpusTray');
+const corpusCountEl = document.getElementById('corpusCount');
+function loadCorpus(){ try{ return JSON.parse(localStorage.getItem(CORPUS_KEY)) || []; }catch(e){ return []; } }
+function refreshCorpusTray(){ const n = loadCorpus().length; corpusCountEl.textContent = n; corpusTray.style.display = n ? 'flex' : 'none'; }
+function saveToCorpus(rec){ const arr = loadCorpus(); arr.push(rec); localStorage.setItem(CORPUS_KEY, JSON.stringify(arr)); refreshCorpusTray(); }
+function exportCorpus(){
+  const arr = loadCorpus();
+  if(!arr.length){ toast('コーパスが空です'); return; }
+  const jsonl = arr.map(r=>JSON.stringify(r)).join('\n');
+  const blob = new Blob([jsonl], {type:'application/x-ndjson'});
+  const url = URL.createObjectURL(blob);
+  const el = document.createElement('a'); el.href = url; el.download = 'gemini_corpus.jsonl'; el.click();
+  URL.revokeObjectURL(url);
+  toast(`${arr.length}バトルを書き出しました → docs/gemini_corpus.jsonl に保存`);
+}
+document.getElementById('corpusExport').onclick = exportCorpus;
+document.getElementById('corpusClear').onclick = () => { if(confirm('蓄積したコーパスを消去しますか？（書き出し済みのファイルは残ります）')){ localStorage.removeItem(CORPUS_KEY); refreshCorpusTray(); toast('コーパスをクリアしました'); } };
+refreshCorpusTray();
+
+// ローカルストレージからAPIキーを読み込む
+if (localStorage.getItem('gemini_api_key')) {
+  apiKeyInput.value = localStorage.getItem('gemini_api_key');
+}
+
+// C案(ローカルLLM)の設定を復元（デフォルト: qwen2.5:7b / localhost:11434）
+ollamaModelInput.value = localStorage.getItem('ollama_model') || 'qwen2.5:7b';
+ollamaHostInput.value = localStorage.getItem('ollama_host') || 'http://localhost:11434';
+ollamaModelInput.oninput = () => localStorage.setItem('ollama_model', ollamaModelInput.value.trim());
+ollamaHostInput.oninput = () => localStorage.setItem('ollama_host', ollamaHostInput.value.trim());
+
+// エンジン切り替え時の表示制御（A案=テンプレ / B案=Gemini / C案=Ollama）
+engineSel.onchange = () => {
+  const v = engineSel.value;
+  apiKeyArea.style.display = (v === 'gemini') ? 'flex' : 'none';
+  ollamaArea.style.display = (v === 'ollama') ? 'flex' : 'none';
+  modeOpt.style.display = (v === 'template') ? 'flex' : 'none';   // キャラ跨ぎ韻はA案専用
+  document.getElementById('styleOpt').style.display = (v === 'template') ? 'none' : 'flex';  // バトルスタイルはB案/C案(LLM)向け
+};
+engineSel.dispatchEvent(new Event('change'));
+
+// APIキー保存
+apiKeyInput.oninput = () => {
+  localStorage.setItem('gemini_api_key', apiKeyInput.value.trim());
+};
+
+// パスワード表示/非表示切り替え
+toggleApiKeyBtn.onclick = () => {
+  if (apiKeyInput.type === 'password') {
+    apiKeyInput.type = 'text';
+    toggleApiKeyBtn.textContent = '非表示';
+  } else {
+    apiKeyInput.type = 'password';
+    toggleApiKeyBtn.textContent = '表示';
+  }
+};
 
 Object.entries(FIGHTERS).forEach(([id,f])=>{
   const el = document.createElement('div');
   el.className='fighter'; el.dataset.id=id;
-  el.innerHTML=`<span class="emoji">${f.emoji}</span><span class="fname">${f.name}</span><span class="fdesc">${f.desc}</span>`;
+  el.innerHTML=`<button class="pinfo" title="人格を見る">ⓘ</button><span class="emoji">${f.emoji}</span><span class="fname">${f.name}</span><span class="fdesc">${f.desc}</span>`;
   el.onclick=()=>toggle(id);
+  el.querySelector('.pinfo').onclick=(e)=>{ e.stopPropagation(); showPersona(id); };  // 選択と衝突させない
   roster.appendChild(el);
 });
+
+// キャラの人格シートをモーダル表示（PERSONAを直接読むのでズレなし）
+function showPersona(id){
+  const f=FIGHTERS[id], p=PERSONA[id]; if(!p) return;
+  let rows='';
+  for(const oid in FIGHTERS){ if(oid===id) continue;
+    const dis=(p.dis&&p.dis[oid])||'—', resp=(p.respect&&p.respect[oid])||'—';
+    rows+=`<tr><td>${FIGHTERS[oid].emoji} ${FIGHTERS[oid].name}</td><td class="pdis">${dis}</td><td class="presp">${resp}</td></tr>`;
+  }
+  document.getElementById('pcard').innerHTML=
+    `<button class="pclose" onclick="document.getElementById('pmodal').style.display='none'">閉じる ✕</button>`+
+    `<h3>${f.emoji} ${f.name}</h3><div class="pdesc">${f.desc}</div>`+
+    `<div class="prow"><b>一人称</b>：${p.pronoun}</div>`+
+    `<div class="prow"><b>口調</b>：${p.tone}</div>`+
+    `<div class="prow"><b>誇り</b>：${p.pride}</div>`+
+    `<div class="prow"><b>弱点</b>：${p.weakness}</div>`+
+    `<div class="prow"><b>口癖</b>：${p.signature.join('・')}</div>`+
+    `<table><thead><tr><th>相手</th><th>ディス（攻め口）</th><th>リスペクト</th></tr></thead><tbody>${rows}</tbody></table>`;
+  document.getElementById('pmodal').style.display='flex';
+}
+document.getElementById('pmodal').onclick=(e)=>{ if(e.target.id==='pmodal') e.currentTarget.style.display='none'; };  // 外側クリックで閉じる
 
 function toggle(id){
   const idx = selected.indexOf(id);
@@ -764,7 +1182,88 @@ function refreshSel(){
 go.onclick = renderBattle;
 document.getElementById('regen').onclick = renderBattle;
 document.getElementById('swap').onclick = ()=>{ selected.reverse(); refreshSel(); renderBattle(); };
-document.getElementById('reset').onclick = ()=>{ stage.style.display='none'; window.scrollTo({top:0,behavior:'smooth'}); };
+document.getElementById('reset').onclick = ()=>{ stopBeat(); stage.style.display='none'; window.scrollTo({top:0,behavior:'smooth'}); };
+
+// ---- ビートエンジン：Web Audioで手続き生成（オフライン・無依存）。定番のラップビートをプリセットから選択 ----
+//   16ステップのパターン(kick/snare/hat/bass)をBPM＋スイングで並べてループ。lookaheadスケジューラで安定再生。
+const beatSel = document.getElementById('beatSel');
+const BEATS = {
+  boombap:{ bpm:88, swing:0.56, lp:20000,
+    kick:[1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0], snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],
+    hat:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1], open:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+    bass:[55,0,0,0,0,0,82.41,0,0,0,65.41,0,0,0,0,0],
+    p:{kf0:130,kf1:45,kd:.34,sd:.18,st:180,hf:8000,hd:.03,hod:.16,bt:'triangle',bg:.55} },
+  lofi:{ bpm:74, swing:0.60, lp:3000,
+    kick:[1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0], snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],
+    hat:[1,0,0,0,1,0,1,0,1,0,0,0,1,0,1,0], open:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    bass:[55,0,0,0,0,0,0,0,73.41,0,0,0,0,0,0,0],
+    p:{kf0:110,kf1:42,kd:.42,sd:.22,st:170,hf:5500,hd:.05,hod:.2,bt:'sine',bg:.5} },
+  trap:{ bpm:140, swing:0.50, lp:20000, clap:true,
+    kick:[1,0,0,0,0,0,1,0,0,0,0,1,0,0,1,0], snare:[0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+    hat:[1,0,1,0,1,0,2,0,1,0,1,0,1,2,1,2], open:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    bass:[55,0,0,0,0,0,65.41,0,0,0,0,49,0,0,55,0],
+    p:{kf0:120,kf1:40,kd:.30,sd:.16,st:200,hf:9000,hd:.025,hod:.12,bt:'sine',bg:.62,glide:true} },
+  funk:{ bpm:96, swing:0.54, lp:20000,
+    kick:[1,0,0,0,0,0,1,0,0,1,0,0,0,0,1,0], snare:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],
+    hat:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], open:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    bass:[55,0,55,0,0,82.41,0,0,65.41,0,0,73.41,0,82.41,0,0],
+    p:{kf0:125,kf1:44,kd:.30,sd:.18,st:185,hf:8500,hd:.028,hod:.14,bt:'sawtooth',bg:.42} },
+};
+let _ac,_master,_lp,_noise,_timer=null,_step=0,_nextT=0,_playing=false,_preset=BEATS.boombap;
+function _ensureAudio(){
+  if(!_ac){
+    _ac=new (window.AudioContext||window.webkitAudioContext)();
+    _master=_ac.createGain(); _master.gain.value=0.85;
+    _lp=_ac.createBiquadFilter(); _lp.type='lowpass'; _lp.frequency.value=20000;
+    const comp=_ac.createDynamicsCompressor();
+    _master.connect(_lp); _lp.connect(comp); comp.connect(_ac.destination);
+    _noise=_ac.createBuffer(1,_ac.sampleRate,_ac.sampleRate);
+    const d=_noise.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  }
+  if(_ac.state==='suspended') _ac.resume();
+}
+function _eg(peak,t,a,dcy){ const g=_ac.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(peak,t+a); g.gain.exponentialRampToValueAtTime(0.0001,t+a+dcy); return g; }
+function _kick(t,p){ const o=_ac.createOscillator(); o.type='sine'; o.frequency.setValueAtTime(p.kf0,t); o.frequency.exponentialRampToValueAtTime(p.kf1,t+0.07); const g=_eg(1,t,0.002,p.kd); o.connect(g).connect(_master); o.start(t); o.stop(t+p.kd+0.05); }
+function _noiseHit(t,peak,hp,dcy){ const n=_ac.createBufferSource(); n.buffer=_noise; const f=_ac.createBiquadFilter(); f.type='highpass'; f.frequency.value=hp; const g=_eg(peak,t,0.002,dcy); n.connect(f).connect(g).connect(_master); n.start(t); n.stop(t+dcy+0.05); }
+function _snare(t,p,clap){ if(clap){ [0,0.012,0.024].forEach(o=>_noiseHit(t+o,0.5,1800,0.09)); } else { _noiseHit(t,0.6,p.sf||1600,p.sd); const o=_ac.createOscillator(); o.type='triangle'; o.frequency.value=p.st; const g=_eg(0.35,t,0.002,p.sd*0.7); o.connect(g).connect(_master); o.start(t); o.stop(t+p.sd); } }
+function _hat(t,p,open){ _noiseHit(t, open?0.32:0.3, p.hf, open?p.hod:p.hd); }
+function _bass(t,freq,dur,p){ const o=_ac.createOscillator(); o.type=p.bt; o.frequency.setValueAtTime(freq,t); if(p.glide) o.frequency.exponentialRampToValueAtTime(freq*0.5,t+dur*0.9); const g=_eg(p.bg,t,0.006,dur); o.connect(g).connect(_master); o.start(t); o.stop(t+dur+0.05); }
+function _s16(){ return (60/_preset.bpm)/4; }
+function _schedStep(step,t){
+  const P=_preset, p=P.p, s=_s16();
+  if(P.kick[step]) _kick(t,p);
+  if(P.snare[step]) _snare(t,p,P.clap);
+  const hv=P.hat[step];
+  if(hv===1) _hat(t,p,P.open[step]);
+  else if(hv===2){ _hat(t,p,false); _hat(t+s*0.5,p,false); }   // ハイハットのロール
+  else if(P.open[step]) _hat(t,p,true);
+  if(P.bass[step]) _bass(t,P.bass[step],s*2,p);
+}
+function _scheduler(){
+  const s=_s16(), sw=_preset.swing||0.5;
+  while(_nextT < _ac.currentTime + 0.1){
+    _schedStep(_step,_nextT);
+    _nextT += (_step%2===0) ? s*2*sw : s*2*(1-sw);   // スイング（偶数16分を伸ばす）
+    _step=(_step+1)%16;
+  }
+}
+function startBeat(){
+  if(!beatSel || beatSel.value==='off') return;
+  _preset=BEATS[beatSel.value]||BEATS.boombap;
+  _ensureAudio(); if(_lp) _lp.frequency.value=_preset.lp||20000;
+  if(_playing) return;
+  _step=0; _nextT=_ac.currentTime+0.12; _playing=true; _timer=setInterval(_scheduler,25);
+}
+function stopBeat(){ _playing=false; if(_timer){ clearInterval(_timer); _timer=null; } }
+if(beatSel){
+  if(localStorage.getItem('beat_style')) beatSel.value = localStorage.getItem('beat_style');  // 選択を復元
+  beatSel.onchange=()=>{
+    localStorage.setItem('beat_style', beatSel.value);
+    if(beatSel.value==='off'){ stopBeat(); return; }
+    _preset=BEATS[beatSel.value]; if(_lp) _lp.frequency.value=_preset.lp||20000;
+    if(stage.style.display!=='none' && !_playing) startBeat();   // バトル表示中なら即鳴らす
+  };
+}
 document.getElementById('copy').onclick = ()=>{
   const text = battle.innerText.replace(/\n{2,}/g,'\n\n');
   navigator.clipboard.writeText(`🎤 醸造ラップバトル｜${FIGHTERS[selected[0]].name} VS ${FIGHTERS[selected[1]].name}\n\n${text}\n\n— SAKENOTE 醸造ラップバトル ジェネレーター`)
