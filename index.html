@@ -125,6 +125,24 @@
       <label class="opt" id="styleOpt" style="display:none;">バトルスタイル
         <select id="battleStyle"><option value="standard" selected>標準（敬意で締め）</option><option value="savage">ガチ煽り（フルディス）</option></select>
       </label>
+      <label class="opt" id="themeOpt" style="display:none;">お題
+        <input type="text" id="battleTheme" list="themeList" placeholder="空欄=おまかせ" autocomplete="off"
+               style="background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;width:190px;">
+        <datalist id="themeList">
+          <option value="伝統 vs 革新"></option>
+          <option value="生酛 vs 速醸"></option>
+          <option value="香り重視 vs 味わい重視"></option>
+          <option value="純米 vs アル添"></option>
+          <option value="手作業 vs 機械化"></option>
+          <option value="夏酒 vs 燗酒"></option>
+          <option value="山田錦 vs 新品種"></option>
+          <option value="コスト vs 品質"></option>
+          <option value="精米歩合はどこまで削るべきか"></option>
+          <option value="熟成酒 vs 搾りたて"></option>
+          <option value="日本酒の海外展開"></option>
+          <option value="若手蔵人 vs ベテラン"></option>
+        </datalist>
+      </label>
       <button class="btn btn-main" id="go" disabled>▶ バトル開始</button>
     </div>
 
@@ -176,7 +194,7 @@
     単語シグネチャ・エンジン方式 ── 醸造語を単一辞書に集約し、末尾3母音を自動計算してバケット化。文テンプレの韻スロットに、韻の合う語を差し込んで毎回違うリリックを生成（韻は母音バケットで保証）。用語は麹菌・清酒酵母・生酛の乳酸菌・酒造好適米など醸造の実際にもとづく。<br>
     <span class="kicker">単一HTML / オフライン動作 / APIキー不要</span><br>
     © SAKENOTE ｜ 遊び心の社内ツール<br>
-    <span class="updated" id="updated">最終更新: 2026-07-17 11:18</span>
+    <span class="updated" id="updated">最終更新: 2026-07-22 01:17</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -811,6 +829,12 @@ function styleDirective(){
     ? `【構成：ガチ煽り（フルディス）】終始、容赦なく相手を煽り倒せ。上の"攻め口"の弱点を執拗かつ挑発的に突き、パンチラインで畳みかける。リスペクトや和解では締めず、最後まで勝ち誇れ。ただしディスの根拠は醸造の実際の弱点を保ち、各キャラの口調・誇りは崩さない。人格や容姿の下品な攻撃ではなく、あくまで醸造の役割・技術のマウントの取り合いにすること。`
     : `【構成：標準】序盤〜中盤は"攻め口"の論理で相手の弱点を鋭く突く。最後のバースでは"リスペクト"の論理で相手の役割を認め、「揃わなければ酒にならない＝共に酒を醸す仲間」という余韻で締める（敵意から敬意への転換）。醸造は相互依存である点を効かせること。`;
 }
+// お題（バトルのテーマ）。空欄なら指定なし＝おまかせ
+function currentTheme(){ const t=document.getElementById('battleTheme'); return t ? t.value.trim() : ''; }
+function themeDirective(){
+  const v = currentTheme();
+  return v ? `【お題】今回のバトルのテーマは「${v}」。両者ともこのテーマに沿って、自分の役割の立場から主張・ディス・リスペクトを展開すること。テーマから逸れた一般論に流れないこと。` : '';
+}
 
 async function renderBattleGemini(aId, bId, bars) {
   const apiKey = apiKeyInput.value.trim();
@@ -848,6 +872,7 @@ ${personaBlock(aId, bId)}
 ${personaBlock(bId, aId)}
 
 ${styleDirective()}
+${themeDirective()}
 
 【超重要ルール：強烈なライミング（韻）の追求】
 1. **脚韻（行末の韻）と中間韻（行中の韻）の両立**:
@@ -942,7 +967,7 @@ ${styleDirective()}
     battle.innerHTML = html;
 
     // 採掘用コーパスへ蓄積（構造化出力そのまま。APIキーは含めない）
-    saveToCorpus({ ts:new Date().toISOString(), model:'gemini-3.5-flash', aId, bId, bars, mode: modeSel.value, data });
+    saveToCorpus({ ts:new Date().toISOString(), model:'gemini-3.5-flash', aId, bId, bars, mode: modeSel.value, style: (document.getElementById('battleStyle')||{}).value, theme: currentTheme(), data });
   } catch (error) {
     console.error(error);
     battle.innerHTML = `<div class="cheer" style="color:var(--red);">
@@ -988,7 +1013,7 @@ async function renderBattleOllama(aId, bId, bars){
 (4)韻を踏む単語は全角の【】で囲む（例:【白麹】）。HTMLタグは書かない。
 (5)手本は質感の参考であり、内容は真似ず新しく作る。麹/糖化/生酛/心白/山卸し等の醸造語を使い、相手の弱点を突くディスとアンサーにする。
 形式:{"verses":[{"characterId":"id","characterName":"名","displayRhyme":"o-u-i","lines":["行1","行2","行3","行4"]}],"flavor":"酒のタイプ"}`;
-  const user = `手本の質感:\n${buildFewShot()}\n\n【人格（保つこと）】\n${personaBlock(aId,bId)}\n${personaBlock(bId,aId)}\n\n${styleDirective()}\n本番：先攻=${a.name}(id:${aId})、後攻=${b.name}(id:${bId})。合計${rounds*2}バース・各4行のバトルをJSONで出力。`;
+  const user = `手本の質感:\n${buildFewShot()}\n\n【人格（保つこと）】\n${personaBlock(aId,bId)}\n${personaBlock(bId,aId)}\n\n${styleDirective()}\n${themeDirective()}\n本番：先攻=${a.name}(id:${aId})、後攻=${b.name}(id:${bId})。合計${rounds*2}バース・各4行のバトルをJSONで出力。`;
 
   try{
     const response = await fetch(`${host}/api/chat`, {
@@ -1031,7 +1056,7 @@ async function renderBattleOllama(aId, bId, bars){
     battle.innerHTML = html;
 
     // 採掘用コーパスへ蓄積（B案と同じ器。model名で出所が分かる）
-    saveToCorpus({ ts:new Date().toISOString(), model:`ollama:${model}`, aId, bId, bars, mode:'ollama', data:{ verses: cleanVerses, flavor: data.flavor||'' } });
+    saveToCorpus({ ts:new Date().toISOString(), model:`ollama:${model}`, aId, bId, bars, mode:'ollama', style: (document.getElementById('battleStyle')||{}).value, theme: currentTheme(), data:{ verses: cleanVerses, flavor: data.flavor||'' } });
   }catch(error){
     console.error(error);
     const hint = /Failed to fetch|NetworkError|load failed/i.test(error.message)
@@ -1106,6 +1131,7 @@ engineSel.onchange = () => {
   ollamaArea.style.display = (v === 'ollama') ? 'flex' : 'none';
   modeOpt.style.display = (v === 'template') ? 'flex' : 'none';   // キャラ跨ぎ韻はA案専用
   document.getElementById('styleOpt').style.display = (v === 'template') ? 'none' : 'flex';  // バトルスタイルはB案/C案(LLM)向け
+  document.getElementById('themeOpt').style.display = (v === 'template') ? 'none' : 'flex';  // お題も同様（A案はテンプレなので対象外）
 };
 engineSel.dispatchEvent(new Event('change'));
 
@@ -1255,6 +1281,11 @@ function startBeat(){
   _step=0; _nextT=_ac.currentTime+0.12; _playing=true; _timer=setInterval(_scheduler,25);
 }
 function stopBeat(){ _playing=false; if(_timer){ clearInterval(_timer); _timer=null; } }
+// お題を復元・保存（バトル間で使い回せるように）
+{ const th=document.getElementById('battleTheme');
+  if(th){ th.value = localStorage.getItem('battle_theme') || '';
+          th.oninput = () => localStorage.setItem('battle_theme', th.value); } }
+
 if(beatSel){
   if(localStorage.getItem('beat_style')) beatSel.value = localStorage.getItem('beat_style');  // 選択を復元
   beatSel.onchange=()=>{
