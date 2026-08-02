@@ -179,6 +179,7 @@
     <div class="stage-ctrls">
       <button class="btn btn-main" id="regen">🎲 もう一本</button>
       <button class="btn btn-ghost" id="copy">📋 リリックをコピー</button>
+      <button class="btn btn-ghost" id="saveImg">🖼 画像で保存</button>
       <button class="btn btn-ghost" id="swap">🔁 攻守交代</button>
       <button class="btn btn-ghost" id="reset">← 対戦選び直す</button>
     </div>
@@ -194,7 +195,7 @@
     単語シグネチャ・エンジン方式 ── 醸造語を単一辞書に集約し、末尾3母音を自動計算してバケット化。文テンプレの韻スロットに、韻の合う語を差し込んで毎回違うリリックを生成（韻は母音バケットで保証）。用語は麹菌・清酒酵母・生酛の乳酸菌・酒造好適米など醸造の実際にもとづく。<br>
     <span class="kicker">単一HTML / オフライン動作 / APIキー不要</span><br>
     © SAKENOTE ｜ 遊び心の社内ツール<br>
-    <span class="updated" id="updated">最終更新: 2026-07-22 01:17</span>
+    <span class="updated" id="updated">最終更新: 2026-07-28 09:45</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -750,8 +751,10 @@ function verseHTML(meId, side, delay, rnd, forcedKey){
   </div>`;
 }
 
+let lastBattleTheme = '';  // 画像保存用：バトル生成時に使ったお題（AIエンジン以外は空）
 async function renderBattle(){
   const [aId,bId] = selected;
+  lastBattleTheme = (engineSel.value === 'gemini' || engineSel.value === 'ollama') ? currentTheme() : '';
   const bars = parseInt(barsSel.value,10);
   const seed = (Date.now() ^ (bars*7)) >>> 0;
 
@@ -1305,6 +1308,124 @@ function toast(msg){
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),1800);
 }
+
+// ---- 画像で保存：バトル結果をCanvas 2Dで共有カードに描き起こしてPNG化（外部ライブラリ不要＝オフライン維持）----
+const IMG = { W:1080, PAD:56, CARD_PAD:30, LINE:44, GAP:22, FS:29 };
+const MINCHO = '"Hiragino Mincho ProN","Yu Mincho",serif';
+const SANS = '"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif';
+// バトルDOM → 描画用データ（韻スパンは {t,r:true} セグメントとして保持）
+function collectBattle(){
+  return [...battle.querySelectorAll('.verse')].map(v=>{
+    const em = v.querySelector('.em')?.textContent || '';
+    const rk = v.querySelector('.rk')?.textContent || '';
+    const name = (v.querySelector('.head')?.textContent || '').replace(em,'').replace(rk,'').trim();
+    const lines = (v.querySelector('.bars')?.innerHTML || '').split('\n').map(html=>{
+      const segs=[]; const re=/<span class="rhyme">([^<]*)<\/span>/g; let last=0,m;
+      while((m=re.exec(html))){
+        if(m.index>last) segs.push({t:html.slice(last,m.index).replace(/<[^>]+>/g,''),r:false});
+        segs.push({t:m[1],r:true}); last=re.lastIndex;
+      }
+      if(last<html.length) segs.push({t:html.slice(last).replace(/<[^>]+>/g,''),r:false});
+      return segs.map(s=>({...s,t:s.t.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')})).filter(s=>s.t);
+    }).filter(segs=>segs.length);
+    return { side: v.classList.contains('a')?'a':'b', em, name, rk, lines };
+  });
+}
+// セグメント列を折り返して行配列にする（日本語なので1文字ずつ詰める）
+function wrapSegs(ctx, segs, maxW){
+  const out=[]; let cur=[], w=0;
+  for(const s of segs) for(const ch of s.t){
+    const cw=ctx.measureText(ch).width;
+    if(w+cw>maxW && cur.length){ out.push(cur); cur=[]; w=0; }
+    cur.push({ch,r:s.r}); w+=cw;
+  }
+  if(cur.length) out.push(cur);
+  return out;
+}
+function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+function buildBattleCanvas(){
+  const verses = collectBattle();
+  if(!verses.length) return null;
+  const {W,PAD,CARD_PAD,LINE,GAP,FS} = IMG;
+  const innerW = W - PAD*2, textW = innerW - CARD_PAD*2;
+
+  // 1st pass: 測って高さを決める
+  const probe = document.createElement('canvas').getContext('2d');
+  probe.font = `${FS}px ${MINCHO}`;
+  const layout = verses.map(v=>({ v, rows: v.lines.flatMap(segs=>wrapSegs(probe,segs,textW)) }));
+  const headH = 52;
+  const cardH = l => headH + l.rows.length*LINE + CARD_PAD*2;
+  const theme = lastBattleTheme;
+  const topH = 210 + (theme?46:0);
+  const H = topH + layout.reduce((s,l)=>s+cardH(l)+GAP,0) + 130;
+
+  const scale = 2;
+  const cv = document.createElement('canvas');
+  cv.width = W*scale; cv.height = H*scale;
+  const ctx = cv.getContext('2d'); ctx.scale(scale,scale);
+
+  // 背景
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#161222'); bg.addColorStop(1,'#0d0b10');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  // ヘッダ
+  ctx.textBaseline='alphabetic'; ctx.textAlign='center';
+  ctx.fillStyle='#b7a98f'; ctx.font=`600 20px ${SANS}`;
+  ctx.fillText('S A K E N O T E   P R E S E N T S', W/2, 74);
+  ctx.fillStyle='#e8c15a'; ctx.font=`bold 62px ${MINCHO}`;
+  ctx.fillText('醸造ラップバトル', W/2, 142);
+  const A=FIGHTERS[selected[0]], B=FIGHTERS[selected[1]];
+  ctx.font=`bold 30px ${MINCHO}`;
+  const vsTxt=`${A.emoji} ${A.name}　VS　${B.emoji} ${B.name}`;
+  ctx.fillStyle='#f5f0e6'; ctx.fillText(vsTxt, W/2, 190);
+  if(theme){ ctx.fillStyle='#b7a98f'; ctx.font=`22px ${SANS}`; ctx.fillText(`お題：${theme}`, W/2, 228); }
+
+  // バース
+  ctx.textAlign='left';
+  let y = topH;
+  for(const l of layout){
+    const h = cardH(l), accent = l.v.side==='a' ? '#d24b4b' : '#5b8cc9';
+    ctx.fillStyle='#1a1622'; roundRect(ctx,PAD,y,innerW,h,18); ctx.fill();
+    ctx.fillStyle=accent; roundRect(ctx,PAD,y,7,h,4); ctx.fill();          // サイドの色帯
+    ctx.fillStyle=accent; ctx.font=`bold 30px ${MINCHO}`;
+    ctx.fillText(`${l.v.em} ${l.v.name}`, PAD+CARD_PAD, y+CARD_PAD+28);
+    if(l.v.rk){ ctx.fillStyle='#7a6f5c'; ctx.font=`18px ${SANS}`; ctx.textAlign='right';
+      ctx.fillText(l.v.rk, W-PAD-CARD_PAD, y+CARD_PAD+26); ctx.textAlign='left'; }
+    let ty = y + CARD_PAD + headH;
+    ctx.font=`${FS}px ${MINCHO}`;
+    for(const row of l.rows){
+      let x = PAD+CARD_PAD;
+      for(const c of row){ ctx.fillStyle = c.r ? '#e8c15a' : '#f5f0e6'; ctx.fillText(c.ch,x,ty+FS); x += ctx.measureText(c.ch).width; }
+      ty += LINE;
+    }
+    y += h + GAP;
+  }
+
+  // フッタ
+  ctx.textAlign='center';
+  ctx.fillStyle='#e8c15a'; ctx.font=`bold 30px ${MINCHO}`;
+  ctx.fillText('🎤 …mic drop.', W/2, y+40);
+  ctx.fillStyle='#7a6f5c'; ctx.font=`19px ${SANS}`;
+  ctx.fillText('y-kanno-sakenote.github.io/brew-rap-battle', W/2, y+80);
+
+  return cv;
+}
+function exportBattleImage(){
+  const cv = buildBattleCanvas();
+  if(!cv){ toast('先にバトルを生成してください'); return; }
+  const A=FIGHTERS[selected[0]], B=FIGHTERS[selected[1]];
+  cv.toBlob(blob=>{
+    if(!blob){ toast('画像の生成に失敗しました…もう一度お試しください'); return; }
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=`brew-rap_${A.name}_vs_${B.name}.png`; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 0);
+    toast('画像を保存しました！');
+  }, 'image/png');
+}
+document.getElementById('saveImg').onclick = exportBattleImage;
 </script>
 </body>
 </html>
