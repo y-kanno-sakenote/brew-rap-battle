@@ -14,10 +14,10 @@ const FORM = {
   person:'人',
   gin:'産酒', type:'産酒', junmai:'産酒', karakuchi:'産酒', sakerui:'産酒', shinshu:'産酒', genshu:'産酒',
   aroma:'香り',
-  umami:'味', sweet:'味', bitter:'味', acid:'味',
+  umami:'味', sweet:'味', bitter:'味', acid:'味', nyusan:'味', sousan:'味', ringosan:'味',
   fruit:'果実', pear:'果実',
   banzai:'掛け声', shukuhai:'掛け声',
-  hakkou:'工程', shikomi:'工程', moromi:'工程',
+  hakkou:'工程', shikomi:'工程', moromi:'工程', zukuri:'工程',
   spirit:'心意気',
   degree:'様子', hanayaka:'様子', nobiyaka:'様子', nameraka:'様子',
 };

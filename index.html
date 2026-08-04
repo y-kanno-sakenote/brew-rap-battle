@@ -195,7 +195,7 @@
     単語シグネチャ・エンジン方式 ── 醸造語を単一辞書に集約し、末尾3母音を自動計算してバケット化。文テンプレの韻スロットに、韻の合う語を差し込んで毎回違うリリックを生成（韻は母音バケットで保証）。用語は麹菌・清酒酵母・生酛の乳酸菌・酒造好適米など醸造の実際にもとづく。<br>
     <span class="kicker">単一HTML / オフライン動作 / APIキー不要</span><br>
     © SAKENOTE ｜ 遊び心の社内ツール<br>
-    <span class="updated" id="updated">最終更新: 2026-07-28 09:45</span>
+    <span class="updated" id="updated">最終更新: 2026-08-04 14:51</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -278,6 +278,12 @@ const VOCAB = {
   "酢酸菌":{y:"さくさんきん",r:"bug"},
   // acid（末尾 a,u,a）有機酸 → 乳酸菌の新バケット
   "コハク酸":{y:"こはくさん",r:"acid"},"酢酸":{y:"さくさん",r:"acid"},"酪酸":{y:"らくさん",r:"acid"},
+  // nyusan（末尾 u,u,a／form=味）乳酸そのもの → 乳酸菌。acid(aua)とは v2="ua" で束なる（グラデーション韻）
+  "乳酸":{y:"にゅうさん",r:"nyusan"},
+  // sousan（末尾 o,u,a／form=味）─ sig3はnyusanと別だが **soft韻 uua が一致**するので同一バケットで踏み合う
+  "総酸":{y:"そうさん",r:"sousan"},
+  // ringosan（末尾 i,o,a／form=味）有機酸の仲間 → 乳酸菌。同じく v2="ua" で acid/nyusan と束なる
+  "リンゴ酸":{y:"りんごさん",r:"ringosan"},"アミノ酸":{y:"あみのさん",r:"ringosan"},
   // karakuchi（末尾 a,u,i）辛口系 → 杜氏の新バケット
   "辛口":{y:"からくち",r:"karakuchi"},"淡麗辛口":{y:"たんれいからくち",r:"karakuchi"},"甘口":{y:"あまくち",r:"karakuchi"},"旨口":{y:"うまくち",r:"karakuchi"},
   // kanban（末尾 i,a,a）蔵の看板 → 杜氏の新バケット
@@ -288,6 +294,8 @@ const VOCAB = {
   "なめらか":{y:"なめらか",r:"nameraka"},
   // moromi（末尾 o,o,i）生酛・酒母・仕込み → 乳酸菌の新バケット
   "醪":{y:"もろみ",r:"moromi"},"山卸し":{y:"やまおろし",r:"moromi"},"踊り":{y:"おどり",r:"moromi"},"床もみ":{y:"とこもみ",r:"moromi"},
+  // zukuri（末尾 u,u,i／form=工程）〜造り一族 → 乳酸菌。**moromi(ooi)と soft韻 uui が完全一致**＝同一バケットで深く踏み合う
+  "生酛造り":{y:"きもとづくり",r:"zukuri"},"寒造り":{y:"かんづくり",r:"zukuri"},"手造り":{y:"てづくり",r:"zukuri"},"酒造り":{y:"さけづくり",r:"zukuri"},
   // sakerui（末尾 i,a,e）蔵の酒・振る舞い → 杜氏の新バケット
   "地酒":{y:"じざけ",r:"sakerui"},"にごり酒":{y:"にごりざけ",r:"sakerui"},"おり酒":{y:"おりざけ",r:"sakerui"},"隠し酒":{y:"かくしざけ",r:"sakerui"},
   // shikomi（末尾 i,o,i）酒造工程 → 杜氏の新バケット
@@ -514,9 +522,26 @@ const FIGHTERS = {
       {p:"multi",ra:"type",rb:"type",f:`{a}に{b} 操る俺／蔵の頂 俺が獲る`},
     ]},
   lactic:{ name:"乳酸菌", emoji:"🦠", desc:"生酛の守護神。雑菌を駆逐する縁の下の力持ち。", wordRhyme:true,
-    roles:["type","bug","umami","junmai","pear","shukuhai","yamahai","sweet","banzai","moto","shubo","acid","moromi"], frames:[
+    roles:["type","bug","umami","junmai","pear","shukuhai","yamahai","sweet","banzai","moto","shubo","acid","moromi","zukuri","nyusan","sousan","ringosan"], frames:[
       // 3語韻（3スロット・ソリッド）─ 酒質を3語で踏む見せ場
       {p:"end",ra:"type",rb:"type",rc:"type",f:`生酛が生む {a}／時をかけ醸す {b} {c}`},
+      // 〜造り一族（uui・工程）─ moromi(ooi)と soft韻が一致するので同一バケットで踏み合う（乳酸菌の看板テーマ）
+      {p:"head",ra:"zukuri",f:`雑菌散らして 蔵を守る／古式ゆかしき この{a}`},
+      {p:"mid", ra:"zukuri",f:`酸で骨格 支えるぜ／時間をかけた 我が{a}`},
+      {p:"end", ra:"zukuri",f:`縁の下から 酒を守る／丹精込めた この{a}`},
+      {p:"multi",ra:"zukuri",rb:"zukuri",f:`{a}に{b} 受け継ぐ伝統／生酛の底力 深く残す`},
+      {p:"end", ra:"zukuri",rb:"moromi",f:`寒の仕込みで 練り上げる この{a}／蔵が湧き立つ 我が{b}`},
+      {p:"multi",ra:"moromi",rb:"zukuri",f:`{a}に宿るは この{b}／雑菌駆逐 陰の主役`},
+      // 乳酸そのもの（uua・味）＋ 有機酸の仲間（ioa・味）─ acid(aua)と v2="ua" で束なる
+      // ※1語roleなので位置ごとに均等配分（head/mid=乳酸, end/multi=総酸）＝4行で同語3回以上を出さない
+      {p:"head",ra:"nyusan",f:`雑菌散らして 蔵を守る／じわり効かせる この{a}`},
+      {p:"mid", ra:"nyusan",f:`その{a} 味の背骨／縁の下から 深み出す`},
+      {p:"end", ra:"sousan",f:`時をかけても 価値がある／じわり広がる 深き{a}`},
+      {p:"multi",ra:"sousan",f:`pH下げて 場を整え／骨格支える 深き{a}`},
+      {p:"head",ra:"ringosan",f:`生酛が育てる 味の厚み／舌に広がる この{a}`},
+      {p:"mid", ra:"ringosan",f:`その{a} 蔵の設計図／時をかけても 価値がある`},
+      {p:"end", ra:"ringosan",f:`雑菌散らして 場を整え／深みを生むは 深き{a}`},
+      {p:"multi",ra:"ringosan",f:`{a}を効かせて 味を締める／生酛の底力 深く残す`},
       // 生酛・酒母・仕込み（ooi）─ 醪/山卸し/踊り/床もみ で踏む新バケット（行末で踏む）
       {p:"head",ra:"moromi",f:`酸を利かせて 蔵を守る／じっくり育てる この{a}`},
       {p:"mid", ra:"moromi",f:`雑菌散らして 場を整え／泡が沸き立つ 我が{a}`},
