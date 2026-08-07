@@ -164,7 +164,7 @@
         <span style="white-space:nowrap;">ホスト:</span>
         <input type="text" id="ollamaHost" placeholder="http://localhost:11434" style="background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px; width:200px;">
       </label>
-      <span style="font-size:11px; color:var(--sub); display:block; text-align:center; width:100%; margin-top:4px;">※ ローカルのOllamaと直接通信（無料・オフライン）。蓄積したB案の出力を手本にします。要 <code>ollama serve</code> ／ CORSは <code>OLLAMA_ORIGINS=*</code> で許可。</span>
+      <span style="font-size:11px; color:var(--sub); display:block; text-align:center; width:100%; margin-top:4px;">※ ローカルのOllamaと直接通信（無料・オフライン）。蓄積したB案の出力を手本にします。Ollamaが起動していればそのまま使えます（<code>file://</code>で開いた時だけ不可）。</span>
     </div>
   </div>
 
@@ -195,7 +195,7 @@
     単語シグネチャ・エンジン方式 ── 醸造語を単一辞書に集約し、末尾3母音を自動計算してバケット化。文テンプレの韻スロットに、韻の合う語を差し込んで毎回違うリリックを生成（韻は母音バケットで保証）。用語は麹菌・清酒酵母・生酛の乳酸菌・酒造好適米など醸造の実際にもとづく。<br>
     <span class="kicker">単一HTML / オフライン動作 / APIキー不要</span><br>
     © SAKENOTE ｜ 遊び心の社内ツール<br>
-    <span class="updated" id="updated">最終更新: 2026-08-04 14:51</span>
+    <span class="updated" id="updated">最終更新: 2026-08-07 11:18</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -336,6 +336,7 @@ const FIGHTERS = {
     roles:["koji","person","mill","bitter","spirit","fruit","aroma","umami","junmai","hakumai","komeu","kojikin","kakemai"], frames:[
       // 3語韻（3スロット・ソリッド）─ 両句末＋中間で計3語が踏む見せ場
       {p:"end",ra:"koji",rb:"koji",rc:"koji",f:`蔵に舞うは {a}／束ねて動かす {b} と {c}`},
+      {p:"multi",ra:"mill",rb:"kakemai",rc:"mill",f:`蒸して溶かすは {a}／菌糸が這うは {b} と {c}`},   // iai(12語)の3語韻
       {p:"multi",ra:"person",rb:"koji",rc:"koji",f:`{a}が育てる {b}／蔵に放つは 我が{c}`},
       // ソリッド（両句末で踏み合う）─ oui を4位置そろえて全行ソリッド化
       {p:"head",ra:"person",rb:"koji",f:`采配ふるうは 蔵の{a}／糖化を担う 我が{b}`},
@@ -401,6 +402,7 @@ const FIGHTERS = {
     roles:["fruit","aroma","type","gin","degree","koubo","hakkou","hanayaka","awa"], frames:[
       // 3語韻（3スロット・ソリッド）─ 酵母一族を3語で踏む見せ場
       {p:"end",ra:"koubo",rb:"koubo",rc:"koubo",f:`もろみ沸かすは {a}／香りを操る {b} {c}`},
+      {p:"multi",ra:"type",rb:"type",rc:"type",f:`香りで攻める {a}／深く仕上げる {b} と {c}`},   // uiu(10語)の3語韻
       // 発酵の泡（aaa・物）─ 高泡/玉泡/岩泡。hanayaka(様子)と同母音で同居し踏み合う
       {p:"head",ra:"awa",f:`もろみを沸かせ 攻めまくる／タンクに立つは 我が{a}`},
       {p:"mid", ra:"awa",f:`二億の同胞 湧き上がる／もろみに躍るは この{a}`},
@@ -452,6 +454,7 @@ const FIGHTERS = {
     roles:["person","koji","gin","degree","type","vessel","karakuchi","hakkou","kanban","sakerui","shikomi","nobiyaka","nameraka"], frames:[
       // 3語韻（3スロット・ソリッド）─ 酒質を3語で踏む見せ場
       {p:"end",ra:"type",rb:"type",rc:"type",f:`自在に操る {a}／狙って仕上げる {b} {c}`},
+      {p:"multi",ra:"person",rb:"koji",rc:"vessel",f:`{a}が束ねる {b}／酒を満たすは {c}`},   // uui(25語・最大バケット)の3語韻
       // 口当たりの形容（eaa・様子）─ なめらか。soft韻 iaa で nobiyaka/kanban と近似で踏み合う（響き韻）
       {p:"head",ra:"nameraka",f:`蔵の一年 磨き込む／仕上がる口当たり 実に{a}`},
       {p:"end", ra:"nameraka",f:`温度も日数も 読み切って／喉を通るは どこまでも{a}`},
@@ -600,6 +603,7 @@ const FIGHTERS = {
     roles:["mill","bitter","spirit","grain","sweet","banzai","umami","junmai","pear","shukuhai","variety","type","komeu","kakemai","shinshu","genshu"], frames:[
       // 3語韻（3スロット・ソリッド）─ 酒質を3語で踏む見せ場（varietyは7語で3枠には小さく反復増→typeを使用）
       {p:"end",ra:"type",rb:"type",rc:"type",f:`磨き抜いて 生む{a}／芯まで攻めて {b} {c}`},
+      {p:"multi",ra:"mill",rb:"mill",rc:"kakemai",f:`磨き抜かれた {a}／心白宿す {b} と {c}`},   // iai(12語)の3語韻
       // 搾ったままの酒（eiu・産酒）─ 原酒/生原酒。soft韻 iiu で shinshu と近似で踏み合う（響き韻）
       {p:"head",ra:"genshu",f:`原料あってこそ 酒になる／搾ってそのまま この{a}`},
       {p:"end", ra:"genshu",f:`削りの果てに 光る力／薄めず届ける この{a}`},
@@ -1088,7 +1092,7 @@ async function renderBattleOllama(aId, bId, bars){
   }catch(error){
     console.error(error);
     const hint = /Failed to fetch|NetworkError|load failed/i.test(error.message)
-      ? 'Ollamaに接続できません。<code>ollama serve</code> が起動しているか、<code>OLLAMA_ORIGINS=*</code> でCORS許可しているか確認してください。'
+      ? 'Ollamaに接続できません。Ollamaが起動しているか確認してください（メニューバーの Ollama.app、またはターミナルで <code>ollama serve</code>）。<br>※ このページを <code>file://</code> で開いている場合は仕様上つながりません。<code>http://localhost</code> か公開URLからお試しください。'
       : error.message;
     battle.innerHTML = `<div class="cheer" style="color:var(--red);">
       ⚠️ ローカルLLMでエラー。<br>${hint}<br>
