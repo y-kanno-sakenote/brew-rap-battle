@@ -195,7 +195,7 @@
     単語シグネチャ・エンジン方式 ── 醸造語を単一辞書に集約し、末尾3母音を自動計算してバケット化。文テンプレの韻スロットに、韻の合う語を差し込んで毎回違うリリックを生成（韻は母音バケットで保証）。用語は麹菌・清酒酵母・生酛の乳酸菌・酒造好適米など醸造の実際にもとづく。<br>
     <span class="kicker">単一HTML / オフライン動作 / APIキー不要</span><br>
     © SAKENOTE ｜ 遊び心の社内ツール<br>
-    <span class="updated" id="updated">最終更新: 2026-08-07 11:18</span>
+    <span class="updated" id="updated">最終更新: 2026-08-07 12:31</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -232,7 +232,7 @@ const VOCAB = {
   "白桃":{y:"はくとう",r:"fruit"},"黄桃":{y:"おうとう",r:"fruit"},"葡萄":{y:"ぶどう",r:"fruit"},
   "吟醸香":{y:"ぎんじょうこう",r:"aroma"},"原料香":{y:"げんりょうこう",r:"aroma"},"芳香":{y:"ほうこう",r:"aroma"},"果実香":{y:"かじつこう",r:"aroma"},
   // hanayaka（末尾 a,a,a）香味の形容 → 清酒酵母の新バケット
-  "華やか":{y:"はなやか",r:"hanayaka"},"爽やか":{y:"さわやか",r:"hanayaka"},"鮮やか":{y:"あざやか",r:"hanayaka"},"しなやか":{y:"しなやか",r:"hanayaka"},"艶やか":{y:"つややか",r:"hanayaka"},"やわらか":{y:"やわらか",r:"hanayaka"},
+  "華やか":{y:"はなやか",r:"hanayaka"},"爽やか":{y:"さわやか",r:"hanayaka"},"鮮やか":{y:"あざやか",r:"hanayaka"},"しなやか":{y:"しなやか",r:"hanayaka"},"艶やか":{y:"つややか",r:"hanayaka"},"やわらか":{y:"やわらか",r:"hanayaka"},"細やか":{y:"こまやか",r:"hanayaka"},
   // awa（末尾 a,a,a／form=物）発酵の泡 → 清酒酵母。hanayaka(様子)と同母音・別formで同居
   "高泡":{y:"たかあわ",r:"awa"},"玉泡":{y:"たまあわ",r:"awa"},"岩泡":{y:"いわあわ",r:"awa"},
   // type（末尾 u,i,u）
@@ -263,7 +263,7 @@ const VOCAB = {
   // koubo（末尾 o,u,o）酵母・酵素 → 清酒酵母の新バケット
   "酵母":{y:"こうぼ",r:"koubo"},"酵素":{y:"こうそ",r:"koubo"},"清酒酵母":{y:"せいしゅこうぼ",r:"koubo"},"蔵付き酵母":{y:"くらつきこうぼ",r:"koubo"},"野生酵母":{y:"やせいこうぼ",r:"koubo"},"焼酎酵母":{y:"しょうちゅうこうぼ",r:"koubo"},"泡盛酵母":{y:"あわもりこうぼ",r:"koubo"},"花酵母":{y:"はなこうぼ",r:"koubo"},"協会酵母":{y:"きょうかいこうぼ",r:"koubo"},"出芽酵母":{y:"しゅつがこうぼ",r:"koubo"},
   // komeu（末尾 u,a,i）米・精米まわり → 弱かった uai バケットを強化（麹菌・酒米）
-  "精白米":{y:"せいはくまい",r:"komeu"},"原料米":{y:"げんりょうまい",r:"komeu"},"精米歩合":{y:"せいまいぶあい",r:"komeu"},"麹歩合":{y:"こうじぶあい",r:"komeu"},
+  "精白米":{y:"せいはくまい",r:"komeu"},"原料米":{y:"げんりょうまい",r:"komeu"},"精米歩合":{y:"せいまいぶあい",r:"komeu"},"麹歩合":{y:"こうじぶあい",r:"komeu"},"総米":{y:"そうまい",r:"komeu"},"汲水歩合":{y:"くみみずぶあい",r:"komeu"},
   // type（末尾 u,i,u）酒質分類の追加 → 既存 type 役割へ（酵母/杜氏/乳酸菌）
   "吟醸酒":{y:"ぎんじょうしゅ",r:"type"},"貴醸酒":{y:"きじょうしゅ",r:"type"},"醸造酒":{y:"じょうぞうしゅ",r:"type"},"蒸留酒":{y:"じょうりゅうしゅ",r:"type"},
   // variety（末尾 i,i,i）品種の追加 → 既存 variety 役割へ（酒米）
@@ -295,15 +295,15 @@ const VOCAB = {
   // moromi（末尾 o,o,i）生酛・酒母・仕込み → 乳酸菌の新バケット
   "醪":{y:"もろみ",r:"moromi"},"山卸し":{y:"やまおろし",r:"moromi"},"踊り":{y:"おどり",r:"moromi"},"床もみ":{y:"とこもみ",r:"moromi"},
   // zukuri（末尾 u,u,i／form=工程）〜造り一族 → 乳酸菌。**moromi(ooi)と soft韻 uui が完全一致**＝同一バケットで深く踏み合う
-  "生酛造り":{y:"きもとづくり",r:"zukuri"},"寒造り":{y:"かんづくり",r:"zukuri"},"手造り":{y:"てづくり",r:"zukuri"},"酒造り":{y:"さけづくり",r:"zukuri"},
+  "生酛造り":{y:"きもとづくり",r:"zukuri"},"寒造り":{y:"かんづくり",r:"zukuri"},"手造り":{y:"てづくり",r:"zukuri"},"酒造り":{y:"さけづくり",r:"zukuri"},"山廃造り":{y:"やまはいづくり",r:"zukuri"},"木桶造り":{y:"きおけづくり",r:"zukuri"},
   // sakerui（末尾 i,a,e）蔵の酒・振る舞い → 杜氏の新バケット
   "地酒":{y:"じざけ",r:"sakerui"},"にごり酒":{y:"にごりざけ",r:"sakerui"},"おり酒":{y:"おりざけ",r:"sakerui"},"隠し酒":{y:"かくしざけ",r:"sakerui"},
   // shikomi（末尾 i,o,i）酒造工程 → 杜氏の新バケット
   "搾り":{y:"しぼり",r:"shikomi"},"仕込み":{y:"しこみ",r:"shikomi"},"三段仕込み":{y:"さんだんじこみ",r:"shikomi"},"濁り":{y:"にごり",r:"shikomi"},"二段仕込み":{y:"にだんじこみ",r:"shikomi"},"木桶仕込み":{y:"きおけじこみ",r:"shikomi"},
   // shinshu（末尾 i,i,u）蔵の酒と水 → 酒米の新バケット
-  "新酒":{y:"しんしゅ",r:"shinshu"},"銘酒":{y:"めいしゅ",r:"shinshu"},"仕込み水":{y:"しこみみず",r:"shinshu"},"割水":{y:"わりみず",r:"shinshu"},"清酒":{y:"せいしゅ",r:"shinshu"},"純米酒":{y:"じゅんまいしゅ",r:"shinshu"},
+  "新酒":{y:"しんしゅ",r:"shinshu"},"銘酒":{y:"めいしゅ",r:"shinshu"},"仕込み水":{y:"しこみみず",r:"shinshu"},"割水":{y:"わりみず",r:"shinshu"},"清酒":{y:"せいしゅ",r:"shinshu"},"純米酒":{y:"じゅんまいしゅ",r:"shinshu"},"冷酒":{y:"れいしゅ",r:"shinshu"},
   // genshu（末尾 e,i,u／form=産酒）搾ったままの酒 → 酒米。soft韻 iiu で shinshu と近似で踏み合う（響き韻）
-  "原酒":{y:"げんしゅ",r:"genshu"},"生原酒":{y:"なまげんしゅ",r:"genshu"},
+  "原酒":{y:"げんしゅ",r:"genshu"},"生原酒":{y:"なまげんしゅ",r:"genshu"},"無濾過原酒":{y:"むろかげんしゅ",r:"genshu"},
   // hakkou（末尾 a,o,u）発酵 → 酵母・杜氏の新バケット
   "発酵":{y:"はっこう",r:"hakkou"},"並行複発酵":{y:"へいこうふくはっこう",r:"hakkou"},
   // mill 追加（末尾 i,a,i）好適米 → 既存 mill 役割へ（麹菌・酒米）
@@ -403,6 +403,7 @@ const FIGHTERS = {
       // 3語韻（3スロット・ソリッド）─ 酵母一族を3語で踏む見せ場
       {p:"end",ra:"koubo",rb:"koubo",rc:"koubo",f:`もろみ沸かすは {a}／香りを操る {b} {c}`},
       {p:"multi",ra:"type",rb:"type",rc:"type",f:`香りで攻める {a}／深く仕上げる {b} と {c}`},   // uiu(10語)の3語韻
+      {p:"head",ra:"awa",rb:"hanayaka",rc:"hanayaka",f:`もろみに立つは {a}／香りは {b} で {c}`},   // aaa(10語)の3語韻（泡=物×香味=様子）
       // 発酵の泡（aaa・物）─ 高泡/玉泡/岩泡。hanayaka(様子)と同母音で同居し踏み合う
       {p:"head",ra:"awa",f:`もろみを沸かせ 攻めまくる／タンクに立つは 我が{a}`},
       {p:"mid", ra:"awa",f:`二億の同胞 湧き上がる／もろみに躍るは この{a}`},
@@ -535,6 +536,7 @@ const FIGHTERS = {
       {p:"multi",ra:"zukuri",rb:"zukuri",f:`{a}に{b} 受け継ぐ伝統／生酛の底力 深く残す`},
       {p:"end", ra:"zukuri",rb:"moromi",f:`寒の仕込みで 練り上げる この{a}／蔵が湧き立つ 我が{b}`},
       {p:"multi",ra:"moromi",rb:"zukuri",f:`{a}に宿るは この{b}／雑菌駆逐 陰の主役`},
+      {p:"head",ra:"zukuri",rb:"moromi",rc:"zukuri",f:`寒に仕込むは {a}／蔵が湧くのは {b} と {c}`},   // uui(10語)の3語韻＝乳酸菌の看板テーマ
       // 乳酸そのもの（uua・味）＋ 有機酸の仲間（ioa・味）─ acid(aua)と v2="ua" で束なる
       // ※1語roleなので位置ごとに均等配分（head/mid=乳酸, end/multi=総酸）＝4行で同語3回以上を出さない
       {p:"head",ra:"nyusan",f:`雑菌散らして 蔵を守る／じわり効かせる この{a}`},
@@ -604,6 +606,8 @@ const FIGHTERS = {
       // 3語韻（3スロット・ソリッド）─ 酒質を3語で踏む見せ場（varietyは7語で3枠には小さく反復増→typeを使用）
       {p:"end",ra:"type",rb:"type",rc:"type",f:`磨き抜いて 生む{a}／芯まで攻めて {b} {c}`},
       {p:"multi",ra:"mill",rb:"mill",rc:"kakemai",f:`磨き抜かれた {a}／心白宿す {b} と {c}`},   // iai(12語)の3語韻
+      {p:"head",ra:"komeu",rb:"komeu",rc:"junmai",f:`蔵が数えるは {a}／土台を成すは {b} と {c}`},   // uai(10語)の3語韻
+      {p:"head",ra:"shinshu",rb:"genshu",rc:"shinshu",f:`蔵が誇るは {a}／搾って届ける {b} と {c}`},   // iiu(10語)の3語韻
       // 搾ったままの酒（eiu・産酒）─ 原酒/生原酒。soft韻 iiu で shinshu と近似で踏み合う（響き韻）
       {p:"head",ra:"genshu",f:`原料あってこそ 酒になる／搾ってそのまま この{a}`},
       {p:"end", ra:"genshu",f:`削りの果てに 光る力／薄めず届ける この{a}`},
