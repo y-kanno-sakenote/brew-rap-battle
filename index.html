@@ -692,6 +692,38 @@ const FLAVORS = [
 
 // ---- リリック生成エンジン（単語シグネチャ方式）----
 // キャラが使えるフレームだけを抽出（役割保有・母音一致・語数）
+// ==== 語彙使用ガイド（API案用）: 属性表（工程段階／所有／格）を LLM への指示に変換する。ルール案と同じ考え方を言葉で渡す ====
+function usageGuide(aId,bId){
+  if(!USAGE_LOGIC || !Object.keys(VOCAB_ATTRS).length) return "";
+  const A = w => VOCAB_ATTRS[w]||{};
+  const own = id => { const mine=OWNER_OF[id]; return Object.keys(VOCAB).filter(w=>{const o=A(w).owner; return o && o!=="共通" && o.split("/").includes(mine);}); };
+  const byStage = ws => STAGE_ORDER.map(st=>[st, ws.filter(w=>A(w).stage===st)]).filter(([,l])=>l.length).map(([st,l])=>`${st}: ${l.slice(0,10).join("・")}`).join("／");
+  const common = Object.keys(VOCAB).filter(w=>{const o=A(w).owner; return !o || o==="共通";}).filter(w=>A(w).spec!=="韻合わせ").slice(0,24);
+  const proper = Object.keys(VOCAB).filter(w=>A(w).spec==="固有");
+  const block = id => { const f=FIGHTERS[id]; const ws=own(id); return `◆${f.name}の持ち語（工程順）: ${byStage(ws)}${ws.filter(w=>!A(w).stage||A(w).stage==="通年").length?"／通年: "+ws.filter(w=>!A(w).stage||A(w).stage==="通年").slice(0,8).join("・"):""}`; };
+  return `【語彙の使い方（厳守）】
+${block(aId)}
+${block(bId)}
+◆共通語（誰でも使える）: ${common.join("・")}
+◆固有名詞（品種・地名など）: ${proper.join("・")}。実在の蔵名・会社名は出さない。
+ルール: (1)自分の持ち語で誇り、相手の持ち語は相手をディスる行でだけ触れる (2)1バース4行は醸造工程の順（原料米→洗米蒸米→製麹→酒母→醪→上槽貯蔵→香味製品）を戻らずに進める (3)各バースの最終行は固有名詞か専門語をパンチラインの行末に置く (4)同じ固有名詞をバトル中に2度使わない (5)ここに無い醸造用語を使うときは実在するものだけ`;
+}
+// 生成されたバース（API案）を、ルール案と同じ3指標で採点する（コーパスに残して比較する用）
+function usageScore(verses){
+  if(!Object.keys(VOCAB_ATTRS).length || !Array.isArray(verses)) return null;
+  const A = w => VOCAB_ATTRS[w]||{}; const words=Object.keys(VOCAB).sort((a,b)=>b.length-a.length);
+  let mine=0,all=0,back=0,pairs=0,punch=0,n=0,properUsed={};
+  for(const v of verses){ const id=v.characterId, me=OWNER_OF[id]; const lines=(v.lines||[]).map(l=>String(l).replace(/<[^>]+>/g,"")); if(!lines.length) continue; n++;
+    let prev=-1;
+    lines.forEach((ln,li)=>{ const found=words.filter(w=>ln.includes(w)); let mx=-1;
+      found.forEach(w=>{ all++; const o=A(w).owner; if(o&&o!=="共通"&&o.split("/").includes(me)) mine++; const k=STAGE_ORDER.indexOf(A(w).stage); if(k>mx) mx=k; if(A(w).spec==="固有") properUsed[w]=(properUsed[w]||0)+1; });
+      if(mx>=0){ if(prev>=0){ pairs++; if(mx<prev) back++; } prev=mx; }
+      if(li===lines.length-1 && found.some(w=>["固有","専門"].includes(A(w).spec))) punch++;
+    });
+  }
+  const rep=Object.values(properUsed).filter(c=>c>1).length;
+  return {verses:n, ownRate:all?+(mine/all).toFixed(2):null, backRate:pairs?+(back/pairs).toFixed(2):null, punchRate:n?+(punch/n).toFixed(2):null, properRepeat:rep, knownWords:all};
+}
 function usableFrames(me){
   const rs = new Set(me.roles);
   return me.frames.filter(fr=>{
@@ -949,7 +981,7 @@ ${themeDirective()}
 - **ディスとアンサー**: 相手の役割の弱点（例：酵母は酸に弱い、麹は温度変化に弱い、等）を論理的かつユーモアを交えて攻撃し、それに対してアンサーを返してください。
 - **専門用語**: 「無濾過生原酒」「並行複発酵」「山卸し」「心白」などの実在する醸造用語をライミングの中に自然に溶け込ませてください。`;
 
-  const prompt = `先攻：${a.name}（${aId}） VS 後攻：${b.name}（${bId}）のラップバトル（合計 ${rounds * 2} バース、各バース4小節）を開始してください。必ず指定されたJSONスキーマに従って出力してください。`;
+  const prompt = `${usageGuide(aId,bId)}\n\n先攻：${a.name}（${aId}） VS 後攻：${b.name}（${bId}）のラップバトル（合計 ${rounds * 2} バース、各バース4小節）を開始してください。必ず指定されたJSONスキーマに従って出力してください。`;
 
   const schema = {
     type: "OBJECT",
@@ -1073,7 +1105,7 @@ async function renderBattleOllama(aId, bId, bars){
 (4)韻を踏む単語は全角の【】で囲む（例:【白麹】）。HTMLタグは書かない。
 (5)手本は質感の参考であり、内容は真似ず新しく作る。麹/糖化/生酛/心白/山卸し等の醸造語を使い、相手の弱点を突くディスとアンサーにする。
 形式:{"verses":[{"characterId":"id","characterName":"名","displayRhyme":"o-u-i","lines":["行1","行2","行3","行4"]}],"flavor":"酒のタイプ"}`;
-  const user = `手本の質感:\n${buildFewShot()}\n\n【人格（保つこと）】\n${personaBlock(aId,bId)}\n${personaBlock(bId,aId)}\n\n${styleDirective()}\n${themeDirective()}\n本番：先攻=${a.name}(id:${aId})、後攻=${b.name}(id:${bId})。合計${rounds*2}バース・各4行のバトルをJSONで出力。`;
+  const user = `手本の質感:\n${buildFewShot()}\n\n【人格（保つこと）】\n${personaBlock(aId,bId)}\n${personaBlock(bId,aId)}\n\n${usageGuide(aId,bId)}\n\n${styleDirective()}\n${themeDirective()}\n本番：先攻=${a.name}(id:${aId})、後攻=${b.name}(id:${bId})。合計${rounds*2}バース・各4行のバトルをJSONで出力。`;
 
   try{
     const response = await fetch(`${host}/api/chat`, {
@@ -1158,7 +1190,7 @@ const corpusTray = document.getElementById('corpusTray');
 const corpusCountEl = document.getElementById('corpusCount');
 function loadCorpus(){ try{ return JSON.parse(localStorage.getItem(CORPUS_KEY)) || []; }catch(e){ return []; } }
 function refreshCorpusTray(){ const n = loadCorpus().length; corpusCountEl.textContent = n; corpusTray.style.display = n ? 'flex' : 'none'; }
-function saveToCorpus(rec){ const arr = loadCorpus(); arr.push(rec); localStorage.setItem(CORPUS_KEY, JSON.stringify(arr)); refreshCorpusTray(); }
+function saveToCorpus(rec){ try{ if(rec.data && rec.data.verses) rec.usage = usageScore(rec.data.verses); }catch(e){} const arr = loadCorpus(); arr.push(rec); localStorage.setItem(CORPUS_KEY, JSON.stringify(arr)); refreshCorpusTray(); }
 function exportCorpus(){
   const arr = loadCorpus();
   if(!arr.length){ toast('コーパスが空です'); return; }
