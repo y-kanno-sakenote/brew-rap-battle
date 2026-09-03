@@ -1,6 +1,6 @@
 {
 "generated": "2026-09-03",
-"method": "sake-kb（教科書4冊＋醸造協会誌本文 約7万チャンク）の共起の持ち上がり率(lift)で工程段階・所有キャラ・格を推定。weak=根拠が弱く要人手確認。人手で直した値は fixed_by に記録する",
+"method": "sake-kb（教科書4冊＋醸造協会誌本文 約7万チャンク）の共起の持ち上がり率(lift)で工程段階・所有キャラ・格を推定。weak=根拠が弱く要人手確認。人手で直した値は fixed_by に記録する。2026-09-03 コンテンツ係が全176語を人手確認（工程に属さない語は stage=通年、誰のものでもない語は owner=共通、複数所有は「/」区切り、格の「固有/稀」は 固有（品種名等）と他の格に振り分け）",
 "stages": [
 "原料米",
 "洗米蒸米",
@@ -95,120 +95,130 @@
 "yomi": "とうじ",
 "role": "person",
 "df": 797,
-"stage": "酒母",
+"stage": "通年",
 "stage_lift": 3.87,
 "owner": "杜氏",
 "owner_lift": 11.71,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "王子",
 "yomi": "おうじ",
 "role": "person",
 "df": 60,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 1.1,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 1.76,
-"spec": "専門",
-"weak": true
+"spec": "韻合わせ",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "講師",
 "yomi": "こうじ",
 "role": "person",
 "df": 300,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 0.88,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 2.15,
-"spec": "専門",
-"weak": true
+"spec": "韻合わせ",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "同志",
 "yomi": "どうし",
 "role": "person",
 "df": 66,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 1.09,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 1.42,
-"spec": "専門",
-"weak": true
+"spec": "韻合わせ",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "吟醸",
 "yomi": "ぎんじょう",
 "role": "gin",
 "df": 3163,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 3.59,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 2.73,
 "spec": "一般",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "大吟醸",
 "yomi": "だいぎんじょう",
 "role": "gin",
 "df": 572,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 4.52,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 4.2,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "異常",
 "yomi": "いじょう",
 "role": "degree",
 "df": 636,
-"stage": "酒母",
+"stage": "通年",
 "stage_lift": 2.19,
-"owner": "乳酸菌",
+"owner": "共通",
 "owner_lift": 2.15,
-"spec": "専門",
-"weak": false
+"spec": "韻合わせ",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "非常",
 "yomi": "ひじょう",
 "role": "degree",
 "df": 3015,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 1.44,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 1.5,
-"spec": "一般",
-"weak": true
+"spec": "韻合わせ",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "日常",
 "yomi": "にちじょう",
 "role": "degree",
 "df": 577,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 1.95,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 2.07,
-"spec": "専門",
-"weak": false
+"spec": "韻合わせ",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "清涼",
 "yomi": "せいりょう",
 "role": "degree",
 "df": 230,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 3.39,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 1.43,
-"spec": "専門",
-"weak": true
+"spec": "韻合わせ",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "白桃",
@@ -217,34 +227,37 @@
 "df": 7,
 "stage": "香味製品",
 "stage_lift": 2.57,
-"owner": "杜氏",
+"owner": "酵母",
 "owner_lift": 1.67,
-"spec": "固有/稀",
-"weak": true
+"spec": "一般",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "黄桃",
 "yomi": "おうとう",
 "role": "fruit",
 "df": 2,
-"stage": "原料米",
+"stage": "香味製品",
 "stage_lift": 4.52,
-"owner": "酒米",
+"owner": "酵母",
 "owner_lift": 5.24,
-"spec": "固有/稀",
-"weak": true
+"spec": "一般",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "葡萄",
 "yomi": "ぶどう",
 "role": "fruit",
 "df": 266,
-"stage": "原料米",
+"stage": "香味製品",
 "stage_lift": 1.9,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 2.25,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "吟醸香",
@@ -263,24 +276,26 @@
 "yomi": "げんりょうこう",
 "role": "aroma",
 "df": 12,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 8.28,
-"owner": "乳酸菌",
+"owner": "酒米",
 "owner_lift": 3.99,
-"spec": "固有/稀",
-"weak": false
+"spec": "専門",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "芳香",
 "yomi": "ほうこう",
 "role": "aroma",
 "df": 772,
-"stage": "上槽貯蔵",
+"stage": "香味製品",
 "stage_lift": 2.0,
 "owner": "酵母",
 "owner_lift": 2.07,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "果実香",
@@ -289,10 +304,11 @@
 "df": 70,
 "stage": "香味製品",
 "stage_lift": 2.66,
-"owner": "酒米",
+"owner": "酵母",
 "owner_lift": 2.1,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "華やか",
@@ -303,8 +319,9 @@
 "stage_lift": 3.5,
 "owner": "酵母",
 "owner_lift": 2.14,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "爽やか",
@@ -313,46 +330,50 @@
 "df": 177,
 "stage": "香味製品",
 "stage_lift": 3.46,
-"owner": "乳酸菌",
+"owner": "共通",
 "owner_lift": 2.76,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "鮮やか",
 "yomi": "あざやか",
 "role": "hanayaka",
 "df": 127,
-"stage": "原料米",
+"stage": "通年",
 "stage_lift": 2.42,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 2.64,
-"spec": "専門",
-"weak": false
+"spec": "韻合わせ",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "しなやか",
 "yomi": "しなやか",
 "role": "hanayaka",
 "df": 19,
-"stage": "製麹",
+"stage": "通年",
 "stage_lift": 1.99,
-"owner": "麹菌",
+"owner": "共通",
 "owner_lift": 1.54,
-"spec": "固有/稀",
-"weak": false
+"spec": "韻合わせ",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "艶やか",
 "yomi": "つややか",
 "role": "hanayaka",
 "df": 3,
-"stage": "製麹",
+"stage": "通年",
 "stage_lift": 6.29,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 7.81,
-"spec": "固有/稀",
-"weak": true
+"spec": "韻合わせ",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "やわらか",
@@ -361,10 +382,11 @@
 "df": 125,
 "stage": "香味製品",
 "stage_lift": 3.02,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 2.26,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "細やか",
@@ -375,8 +397,9 @@
 "stage_lift": 2.08,
 "owner": "杜氏",
 "owner_lift": 4.96,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "高泡",
@@ -395,12 +418,13 @@
 "yomi": "たまあわ",
 "role": "awa",
 "df": 9,
-"stage": "酒母",
+"stage": "醪",
 "stage_lift": 11.04,
-"owner": "杜氏",
+"owner": "酵母",
 "owner_lift": 5.21,
-"spec": "固有/稀",
-"weak": true
+"spec": "専門",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "岩泡",
@@ -409,10 +433,11 @@
 "df": 6,
 "stage": "醪",
 "stage_lift": 7.09,
-"owner": "杜氏",
+"owner": "酵母",
 "owner_lift": 3.9,
-"spec": "固有/稀",
-"weak": true
+"spec": "専門",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "薫酒",
@@ -421,10 +446,11 @@
 "df": 61,
 "stage": "香味製品",
 "stage_lift": 4.62,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 0.86,
 "spec": "専門",
-"weak": true
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "爽酒",
@@ -433,46 +459,50 @@
 "df": 54,
 "stage": "香味製品",
 "stage_lift": 5.33,
-"owner": "乳酸菌",
+"owner": "共通",
 "owner_lift": 1.06,
 "spec": "専門",
-"weak": true
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "濃醇",
 "yomi": "のうじゅん",
 "role": "type",
 "df": 266,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 4.48,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 2.32,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "醇酒",
 "yomi": "じゅんしゅ",
 "role": "type",
 "df": 71,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 7.46,
-"owner": "乳酸菌",
+"owner": "共通",
 "owner_lift": 2.16,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "熟酒",
 "yomi": "じゅくしゅ",
 "role": "type",
 "df": 47,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 7.05,
-"owner": "乳酸菌",
+"owner": "共通",
 "owner_lift": 1.83,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "芳醇",
@@ -481,10 +511,11 @@
 "df": 151,
 "stage": "香味製品",
 "stage_lift": 3.22,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 2.02,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "精米",
@@ -517,34 +548,37 @@
 "df": 1281,
 "stage": "香味製品",
 "stage_lift": 2.13,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 1.43,
-"spec": "専門",
-"weak": true
+"spec": "一般",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "気合い",
 "yomi": "きあい",
 "role": "spirit",
 "df": 1,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 6.0,
-"owner": "麹菌",
+"owner": "杜氏",
 "owner_lift": 0.0,
-"spec": "固有/稀",
-"weak": true
+"spec": "韻合わせ",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "気概",
 "yomi": "きがい",
 "role": "spirit",
 "df": 7,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 2.57,
 "owner": "杜氏",
 "owner_lift": 3.35,
-"spec": "固有/稀",
-"weak": true
+"spec": "韻合わせ",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "酒米",
@@ -555,8 +589,9 @@
 "stage_lift": 6.64,
 "owner": "酒米",
 "owner_lift": 10.48,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "一般米",
@@ -577,34 +612,37 @@
 "df": 1533,
 "stage": "香味製品",
 "stage_lift": 2.23,
-"owner": "乳酸菌",
+"owner": "麹菌",
 "owner_lift": 1.37,
-"spec": "専門",
-"weak": true
+"spec": "一般",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "乾杯",
 "yomi": "かんぱい",
 "role": "banzai",
 "df": 95,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 1.58,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 1.6,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "万歳",
 "yomi": "ばんざい",
 "role": "banzai",
 "df": 8,
-"stage": "醪",
+"stage": "通年",
 "stage_lift": 1.33,
-"owner": "麹菌",
+"owner": "共通",
 "owner_lift": 0.61,
-"spec": "固有/稀",
-"weak": true
+"spec": "韻合わせ",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "山廃",
@@ -637,22 +675,24 @@
 "df": 918,
 "stage": "香味製品",
 "stage_lift": 2.39,
-"owner": "乳酸菌",
+"owner": "共通",
 "owner_lift": 1.99,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "純米",
 "yomi": "じゅんまい",
 "role": "junmai",
 "df": 1374,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 3.91,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 2.92,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "洋梨",
@@ -663,20 +703,22 @@
 "stage_lift": 4.0,
 "owner": "酵母",
 "owner_lift": 1.5,
-"spec": "固有/稀",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "祝杯",
 "yomi": "しゅくはい",
 "role": "shukuhai",
 "df": 2,
-"stage": "原料米",
+"stage": "通年",
 "stage_lift": 0.0,
-"owner": "酵母",
+"owner": "共通",
 "owner_lift": 1.88,
-"spec": "固有/稀",
-"weak": true
+"spec": "一般",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "白米",
@@ -699,8 +741,9 @@
 "stage_lift": 7.58,
 "owner": "酒米",
 "owner_lift": 8.41,
-"spec": "専門",
-"weak": false
+"spec": "固有",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "美山錦",
@@ -711,8 +754,9 @@
 "stage_lift": 7.82,
 "owner": "酒米",
 "owner_lift": 8.74,
-"spec": "専門",
-"weak": false
+"spec": "固有",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "八反錦",
@@ -723,8 +767,9 @@
 "stage_lift": 8.45,
 "owner": "酒米",
 "owner_lift": 8.93,
-"spec": "専門",
-"weak": false
+"spec": "固有",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "雄山錦",
@@ -735,8 +780,9 @@
 "stage_lift": 7.61,
 "owner": "酒米",
 "owner_lift": 8.83,
-"spec": "固有/稀",
-"weak": false
+"spec": "固有",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "神力",
@@ -747,8 +793,9 @@
 "stage_lift": 7.7,
 "owner": "酒米",
 "owner_lift": 9.32,
-"spec": "専門",
-"weak": false
+"spec": "固有",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "生酛",
@@ -791,24 +838,26 @@
 "yomi": "とっくり",
 "role": "vessel",
 "df": 92,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 1.7,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 1.91,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "銚子",
 "yomi": "ちょうし",
 "role": "vessel",
 "df": 76,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 1.5,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 1.7,
-"spec": "専門",
-"weak": true
+"spec": "一般",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "一升瓶",
@@ -817,10 +866,11 @@
 "df": 48,
 "stage": "香味製品",
 "stage_lift": 2.75,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 1.95,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "四合瓶",
@@ -829,22 +879,24 @@
 "df": 12,
 "stage": "香味製品",
 "stage_lift": 2.0,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 2.93,
-"spec": "固有/稀",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "鳩徳利",
 "yomi": "はとどっくり",
 "role": "vessel",
 "df": 3,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 2.0,
-"owner": "麹菌",
+"owner": "共通",
 "owner_lift": 0.0,
-"spec": "固有/稀",
-"weak": true
+"spec": "一般",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "酵母",
@@ -879,8 +931,9 @@
 "stage_lift": 4.53,
 "owner": "酵母",
 "owner_lift": 3.76,
-"spec": "一般",
-"weak": false
+"spec": "専門",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "蔵付き酵母",
@@ -901,10 +954,11 @@
 "df": 448,
 "stage": "酒母",
 "stage_lift": 9.24,
-"owner": "乳酸菌",
+"owner": "酵母",
 "owner_lift": 4.12,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "焼酎酵母",
@@ -971,12 +1025,13 @@
 "yomi": "とうかこうそ",
 "role": "koubo",
 "df": 328,
-"stage": "酒母",
+"stage": "製麹",
 "stage_lift": 3.94,
 "owner": "麹菌",
 "owner_lift": 4.89,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "精白米",
@@ -1019,84 +1074,91 @@
 "yomi": "こうじぶあい",
 "role": "komeu",
 "df": 712,
-"stage": "酒母",
+"stage": "醪",
 "stage_lift": 5.16,
-"owner": "乳酸菌",
+"owner": "麹菌/杜氏",
 "owner_lift": 2.92,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "総米",
 "yomi": "そうまい",
 "role": "komeu",
 "df": 920,
-"stage": "酒母",
+"stage": "醪",
 "stage_lift": 9.4,
 "owner": "酒米",
 "owner_lift": 3.83,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "汲水歩合",
 "yomi": "くみみずぶあい",
 "role": "komeu",
 "df": 327,
-"stage": "酒母",
+"stage": "醪",
 "stage_lift": 11.14,
-"owner": "乳酸菌",
+"owner": "杜氏",
 "owner_lift": 4.19,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "粕歩合",
 "yomi": "かすぶあい",
 "role": "komeu",
 "df": 320,
-"stage": "洗米蒸米",
+"stage": "上槽貯蔵",
 "stage_lift": 6.83,
-"owner": "酒米",
+"owner": "杜氏",
 "owner_lift": 4.16,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "吟醸酒",
 "yomi": "ぎんじょうしゅ",
 "role": "type",
 "df": 2092,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 3.42,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 2.9,
 "spec": "一般",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "貴醸酒",
 "yomi": "きじょうしゅ",
 "role": "type",
 "df": 78,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 4.25,
-"owner": "乳酸菌",
+"owner": "共通",
 "owner_lift": 1.84,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "醸造酒",
 "yomi": "じょうぞうしゅ",
 "role": "type",
 "df": 887,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 2.8,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 2.32,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "蒸留酒",
@@ -1105,10 +1167,11 @@
 "df": 1017,
 "stage": "香味製品",
 "stage_lift": 1.98,
-"owner": "酵母",
+"owner": "共通",
 "owner_lift": 1.01,
-"spec": "専門",
-"weak": true
+"spec": "一般",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "たかね錦",
@@ -1119,20 +1182,22 @@
 "stage_lift": 8.52,
 "owner": "酒米",
 "owner_lift": 9.07,
-"spec": "専門",
-"weak": false
+"spec": "固有",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "千本錦",
 "yomi": "せんぼんにしき",
 "role": "variety",
 "df": 60,
-"stage": "洗米蒸米",
+"stage": "原料米",
 "stage_lift": 9.61,
 "owner": "酒米",
 "owner_lift": 7.69,
-"spec": "専門",
-"weak": false
+"spec": "固有",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "紅麹",
@@ -1153,10 +1218,11 @@
 "df": 230,
 "stage": "製麹",
 "stage_lift": 3.2,
-"owner": "乳酸菌",
+"owner": "麹菌",
 "owner_lift": 2.83,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "出麹",
@@ -1175,24 +1241,26 @@
 "yomi": "とめこうじ",
 "role": "koji",
 "df": 80,
-"stage": "酒母",
+"stage": "醪",
 "stage_lift": 14.49,
-"owner": "乳酸菌",
+"owner": "麹菌",
 "owner_lift": 4.43,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "塩麹",
 "yomi": "しおこうじ",
 "role": "koji",
 "df": 68,
-"stage": "上槽貯蔵",
+"stage": "通年",
 "stage_lift": 2.19,
 "owner": "麹菌",
 "owner_lift": 3.95,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "醤油麹",
@@ -1223,24 +1291,26 @@
 "yomi": "なまこうじ",
 "role": "koji",
 "df": 7,
-"stage": "洗米蒸米",
+"stage": "製麹",
 "stage_lift": 7.27,
 "owner": "麹菌",
 "owner_lift": 3.49,
-"spec": "固有/稀",
-"weak": true
+"spec": "専門",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "掛麹",
 "yomi": "かけこうじ",
 "role": "koji",
 "df": 31,
-"stage": "酒母",
+"stage": "醪",
 "stage_lift": 25.64,
-"owner": "乳酸菌",
+"owner": "麹菌",
 "owner_lift": 7.41,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "酒母麹",
@@ -1249,10 +1319,11 @@
 "df": 50,
 "stage": "酒母",
 "stage_lift": 33.12,
-"owner": "乳酸菌",
+"owner": "麹菌",
 "owner_lift": 9.57,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "胞子",
@@ -1321,10 +1392,11 @@
 "df": 1803,
 "stage": "酒母",
 "stage_lift": 33.12,
-"owner": "乳酸菌",
+"owner": "乳酸菌/酵母",
 "owner_lift": 9.57,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "速醸酒母",
@@ -1333,10 +1405,11 @@
 "df": 174,
 "stage": "酒母",
 "stage_lift": 33.12,
-"owner": "乳酸菌",
+"owner": "杜氏",
 "owner_lift": 9.57,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "麹室",
@@ -1345,10 +1418,11 @@
 "df": 339,
 "stage": "製麹",
 "stage_lift": 18.88,
-"owner": "杜氏",
+"owner": "麹菌/杜氏",
 "owner_lift": 5.25,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "酢酸菌",
@@ -1357,10 +1431,11 @@
 "df": 822,
 "stage": "上槽貯蔵",
 "stage_lift": 1.17,
-"owner": "乳酸菌",
+"owner": "共通",
 "owner_lift": 2.39,
 "spec": "専門",
-"weak": true
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "コハク酸",
@@ -1369,10 +1444,11 @@
 "df": 823,
 "stage": "醪",
 "stage_lift": 2.74,
-"owner": "乳酸菌",
+"owner": "酵母",
 "owner_lift": 4.51,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "酢酸",
@@ -1381,22 +1457,24 @@
 "df": 4823,
 "stage": "醪",
 "stage_lift": 1.91,
-"owner": "乳酸菌",
+"owner": "共通",
 "owner_lift": 2.37,
 "spec": "一般",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "酪酸",
 "yomi": "らくさん",
 "role": "acid",
 "df": 704,
-"stage": "製麹",
+"stage": "酒母",
 "stage_lift": 1.72,
-"owner": "乳酸菌",
+"owner": "共通",
 "owner_lift": 2.86,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "乳酸",
@@ -1415,12 +1493,13 @@
 "yomi": "そうさん",
 "role": "sousan",
 "df": 450,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 2.13,
-"owner": "乳酸菌",
+"owner": "共通",
 "owner_lift": 2.36,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "リンゴ酸",
@@ -1429,46 +1508,50 @@
 "df": 1363,
 "stage": "醪",
 "stage_lift": 2.93,
-"owner": "乳酸菌",
+"owner": "酵母",
 "owner_lift": 4.24,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "アミノ酸",
 "yomi": "あみのさん",
 "role": "ringosan",
 "df": 6697,
-"stage": "酒母",
+"stage": "醪",
 "stage_lift": 2.47,
 "owner": "麹菌",
 "owner_lift": 1.99,
 "spec": "一般",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "辛口",
 "yomi": "からくち",
 "role": "karakuchi",
 "df": 588,
-"stage": "上槽貯蔵",
+"stage": "香味製品",
 "stage_lift": 2.58,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 1.94,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "淡麗辛口",
 "yomi": "たんれいからくち",
 "role": "karakuchi",
 "df": 61,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 4.34,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 2.3,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "甘口",
@@ -1477,22 +1560,24 @@
 "df": 386,
 "stage": "香味製品",
 "stage_lift": 2.66,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 2.17,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "旨口",
 "yomi": "うまくち",
 "role": "karakuchi",
 "df": 20,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 6.62,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 5.27,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "銘柄",
@@ -1501,46 +1586,50 @@
 "df": 795,
 "stage": "香味製品",
 "stage_lift": 2.87,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 3.01,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "杉玉",
 "yomi": "すぎだま",
 "role": "kanban",
 "df": 4,
-"stage": "製麹",
+"stage": "通年",
 "stage_lift": 4.72,
 "owner": "杜氏",
 "owner_lift": 2.93,
-"spec": "固有/稀",
-"weak": true
+"spec": "一般",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "のびやか",
 "yomi": "のびやか",
 "role": "nobiyaka",
 "df": 2,
-"stage": "原料米",
+"stage": "通年",
 "stage_lift": 0.0,
-"owner": "麹菌",
+"owner": "共通",
 "owner_lift": 0.0,
-"spec": "固有/稀",
-"weak": true
+"spec": "韻合わせ",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "きらびやか",
 "yomi": "きらびやか",
 "role": "nobiyaka",
 "df": 1,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 6.0,
-"owner": "麹菌",
+"owner": "共通",
 "owner_lift": 0.0,
-"spec": "固有/稀",
-"weak": true
+"spec": "韻合わせ",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "なめらか",
@@ -1549,10 +1638,11 @@
 "df": 136,
 "stage": "香味製品",
 "stage_lift": 3.79,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 1.46,
-"spec": "専門",
-"weak": true
+"spec": "一般",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "醪",
@@ -1561,10 +1651,11 @@
 "df": 3080,
 "stage": "醪",
 "stage_lift": 10.64,
-"owner": "乳酸菌",
+"owner": "酵母/麹菌",
 "owner_lift": 2.71,
 "spec": "一般",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "山卸し",
@@ -1573,22 +1664,24 @@
 "df": 16,
 "stage": "酒母",
 "stage_lift": 31.05,
-"owner": "乳酸菌",
+"owner": "杜氏",
 "owner_lift": 9.57,
-"spec": "固有/稀",
-"weak": false
+"spec": "専門",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "踊り",
 "yomi": "おどり",
 "role": "moromi",
 "df": 122,
-"stage": "酒母",
+"stage": "醪",
 "stage_lift": 11.4,
-"owner": "乳酸菌",
+"owner": "酵母",
 "owner_lift": 4.24,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "床もみ",
@@ -1609,46 +1702,50 @@
 "df": 39,
 "stage": "酒母",
 "stage_lift": 33.12,
-"owner": "乳酸菌",
+"owner": "杜氏/乳酸菌",
 "owner_lift": 8.35,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "寒造り",
 "yomi": "かんづくり",
 "role": "zukuri",
 "df": 41,
-"stage": "醪",
+"stage": "通年",
 "stage_lift": 2.59,
 "owner": "杜氏",
 "owner_lift": 6.29,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "手造り",
 "yomi": "てづくり",
 "role": "zukuri",
 "df": 91,
-"stage": "酒母",
+"stage": "通年",
 "stage_lift": 4.73,
 "owner": "杜氏",
 "owner_lift": 4.76,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "酒造り",
 "yomi": "さけづくり",
 "role": "zukuri",
 "df": 1525,
-"stage": "酒母",
+"stage": "通年",
 "stage_lift": 3.39,
 "owner": "杜氏",
 "owner_lift": 4.32,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "山廃造り",
@@ -1657,20 +1754,22 @@
 "df": 6,
 "stage": "酒母",
 "stage_lift": 33.12,
-"owner": "乳酸菌",
+"owner": "杜氏/乳酸菌",
 "owner_lift": 7.98,
-"spec": "固有/稀",
-"weak": true
+"spec": "専門",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "木桶造り",
 "yomi": "きおけづくり",
 "role": "zukuri",
 "df": 0,
-"stage": null,
-"owner": null,
-"spec": "韻合わせ",
-"weak": true
+"stage": "醪",
+"owner": "杜氏",
+"spec": "専門",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "地酒",
@@ -1679,22 +1778,24 @@
 "df": 360,
 "stage": "香味製品",
 "stage_lift": 2.63,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 3.16,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "にごり酒",
 "yomi": "にごりざけ",
 "role": "sakerui",
 "df": 79,
-"stage": "酒母",
+"stage": "上槽貯蔵",
 "stage_lift": 3.77,
-"owner": "乳酸菌",
+"owner": "共通",
 "owner_lift": 2.18,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "おり酒",
@@ -1703,20 +1804,22 @@
 "df": 13,
 "stage": "上槽貯蔵",
 "stage_lift": 3.27,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 3.22,
-"spec": "固有/稀",
-"weak": false
+"spec": "専門",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "隠し酒",
 "yomi": "かくしざけ",
 "role": "sakerui",
 "df": 0,
-"stage": null,
-"owner": null,
+"stage": "通年",
+"owner": "杜氏",
 "spec": "韻合わせ",
-"weak": true
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "搾り",
@@ -1727,32 +1830,35 @@
 "stage_lift": 7.09,
 "owner": "杜氏",
 "owner_lift": 2.65,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "仕込み",
 "yomi": "しこみ",
 "role": "shikomi",
 "df": 4267,
-"stage": "酒母",
+"stage": "醪",
 "stage_lift": 4.85,
-"owner": "乳酸菌",
+"owner": "杜氏",
 "owner_lift": 2.84,
 "spec": "一般",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "三段仕込み",
 "yomi": "さんだんじこみ",
 "role": "shikomi",
 "df": 90,
-"stage": "酒母",
+"stage": "醪",
 "stage_lift": 12.51,
-"owner": "酒米",
+"owner": "杜氏",
 "owner_lift": 4.54,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "濁り",
@@ -1761,46 +1867,50 @@
 "df": 263,
 "stage": "上槽貯蔵",
 "stage_lift": 2.94,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 1.96,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "二段仕込み",
 "yomi": "にだんじこみ",
 "role": "shikomi",
 "df": 31,
-"stage": "酒母",
+"stage": "醪",
 "stage_lift": 10.69,
-"owner": "酒米",
+"owner": "杜氏",
 "owner_lift": 4.06,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "木桶仕込み",
 "yomi": "きおけじこみ",
 "role": "shikomi",
 "df": 7,
-"stage": "香味製品",
+"stage": "醪",
 "stage_lift": 3.43,
-"owner": "乳酸菌",
+"owner": "杜氏",
 "owner_lift": 2.74,
-"spec": "固有/稀",
-"weak": true
+"spec": "専門",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "火落ち",
 "yomi": "ひおち",
 "role": "shikomi",
 "df": 183,
-"stage": "酒母",
+"stage": "上槽貯蔵",
 "stage_lift": 4.53,
 "owner": "乳酸菌",
 "owner_lift": 9.57,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "原料処理",
@@ -1819,12 +1929,13 @@
 "yomi": "しんしゅ",
 "role": "shinshu",
 "df": 1039,
-"stage": "酒母",
+"stage": "上槽貯蔵",
 "stage_lift": 2.45,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 2.53,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "銘酒",
@@ -1833,58 +1944,63 @@
 "df": 154,
 "stage": "香味製品",
 "stage_lift": 1.71,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 2.59,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "仕込み水",
 "yomi": "しこみみず",
 "role": "shinshu",
 "df": 165,
-"stage": "酒母",
+"stage": "醪",
 "stage_lift": 5.82,
-"owner": "乳酸菌",
+"owner": "杜氏",
 "owner_lift": 3.31,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "割水",
 "yomi": "わりみず",
 "role": "shinshu",
 "df": 215,
-"stage": "酒母",
+"stage": "上槽貯蔵",
 "stage_lift": 3.39,
 "owner": "杜氏",
 "owner_lift": 2.07,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "清酒",
 "yomi": "せいしゅ",
 "role": "shinshu",
 "df": 12526,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 2.74,
-"owner": "酵母",
+"owner": "共通",
 "owner_lift": 1.72,
 "spec": "一般",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "純米酒",
 "yomi": "じゅんまいしゅ",
 "role": "shinshu",
 "df": 987,
-"stage": "酒母",
+"stage": "香味製品",
 "stage_lift": 4.09,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 2.78,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "冷酒",
@@ -1893,10 +2009,11 @@
 "df": 57,
 "stage": "香味製品",
 "stage_lift": 4.63,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 2.26,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "出品酒",
@@ -1905,80 +2022,87 @@
 "df": 714,
 "stage": "香味製品",
 "stage_lift": 2.24,
-"owner": "酒米",
+"owner": "杜氏",
 "owner_lift": 2.36,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "製成酒",
 "yomi": "せいせいしゅ",
 "role": "shinshu",
 "df": 1485,
-"stage": "醪",
+"stage": "上槽貯蔵",
 "stage_lift": 5.67,
-"owner": "酒米",
+"owner": "共通",
 "owner_lift": 3.3,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "ビール",
 "yomi": "びーる",
 "role": "shinshu",
 "df": 4945,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 1.96,
 "owner": "酵母",
 "owner_lift": 1.34,
 "spec": "一般",
-"weak": true
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "スピリッツ",
 "yomi": "すぴりっつ",
 "role": "shinshu",
 "df": 396,
-"stage": "香味製品",
+"stage": "通年",
 "stage_lift": 1.64,
-"owner": "酵母",
+"owner": "共通",
 "owner_lift": 0.64,
-"spec": "専門",
-"weak": true
+"spec": "一般",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "原酒",
 "yomi": "げんしゅ",
 "role": "genshu",
 "df": 723,
-"stage": "醪",
+"stage": "上槽貯蔵",
 "stage_lift": 2.94,
-"owner": "杜氏",
+"owner": "共通",
 "owner_lift": 2.17,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "生原酒",
 "yomi": "なまげんしゅ",
 "role": "genshu",
 "df": 27,
-"stage": "酒母",
+"stage": "上槽貯蔵",
 "stage_lift": 7.36,
-"owner": "乳酸菌",
+"owner": "共通",
 "owner_lift": 1.77,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "無濾過原酒",
 "yomi": "むろかげんしゅ",
 "role": "genshu",
 "df": 0,
-"stage": null,
-"owner": null,
-"spec": "韻合わせ",
-"weak": true
+"stage": "上槽貯蔵",
+"owner": "共通",
+"spec": "専門",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "発酵",
@@ -1987,10 +2111,11 @@
 "df": 15745,
 "stage": "醪",
 "stage_lift": 2.35,
-"owner": "乳酸菌",
+"owner": "酵母/乳酸菌",
 "owner_lift": 2.36,
 "spec": "一般",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "並行複発酵",
@@ -1999,22 +2124,24 @@
 "df": 323,
 "stage": "醪",
 "stage_lift": 5.83,
-"owner": "麹菌",
+"owner": "麹菌/酵母",
 "owner_lift": 2.92,
 "spec": "専門",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "乾燥",
 "yomi": "かんそう",
 "role": "hakkou",
 "df": 2735,
-"stage": "製麹",
+"stage": "通年",
 "stage_lift": 3.34,
-"owner": "麹菌",
+"owner": "共通",
 "owner_lift": 1.74,
 "spec": "一般",
-"weak": false
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "乳酸発酵",
@@ -2069,10 +2196,11 @@
 "yomi": "ていおんせいまい",
 "role": "mill",
 "df": 0,
-"stage": null,
-"owner": null,
-"spec": "韻合わせ",
-"weak": true
+"stage": "原料米",
+"owner": "酒米",
+"spec": "専門",
+"weak": true,
+"fixed_by": "content"
 },
 {
 "w": "コシヒカリ",
@@ -2083,8 +2211,9 @@
 "stage_lift": 7.89,
 "owner": "酒米",
 "owner_lift": 8.94,
-"spec": "専門",
-"weak": false
+"spec": "固有",
+"weak": false,
+"fixed_by": "content"
 },
 {
 "w": "掛け米",
