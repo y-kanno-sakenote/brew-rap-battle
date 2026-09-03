@@ -87,8 +87,10 @@
 "stage_lift": 5.62,
 "owner": "麹菌",
 "owner_lift": 3.17,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content",
+"spec_note": "塩麹と同じ台所の語"
 },
 {
 "w": "杜氏",
@@ -538,8 +540,10 @@
 "stage_lift": 16.95,
 "owner": "酒米",
 "owner_lift": 3.71,
-"spec": "一般",
-"weak": false
+"spec": "専門",
+"weak": false,
+"fixed_by": "content",
+"spec_note": "洗米と同列の工程語"
 },
 {
 "w": "苦味",
@@ -1334,8 +1338,10 @@
 "stage_lift": 5.09,
 "owner": "麹菌",
 "owner_lift": 2.55,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content",
+"spec_note": "理科の一般語"
 },
 {
 "w": "麹菌",
@@ -1575,9 +1581,10 @@
 "stage_lift": 6.62,
 "owner": "共通",
 "owner_lift": 5.27,
-"spec": "専門",
+"spec": "一般",
 "weak": false,
-"fixed_by": "content"
+"fixed_by": "content",
+"spec_note": "辛口・甘口と同列"
 },
 {
 "w": "銘柄",
@@ -1806,9 +1813,10 @@
 "stage_lift": 3.27,
 "owner": "共通",
 "owner_lift": 3.22,
-"spec": "専門",
+"spec": "一般",
 "weak": false,
-"fixed_by": "content"
+"fixed_by": "content",
+"spec_note": "にごり酒と同列の状態表示"
 },
 {
 "w": "隠し酒",
@@ -2100,9 +2108,10 @@
 "df": 0,
 "stage": "上槽貯蔵",
 "owner": "共通",
-"spec": "専門",
+"spec": "一般",
 "weak": true,
-"fixed_by": "content"
+"fixed_by": "content",
+"spec_note": "原酒と同列の状態表示"
 },
 {
 "w": "発酵",
@@ -2248,8 +2257,10 @@
 "stage_lift": 9.04,
 "owner": "酒米",
 "owner_lift": 10.48,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content",
+"spec_note": "食卓の語"
 }
 ]
 }
