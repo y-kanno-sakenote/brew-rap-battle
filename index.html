@@ -769,7 +769,7 @@ function buildVerse(me, rnd, forcedKey){
     // ---- 使い方ロジック（同点内の優先のみ。候補が残らないときは何もしない＝韻・反復の保証は不変） ----
     if(USAGE_LOGIC && Object.keys(VOCAB_ATTRS).length){
       const A = w => VOCAB_ATTRS[w]||{};
-      const mine = OWNER_OF[me.id];
+      const mine = OWNER_OF[me._id || (me._id = Object.keys(FIGHTERS).find(k=>FIGHTERS[k]===me))];   // FIGHTERS に id フィールドは無いのでキーから逆引き（検証係の指摘）
       // ① 縄張り: 自分の語（owner に自キャラ）か共通語を優先
       let t=cd.filter(w=>{const o=A(w).owner; return !o || o==="共通" || o.split("/").includes(mine);}); if(t.length) cd=t;
       // ② 工程順: これまでの行の段階より前に戻らない語を優先（段階なし=通年 は常に可）

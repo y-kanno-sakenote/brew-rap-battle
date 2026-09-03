@@ -52,20 +52,20 @@ for(const id in FIGHTERS){
   const tot=Object.values(cnt).reduce((a,b)=>a+b,0);
   const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
     // ---- 使い方ロジックの指標（属性表があるときだけ）: 自語率 / 工程逆行率 / パンチライン固有率 ----
-  let uMine=0,uAll=0,uBack=0,uPairs=0,uPunch=0,uVerse=0;
+  let uMine=0,uCommon=0,uOther=0,uAll=0,uBack=0,uPairs=0,uPunch=0,uVerse=0;
   if(typeof VOCAB_ATTRS!=="undefined" && Object.keys(VOCAB_ATTRS).length){
     const ORD=["原料米","洗米蒸米","製麹","酒母","醪","上槽貯蔵","香味製品"]; const mine=({koji:"麹菌",yeast:"酵母",toji:"杜氏",lactic:"乳酸菌",rice:"酒米"})[id];
     for(let i=0;i<600;i++){ const v=buildVerse(me,rng((i*2654435761)>>>0)); uVerse++;
       const perLine=v.lines.map(l=>[...l.matchAll(/<span class="rhyme">([^<]+)<\/span>/g)].map(m=>m[1]));
       let prev=-1;
       perLine.forEach((ws,li)=>{ let mx=-1;
-        ws.forEach(w=>{ const a=VOCAB_ATTRS[w]||{}; uAll++; if(!a.owner||a.owner==="共通"||a.owner.split("/").includes(mine)) uMine++;
+        ws.forEach(w=>{ const a=VOCAB_ATTRS[w]||{}; uAll++; if(a.owner && a.owner!=="共通" && a.owner.split("/").includes(mine)) uMine++; else if(!a.owner||a.owner==="共通") uCommon++; else uOther++;
           const k=ORD.indexOf(a.stage); if(k>mx) mx=k; });
         if(mx>=0){ if(prev>=0){ uPairs++; if(mx<prev) uBack++; } prev=mx; }
         if(li===perLine.length-1 && ws.some(w=>["固有","専門"].includes((VOCAB_ATTRS[w]||{}).spec))) uPunch++;
       });
     }
-    console.log(`  ${me.name.padEnd(5)} | 自語率:${(100*uMine/Math.max(1,uAll)).toFixed(0)}% | 工程逆行率:${(100*uBack/Math.max(1,uPairs)).toFixed(0)}% | パンチライン固有率:${(100*uPunch/Math.max(1,uVerse)).toFixed(0)}%`);
+    console.log(`  ${me.name.padEnd(5)} | 自語/共通/他語:${(100*uMine/Math.max(1,uAll)).toFixed(0)}/${(100*uCommon/Math.max(1,uAll)).toFixed(0)}/${(100*uOther/Math.max(1,uAll)).toFixed(0)}% | 工程逆行率:${(100*uBack/Math.max(1,uPairs)).toFixed(0)}% | パンチライン固有率:${(100*uPunch/Math.max(1,uVerse)).toFixed(0)}%`);
   }
   console.log(`  ${me.name.padEnd(5)} | 韻100%:${(100*rhymeOK/lines).toFixed(1)}% | 行末韻:${(100*endRhyme/lines).toFixed(0)}% | 深さ(響き):${(softDeepSum/deepN).toFixed(2)} | 緩い韻(2母音)率:${(100*wideV/verses).toFixed(0)}% | 使用語種:${Object.keys(cnt).length} | 最頻語:${top[0]}(${(100*top[1]/tot).toFixed(1)}%)`);
 }
