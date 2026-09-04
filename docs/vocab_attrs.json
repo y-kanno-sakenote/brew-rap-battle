@@ -1275,8 +1275,10 @@
 "stage_lift": 5.59,
 "owner": "麹菌",
 "owner_lift": 3.67,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content",
+"spec_note": "売り場の語。米麹と同格"
 },
 {
 "w": "味噌麹",
@@ -1287,8 +1289,10 @@
 "stage_lift": 9.22,
 "owner": "麹菌",
 "owner_lift": 3.84,
-"spec": "専門",
-"weak": false
+"spec": "一般",
+"weak": false,
+"fixed_by": "content",
+"spec_note": "手作り味噌の売り場語"
 },
 {
 "w": "生麹",
@@ -1299,9 +1303,10 @@
 "stage_lift": 7.27,
 "owner": "麹菌",
 "owner_lift": 3.49,
-"spec": "専門",
+"spec": "一般",
 "weak": true,
-"fixed_by": "content"
+"fixed_by": "content",
+"spec_note": "生/乾燥は売り場の状態表示"
 },
 {
 "w": "掛麹",
