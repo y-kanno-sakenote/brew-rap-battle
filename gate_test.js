@@ -81,7 +81,8 @@ async function run(list, opts = {}) {
   const gates = [];
   const env = load({ ...opts, hook: r => gates.push(r.gate) });
   const s = seq(list); env.fetchHolder.fn = s.fn;
-  await env.renderBattleOllama('koji', 'yeast', 8);
+  // モック素材は2バース。bars=4（rounds=1→要求2バース）で本数条件を満たす。本数不足の検証だけ bars=8 を渡す
+  await env.renderBattleOllama('koji', 'yeast', opts.bars || 4);
   const corpus = env.loadCorpus();
   const rec = corpus[corpus.length - 1] || null;
   return { calls: s.calls.length, gates, rec, html: env.battle.innerHTML, history: env.battle.history, corpusLen: corpus.length };
@@ -107,6 +108,11 @@ async function loop() {
   check('(c) 1回目JSON不正→2回目成功: fetch 2回・tries=2・エラー表示なし', r.calls === 2 && r.rec && r.rec.tries === 2 && r.rec.gate === HIGH_G && !r.html.includes('⚠️'), `calls=${r.calls} gates=${JSON.stringify(r.gates)}`);
   r = await run([neterr, ok(HIGH)]);
   check('(c\') 1回目ネットワーク失敗→2回目成功', r.calls === 2 && r.rec && r.rec.tries === 2 && !r.html.includes('⚠️'), `calls=${r.calls}`);
+
+  r = await run([ok(HIGH)], { bars: 8 });
+  check('(g) 本数不足(2/4バース)は高スコアでも不合格 → 3回叩いて最良を採用・full=false', r.calls === 3 && r.rec && r.rec.full === false && r.rec.gate === HIGH_G, `calls=${r.calls} full=${r.rec && r.rec.full}`);
+  r = await run([ok(LOW), ok(HIGH)], { bars: 4 });
+  check('(g\') 本数が揃えば従来どおり2回目で採用・full=true', r.calls === 2 && r.rec && r.rec.full === true, `calls=${r.calls} full=${r.rec && r.rec.full}`);
 
   r = await run([neterr, http500, badjson]);
   check('(d) 3回失敗: fetch 3回・コーパス未保存・画面に ⚠️', r.calls === 3 && r.corpusLen === 0 && r.html.includes('⚠️ ローカルLLMでエラー'), `calls=${r.calls} corpus=${r.corpusLen}`);

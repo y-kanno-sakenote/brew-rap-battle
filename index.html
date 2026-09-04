@@ -725,8 +725,9 @@ function usageScore(verses){
   return {verses:n, ownRate:all?+(mine/all).toFixed(2):null, backRate:pairs?+(back/pairs).toFixed(2):null, punchRate:n?+(punch/n).toFixed(2):null, properRepeat:rep, knownWords:all};
 }
 // C案の採点ゲート：usageScore を1本の数に畳む（自語率＋パンチライン率＋(1−逆行率)−固有名詞再登場×0.25、満点3）。
-// 閾値未満なら再生成し、最良の試行を採用する。USAGE_LOGIC=false なら1回きり
-const USAGE_GATE = { tries: 3, min: 1.5 };
+// 閾値未満なら再生成し、最良の試行を採用する。USAGE_LOGIC=false なら1回きり。
+// min はルール案の最弱キャラ（杜氏 1.40）を下回る値＝「ルール案並み」を最低線にする（1.5 だと杜氏が絡む戦は毎回3回叩いて不合格採用になる）
+const USAGE_GATE = { tries: 3, min: 1.3 };
 function usageGateValue(sc){
   if(!sc || sc.ownRate==null || sc.punchRate==null) return null;
   return +((sc.ownRate + sc.punchRate + (sc.backRate==null ? 1 : 1-sc.backRate) - 0.25*sc.properRepeat)).toFixed(2);
@@ -1152,8 +1153,10 @@ async function renderBattleOllama(aId, bId, bars){
       try{
         const r = await callOllama();
         r.gate = usageGateValue(usageScore(r.cleanVerses)); r.tries = t;
-        if(!best || (r.gate ?? -1) > (best.gate ?? -1)) best = r;
-        if(r.gate != null && r.gate >= USAGE_GATE.min) break;
+        r.full = r.cleanVerses.length >= rounds*2;             // 要求バース数に満たない出力は採点が高くても不合格
+        const rank = x => (x.full ? 10 : 0) + (x.gate ?? -1);  // 本数が揃った試行を常に優先、その中で採点最大
+        if(!best || rank(r) > rank(best)) best = r;
+        if(r.full && r.gate != null && r.gate >= USAGE_GATE.min) break;
       }catch(e){ lastErr = e; if(t===tries && !best) throw e; }
     }
     if(!best) throw (lastErr || new Error('生成に失敗しました。'));
@@ -1174,7 +1177,7 @@ async function renderBattleOllama(aId, bId, bars){
     battle.innerHTML = html;
 
     // 採掘用コーパスへ蓄積（B案と同じ器。model名で出所が分かる。gate/tries はゲートの記録）
-    saveToCorpus({ ts:new Date().toISOString(), model:`ollama:${model}`, aId, bId, bars, mode:'ollama', style: (document.getElementById('battleStyle')||{}).value, theme: currentTheme(), gate: best.gate, tries: best.tries, data:{ verses: cleanVerses, flavor: data.flavor||'' } });
+    saveToCorpus({ ts:new Date().toISOString(), model:`ollama:${model}`, aId, bId, bars, mode:'ollama', style: (document.getElementById('battleStyle')||{}).value, theme: currentTheme(), gate: best.gate, tries: best.tries, full: best.full, data:{ verses: cleanVerses, flavor: data.flavor||'' } });
   }catch(error){
     console.error(error);
     const hint = /Failed to fetch|NetworkError|load failed/i.test(error.message)
