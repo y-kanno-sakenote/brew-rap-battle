@@ -3,3 +3,4 @@ docs/*.jsonl
 docs/claude_mine_report.txt
 design_*.html
 verification/
+docs/corpus_batches/
