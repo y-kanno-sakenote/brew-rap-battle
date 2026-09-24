@@ -5,7 +5,7 @@
 ## 目的
 Claude（Opusサブエージェント＝サブスク枠内）で高品質バトルを量産し、`docs/claude_corpus.jsonl` に蓄積する。
 用途は2つ: ①A案エンジンへの採掘素材 ②将来の「名勝負モード」（校正済みバトルをランダム再生）の弾。
-**コーパスは非公開（gitignore済み）。公開判断が出るまでリポジトリに載せない。**
+**コーパスは公開データ（2026-09-24 ユーザー判断）**: `docs/claude_corpus.jsonl` はgit管理・GitHub Pagesで配信され、`docs/corpus_viewer.html`（アプリのフッター「遊び心」の隠しリンク）から閲覧できる。公開版への反映はpush時（毎朝の自動生産分はローカルに溜まり、pushで公開）。`docs/corpus_batches/`（並列バッチの中間ファイル）は引き続きgit管理外。
 
 ## スキーマ（1バトル=1行のJSONL・整形JSON不可）
 `docs/claude_corpus.jsonl` の既存行を必ず1行読んで踏襲する。要点:

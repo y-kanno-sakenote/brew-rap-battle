@@ -1,5 +1,6 @@
 .DS_Store
 docs/*.jsonl
+!docs/claude_corpus.jsonl
 docs/claude_mine_report.txt
 design_*.html
 verification/

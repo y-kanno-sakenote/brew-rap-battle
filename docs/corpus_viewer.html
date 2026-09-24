@@ -58,7 +58,7 @@ async function load(){
     render();
   }catch(e){
     document.getElementById("stat").textContent="";
-    document.getElementById("list").innerHTML='<div class="err">claude_corpus.jsonl を読み込めません。このビューアはローカル専用です（コーパスは非公開のため公開サイトには置いていません）。ローカルサーバー（brew-rap-static）経由で開いてください。</div>';
+    document.getElementById("list").innerHTML='<div class="err">claude_corpus.jsonl を読み込めません。file:// で直接開くと読めないので、公開ページまたはローカルサーバー（brew-rap-static）経由で開いてください。</div>';
   }
 }
 function render(){
