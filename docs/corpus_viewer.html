@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コーパス閲覧</title>
+<style>
+  :root{ --bg:#14101c; --card:#1e1830; --ink:#e8e2d5; --dim:#9a92a8; --gold:#d4af5f; --line:#3a3150; }
+  body{ background:var(--bg); color:var(--ink); font-family:"Hiragino Sans","Noto Sans JP",sans-serif; margin:0; padding:16px; }
+  h1{ font-size:18px; color:var(--gold); margin:4px 0 2px; }
+  .sub{ color:var(--dim); font-size:12px; margin-bottom:14px; }
+  .filters{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  select,input{ background:var(--card); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-size:13px; }
+  .battle{ background:var(--card); border:1px solid var(--line); border-radius:12px; margin-bottom:10px; overflow:hidden; }
+  .bhead{ padding:10px 14px; cursor:pointer; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .bhead:hover{ background:#262040; }
+  .num{ color:var(--dim); font-size:12px; min-width:2.5em; }
+  .pair{ font-weight:bold; }
+  .tag{ font-size:11px; border:1px solid var(--line); border-radius:99px; padding:2px 8px; color:var(--dim); }
+  .tag.savage{ color:#e08585; border-color:#6a3a4a; }
+  .tag.theme{ color:var(--gold); border-color:#6a5a35; }
+  .body{ display:none; padding:4px 16px 14px; border-top:1px solid var(--line); }
+  .battle.open .body{ display:block; }
+  .verse{ margin:12px 0; }
+  .vhead{ color:var(--gold); font-size:13px; margin-bottom:4px; }
+  .vhead .rk{ color:var(--dim); font-size:11px; margin-left:8px; }
+  .verse div.l{ padding:2px 0; font-size:14px; line-height:1.7; }
+  .rhyme{ color:var(--gold); font-weight:bold; }
+  .flavor{ color:var(--dim); font-size:12px; margin-top:6px; }
+  .err{ color:#e08585; padding:20px; }
+</style>
+</head>
+<body>
+<h1>🎤 コーパス閲覧（名勝負ストック）</h1>
+<div class="sub" id="stat">読み込み中…</div>
+<div class="filters">
+  <select id="fPair"><option value="">全ペア</option></select>
+  <select id="fStyle"><option value="">全スタイル</option><option value="standard">standard</option><option value="savage">savage</option></select>
+  <select id="fTheme"><option value="">テーマ有無</option><option value="yes">テーマあり</option><option value="no">テーマなし</option></select>
+  <input id="fText" placeholder="本文検索（語で絞る）" size="18">
+</div>
+<div id="list"></div>
+<script>
+const EMO={koji:"🌾",yeast:"🫧",toji:"👘",lactic:"🦠",rice:"🍚"};
+const NAME={koji:"麹菌",yeast:"清酒酵母",toji:"杜氏",lactic:"乳酸菌",rice:"酒米"};
+let ROWS=[];
+async function load(){
+  try{
+    const r=await fetch("claude_corpus.jsonl",{cache:"no-store"});
+    if(!r.ok) throw 0;
+    const txt=await r.text();
+    ROWS=txt.trim().split("\n").map((l,i)=>{try{const d=JSON.parse(l);d._i=i+1;return d;}catch(e){return null;}}).filter(Boolean);
+    const pairs=[...new Set(ROWS.map(d=>d.aId+"×"+d.bId))].sort();
+    const sel=document.getElementById("fPair");
+    // ペアは順不同で束ねる
+    const uPairs=[...new Set(ROWS.map(d=>[d.aId,d.bId].sort().join("×")))].sort();
+    uPairs.forEach(p=>{const [a,b]=p.split("×");const o=document.createElement("option");o.value=p;o.textContent=EMO[a]+NAME[a]+" × "+EMO[b]+NAME[b];sel.appendChild(o);});
+    render();
+  }catch(e){
+    document.getElementById("stat").textContent="";
+    document.getElementById("list").innerHTML='<div class="err">claude_corpus.jsonl を読み込めません。このビューアはローカル専用です（コーパスは非公開のため公開サイトには置いていません）。ローカルサーバー（brew-rap-static）経由で開いてください。</div>';
+  }
+}
+function render(){
+  const p=document.getElementById("fPair").value, s=document.getElementById("fStyle").value,
+        t=document.getElementById("fTheme").value, q=document.getElementById("fText").value.trim();
+  const strip=x=>String(x).replace(/<[^>]+>/g,"");
+  const rows=ROWS.filter(d=>{
+    if(p && [d.aId,d.bId].sort().join("×")!==p) return false;
+    if(s && d.style!==s) return false;
+    if(t==="yes" && !d.theme) return false;
+    if(t==="no" && d.theme) return false;
+    if(q){ const all=d.data.verses.flatMap(v=>v.lines).map(strip).join("／"); if(!all.includes(q)) return false; }
+    return true;
+  });
+  document.getElementById("stat").textContent=`全${ROWS.length}本 ／ 表示 ${rows.length}本 ─ クリックで展開`;
+  document.getElementById("list").innerHTML=rows.map(d=>{
+    const verses=d.data.verses.map(v=>`
+      <div class="verse">
+        <div class="vhead">${EMO[v.characterId]||""} ${v.characterName}<span class="rk">${v.displayRhyme||""}</span></div>
+        ${v.lines.map(l=>`<div class="l">${l}</div>`).join("")}
+      </div>`).join("");
+    return `<div class="battle" id="b${d._i}">
+      <div class="bhead" onclick="document.getElementById('b${d._i}').classList.toggle('open')">
+        <span class="num">#${d._i}</span>
+        <span class="pair">${EMO[d.aId]}${NAME[d.aId]} × ${EMO[d.bId]}${NAME[d.bId]}</span>
+        <span class="tag ${d.style==='savage'?'savage':''}">${d.style||"?"}</span>
+        ${d.theme?`<span class="tag theme">お題: ${d.theme}</span>`:""}
+        <span class="tag">${(d.ts||"").slice(0,10)}</span>
+      </div>
+      <div class="body">${verses}${d.data.flavor?`<div class="flavor">🍶 ${d.data.flavor}</div>`:""}</div>
+    </div>`;
+  }).join("");
+}
+["fPair","fStyle","fTheme"].forEach(id=>document.getElementById(id).addEventListener("change",render));
+document.getElementById("fText").addEventListener("input",render);
+load();
+</script>
+</body>
+</html>
