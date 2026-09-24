@@ -195,7 +195,7 @@
     単語シグネチャ・エンジン方式 ── 醸造語を単一辞書に集約し、末尾3母音を自動計算してバケット化。文テンプレの韻スロットに、韻の合う語を差し込んで毎回違うリリックを生成（韻は母音バケットで保証）。用語は麹菌・清酒酵母・生酛の乳酸菌・酒造好適米など醸造の実際にもとづく。<br>
     <span class="kicker">単一HTML / オフライン動作 / APIキー不要</span><br>
     © SAKENOTE ｜ 遊び心の社内ツール<br>
-    <span class="updated" id="updated">最終更新: 2026-09-24 14:06</span>
+    <span class="updated" id="updated">最終更新: 2026-09-24 14:31</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -846,7 +846,7 @@ function usableFrames(me){
 function availableSigs(me){ return [...new Set(usableFrames(me).map(fr=>ROLE_SOFT[fr.ra]))]; }
 
 // 1バース生成。forcedKey を渡すと、その母音バケットで踏む（キャラ跨ぎ韻＝相手と同じ母音で返す）
-function buildVerse(me, rnd, forcedKey){
+function buildVerse(me, rnd, forcedKey, echoWord){
   const rpk = fr => fr.ra+"|"+(fr.rb||"")+"|"+(fr.rc||"");
   const usable = usableFrames(me);
   const sigs = [...new Set(usable.map(fr=>ROLE_SOFT[fr.ra]))];
@@ -872,10 +872,10 @@ function buildVerse(me, rnd, forcedKey){
   const endRhyme = fr => /\{[abc]\}$/.test(fr.f.trim());    // 行(バー)が韻語で終わる＝語尾が韻でそろう
   for(const p of order){
     let cand=(byPos[p]||[]).filter(f=>!usedF.has(f));
-    const er=cand.filter(endRhyme);                         // ① 行末が韻語＝語尾を揃える行を優先
-    if(er.length) cand=er;
-    const sol=cand.filter(solid);                           // ② さらに両句末で踏むソリッド行を優先（語数の多いバケットのみ）
-    if(preferSolid && sol.length) cand=sol;
+    const er=cand.filter(endRhyme);                         // ① 行末が韻語＝語尾を揃える行を優先（8.5割。残りは形を問わず＝眠るフレームも出す）
+    if(er.length && rnd()<0.85) cand=er;
+    const sol=cand.filter(solid);                           // ② さらに両句末で踏むソリッド行を優先（語数の多いバケットのみ・同じく8.5割）
+    if(preferSolid && sol.length && rnd()<0.85) cand=sol;
     const used=new Set(chosen.map(rpk));
     const fresh=cand.filter(f=>!used.has(rpk(f)));           // ③ 未使用の役割ペアを優先→語が分散
     if(fresh.length) cand=fresh;
@@ -895,9 +895,14 @@ function buildVerse(me, rnd, forcedKey){
   if(!deepSet){ for(const N of [5,4]){ const b=groupsAt(N).filter(a=>a.length>=2).sort((a,b)=>b.length-a.length)[0]; if(b){ deepSet=new Set(b); break; } } }
   // hardDeep(4語以上の深グループ)なら強く優先＝バース全体を4母音以上で踏む(KREVA)。それ以外は反復を避け同点内で優先
   const cnt={};
+  // 響きの質: 頭子音クラス（清濁は同類）。韻語同士の子音が近いほど「深く踏んだ」耳になる
+  const CONS={か:'K',き:'K',く:'K',け:'K',こ:'K',が:'K',ぎ:'K',ぐ:'K',げ:'K',ご:'K',さ:'S',し:'S',す:'S',せ:'S',そ:'S',ざ:'S',じ:'S',ず:'S',ぜ:'S',ぞ:'S',た:'T',ち:'T',つ:'T',て:'T',と:'T',だ:'T',ぢ:'T',づ:'T',で:'T',ど:'T',な:'N',に:'N',ぬ:'N',ね:'N',の:'N',は:'H',ひ:'H',ふ:'H',へ:'H',ほ:'H',ば:'H',び:'H',ぶ:'H',べ:'H',ぼ:'H',ぱ:'H',ぴ:'H',ぷ:'H',ぺ:'H',ぽ:'H',ま:'M',み:'M',む:'M',め:'M',も:'M',や:'Y',ゆ:'Y',よ:'Y',ら:'R',り:'R',る:'R',れ:'R',ろ:'R',わ:'W'};
+  const consTail = w => { const cs=[]; for(const ch of yomiOf(w)){ if(CONS[ch]) cs.push(CONS[ch]); else if('あいうえおんー'.includes(ch)) cs.push('_'); } return cs.slice(-3); };
+  const consSim = (a,b) => { const ca=consTail(a), cb=consTail(b); let s=0; for(let i=1;i<=Math.min(ca.length,cb.length);i++){ if(ca[ca.length-i]===cb[cb.length-i]) s++; } return s; };
   const pickW = list => {
     let base=list;
-    if(hardDeep){ const d=list.filter(w=>deepSet.has(w)); if(d.length) base=d; }   // 大グループは強く優先（多母音韻）
+    // 大グループは8割で強優先（多母音韻＝KREVA）。残り2割は全体から引く＝深グループの陰の語も息をする
+    if(hardDeep && rnd()<0.8){ const d=list.filter(w=>deepSet.has(w)); if(d.length) base=d; }
     let mn=Infinity; base.forEach(w=>{const c=cnt[w]||0; if(c<mn)mn=c;});
     let cd=base.filter(w=>(cnt[w]||0)===mn);                                        // 重複最小
     if(deepSet && !hardDeep){ const d=cd.filter(w=>deepSet.has(w)); if(d.length) cd=d; }  // 小グループは同点内で優先
@@ -913,34 +918,65 @@ function buildVerse(me, rnd, forcedKey){
       if(ctx.line===ctx.total-1){ t=cd.filter(w=>["固有","専門"].includes(A(w).spec)); if(t.length) cd=t; }
       else if(ctx.line===0){ t=cd.filter(w=>A(w).spec!=="固有"); if(t.length) cd=t; }
     }
+    // ---- 響きの同点内優先（韻100%・反復・使い方ロジックの保証は不変。確率適用＝長さの外れ値語を殺さない）----
+    const ref = ctx.prevWord || ctx.lastRhyme;   // 同一行の前の韻語 ＞ 前の行の締め語
+    if(ref && cd.length>1){
+      const vl = x => String(vowels(yomiOf(x))).length;
+      if(ctx.prevWord && rnd()<0.7){ const t=cd.filter(x=>vl(x)===vl(ref)); if(t.length) cd=t; }   // ① 音数合わせは同一行の対韻のみ・7割
+      if(cd.length>1 && rnd()<0.7){ let best=-1; cd.forEach(x=>{const s=consSim(x,ref); if(s>best)best=s;}); cd=cd.filter(x=>consSim(x,ref)===best); }  // ② 頭子音の響き寄せ・7割
+    }
     const w=cd[Math.floor(rnd()*cd.length)]; cnt[w]=(cnt[w]||0)+1;
+    ctx.prevWord=w;
     if(USAGE_LOGIC && VOCAB_ATTRS[w]){ const i=STAGE_ORDER.indexOf(VOCAB_ATTRS[w].stage); if(i>ctx.stage) ctx.stage=i; }
     return w;
   };
-  const ctx={stage:0, line:0, total:0};   // 使い方ロジックの文脈（工程の進み・行番号）
+  const ctx={stage:0, line:0, total:0, prevWord:null, lastRhyme:null};   // 使い方ロジック＋響き合わせの文脈
   const orderedFrames = shuffle(chosen,rnd); ctx.total=orderedFrames.length;
+  const lineLast=[];
   const lines = orderedFrames.map((fr,li)=>{
-    ctx.line=li;
+    ctx.line=li; ctx.prevWord=null;
     const used=[];
-    const fill = role => { const av=ROLE_WORDS[role].filter(w=>!used.includes(w)); const w=pickW(av.length?av:ROLE_WORDS[role]); used.push(w); return w; };
+    const fill = role => {
+      // echoWord（呼応で引用する相手の締め語）は本文から除外。ただし代替が2語以上残る時だけ＝小さい役割を痩せさせて別の語が連呼になるのを防ぐ
+      let av=ROLE_WORDS[role].filter(w=>!used.includes(w));
+      const av2=av.filter(w=>w!==echoWord);
+      if(av2.length>=2) av=av2;
+      if(!av.length) av=ROLE_WORDS[role];
+      const w=pickW(av); used.push(w); return w;
+    };
     let t = fr.f.replace("{a}", R(fill(fr.ra)));       // {a}{b}{c} を左から充填。同一役割でも used で重複回避（3語韻対応）
     if(fr.rb) t = t.replace("{b}", R(fill(fr.rb)));
     if(fr.rc) t = t.replace("{c}", R(fill(fr.rc)));
+    lineLast[li]=used[used.length-1]; ctx.lastRhyme=lineLast[li]||ctx.lastRhyme;
     return t;
   });
+  // 踏み返しの呼応: 相手バースの締め語を頭行で引用し、同じ響きバケットの自語で踏み返す（キャラ跨ぎ韻のときだけ）
+  if(echoWord && lines.length){
+    const pool2=[...new Set(me.roles.filter(inBucket).flatMap(r=>ROLE_WORDS[r]||[]))].filter(w=>w!==echoWord);
+    if(pool2.length){
+      ctx.prevWord=null; ctx.lastRhyme=echoWord;
+      const a=pickW(pool2);
+      // 反復ガード: 差し替え後のバースに同語3回以上が出るなら呼応を見送る（rep保証を守る）
+      const c={};
+      lines.slice(1).forEach(l=>{ for(const m of String(l).matchAll(/<span class="rhyme">([^<]+)<\/span>/g)) c[m[1]]=(c[m[1]]||0)+1; });
+      c[echoWord]=(c[echoWord]||0)+1; c[a]=(c[a]||0)+1;
+      if(!Object.values(c).some(n=>n>=3)) lines[0]=`「${R(echoWord)}」だと？ その韻もらった／返しはこいつだ ――${R(a)}`;
+    }
+  }
   // 表示用: この響きバケットを構成する実母音（例 "oui/ooi"＝近似母音で束ねた響き韻）
   const disp = [...new Set(me.roles.filter(inBucket).map(r=>ROLE_SIG[r]))].join(wide?"+":"/");
-  return {key, disp, fam, wide, lines};
+  return {key, disp, fam, wide, lines, lastWord: lineLast.filter(Boolean).pop()};
 }
 
-function verseHTML(meId, side, delay, rnd, forcedKey){
+function verseHTML(meId, side, delay, rnd, forcedKey, echoWord){
   const me = FIGHTERS[meId];
-  const {disp, lines} = buildVerse(me, rnd, forcedKey);
+  const {disp, lines, lastWord} = buildVerse(me, rnd, forcedKey, echoWord);
   const rk = me.wordRhyme ? `単語韻:-${disp}` : `韻:-${disp}`;
-  return `<div class="verse ${side}" style="animation-delay:${delay}s">
+  const html = `<div class="verse ${side}" style="animation-delay:${delay}s">
     <div class="head"><span class="em">${me.emoji}</span>${me.name}<span class="rk">${rk}</span></div>
     <div class="bars">${lines.join("\n")}</div>
   </div>`;
+  return {html, lastWord};
 }
 
 let lastBattleTheme = '';  // 画像保存用：バトル生成時に使ったお題（AIエンジン以外は空）
@@ -978,8 +1014,9 @@ async function renderBattle(){
   for(let r=0;r<rounds;r++){
     // キャラ跨ぎ韻ONなら、このラウンドの共通母音を1つ選び、両者に踏ませる（踏み返し）
     const fk = crossOK ? shared[Math.floor(rng(seed^((r+7)*911))()*shared.length)] : undefined;
-    html += verseHTML(aId,'a',delay,rng(seed^((r*2+1)*131)),fk); delay+=0.15;
-    html += verseHTML(bId,'b',delay,rng(seed^((r*2+2)*197)),fk); delay+=0.15;
+    const va = verseHTML(aId,'a',delay,rng(seed^((r*2+1)*131)),fk); html += va.html; delay+=0.15;
+    // 後攻は先攻の締め語を頭行で拾って踏み返す（キャラ跨ぎ韻のときだけ）
+    const vb = verseHTML(bId,'b',delay,rng(seed^((r*2+2)*197)),fk, crossOK ? va.lastWord : undefined); html += vb.html; delay+=0.15;
   }
   const flavor = FLAVORS[Math.floor(rng(seed^999)()*FLAVORS.length)];
   html += `<div class="drop">🎤 …mic drop.</div>`;

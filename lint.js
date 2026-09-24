@@ -3,8 +3,8 @@
 const fs=require('fs');
 const html=fs.readFileSync(__dirname+'/index.html','utf8');
 const script=html.slice(html.indexOf('<script>')+8, html.indexOf('// ---- 選択UI ----'));
-const sb={}; new Function('sandbox',script+'\n;Object.assign(sandbox,{FIGHTERS,ROLE_WORDS,ROLE_SIG,VOCAB,vowels,yomiOf});')(sb);
-const {FIGHTERS,ROLE_WORDS,ROLE_SIG,vowels,yomiOf}=sb;
+const sb={}; new Function('sandbox',script+'\n;Object.assign(sandbox,{FIGHTERS,ROLE_WORDS,ROLE_SIG,ROLE_SOFT,VOCAB,vowels,yomiOf});')(sb);
+const {FIGHTERS,ROLE_WORDS,ROLE_SIG,ROLE_SOFT,vowels,yomiOf}=sb;
 const sig3=y=>vowels(y).slice(-3);
 
 // ── R2: 役割→form（語の“形/意味クラス”）。役割内の全語がこの form であること ──
@@ -79,3 +79,35 @@ for(const id in FIGHTERS){
 }
 console.log(`\nR3検査: ${checked}スロット検査 / ${flags}件の不適合`);
 console.log(flags===0?'✅ 全フレームがルール適合':'要修正');
+
+// ── 形の混在警告（2026-09-24の共食い教訓）──
+// 同キャラ・同バケット・同ポジションで er形（行末がスロット）と非er形が混在すると、
+// buildVerse の行末韻優先フィルタ（8.5割で適用）により非er側の出現が大きく痩せる。
+// さらに語数6以上のバケットではソリッド形（両句末スロット）が er形に勝つ（同じく8.5割）。
+// 新フレームを既存バケットに足すときは er形/ソリッド形で書くのが原則。
+const erOf = f => /\{[abc]\}$/.test(f.trim());
+const solidOf = f => { const h=f.split('／'); return h.length===2 && /\{[abc]\}$/.test(h[0].trim()) && /\{[abc]\}$/.test(h[1].trim()); };
+let warns=0;
+for(const id in FIGHTERS){
+  const me=FIGHTERS[id];
+  const bucketWords = key => me.roles.filter(r=>ROLE_SOFT[r]===key).reduce((n,r)=>n+(ROLE_WORDS[r]||[]).length,0);
+  const g={};
+  for(const fr of me.frames){ const k=ROLE_SOFT[fr.ra]+'|'+fr.p; (g[k]=g[k]||[]).push(fr); }
+  for(const k in g){
+    const [key,p]=k.split('|'); const frs=g[k];
+    const ers=frs.filter(f=>erOf(f.f));
+    if(ers.length && ers.length<frs.length){
+      warns++; console.log(`⚠ [${me.name}] ${key}/${p}: er形${ers.length}本の陰で非er形${frs.length-ers.length}本が死んでいる`);
+      frs.filter(f=>!erOf(f.f)).forEach(f=>console.log(`     死に形: ${f.f}`));
+    }
+    if(ers.length && bucketWords(key)>=6){
+      const sols=ers.filter(f=>solidOf(f.f));
+      const dead=ers.filter(f=>!solidOf(f.f));
+      if(sols.length && dead.length){
+        warns++; console.log(`⚠ [${me.name}] ${key}/${p}(ソリッド優先): ソリッド${sols.length}本の陰でer形${dead.length}本が死んでいる`);
+        dead.forEach(f=>console.log(`     死に形: ${f.f}`));
+      }
+    }
+  }
+}
+console.log(`形の混在警告: ${warns}件${warns?'（死に形は行末スロット形/ソリッド形への反転を検討）':''}`);
