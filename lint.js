@@ -3,8 +3,8 @@
 const fs=require('fs');
 const html=fs.readFileSync(__dirname+'/index.html','utf8');
 const script=html.slice(html.indexOf('<script>')+8, html.indexOf('// ---- 選択UI ----'));
-const sb={}; new Function('sandbox',script+'\n;Object.assign(sandbox,{FIGHTERS,ROLE_WORDS,ROLE_SIG,ROLE_SOFT,VOCAB,vowels,yomiOf});')(sb);
-const {FIGHTERS,ROLE_WORDS,ROLE_SIG,ROLE_SOFT,vowels,yomiOf}=sb;
+const sb={}; new Function('sandbox',script+'\n;Object.assign(sandbox,{FIGHTERS,ROLE_WORDS,ROLE_SIG,ROLE_SOFT,VOCAB,VOCAB_ATTRS,OWNER_OF,vowels,yomiOf});')(sb);
+const {FIGHTERS,ROLE_WORDS,ROLE_SIG,ROLE_SOFT,VOCAB,VOCAB_ATTRS,OWNER_OF,vowels,yomiOf}=sb;
 const sig3=y=>vowels(y).slice(-3);
 
 // ── R2: 役割→form（語の“形/意味クラス”）。役割内の全語がこの form であること ──
@@ -111,3 +111,19 @@ for(const id in FIGHTERS){
   }
 }
 console.log(`形の混在警告: ${warns}件${warns?'（死に形は行末スロット形/ソリッド形への反転を検討）':''}`);
+
+// ── 縄張り整合警告（2026-09-24の死語7語の教訓）──
+// 語の owner（VOCAB_ATTRS）がその語の role を保有するキャラを1体も含まないと、
+// 使い方ロジック①縄張りの同点フィルタでほぼ選ばれない（完全死亡もある）。
+// 直し方: 語を実際に歌うキャラ（role保有）を owner に「/」区切りで追記する。
+let ownWarns=0;
+if(VOCAB_ATTRS && OWNER_OF){
+  for(const w in VOCAB){
+    const at=VOCAB_ATTRS[w]; if(!at||!at.owner||at.owner==='共通') continue;
+    const holders=Object.keys(FIGHTERS).filter(id=>FIGHTERS[id].roles.includes(VOCAB[w].r)).map(id=>OWNER_OF[id]);
+    if(!at.owner.split('/').some(n=>holders.includes(n))){
+      ownWarns++; console.log(`⚠ 縄張り不整合: ${w} role保有=${holders.join('/')} / owner=${at.owner}`);
+    }
+  }
+}
+console.log(`縄張り整合警告: ${ownWarns}件`);

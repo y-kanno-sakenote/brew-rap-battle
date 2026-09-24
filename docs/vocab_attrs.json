@@ -280,11 +280,11 @@
    "df": 12,
    "stage": "香味製品",
    "stage_lift": 8.28,
-   "owner": "酒米",
+   "owner": "酒米/麹菌/酵母",
    "owner_lift": 3.99,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "芳香",
@@ -565,11 +565,11 @@
    "df": 1,
    "stage": "通年",
    "stage_lift": 6.0,
-   "owner": "杜氏",
+   "owner": "杜氏/麹菌/酒米",
    "owner_lift": 0.0,
    "spec": "韻合わせ",
    "weak": true,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "気概",
@@ -578,11 +578,11 @@
    "df": 7,
    "stage": "通年",
    "stage_lift": 2.57,
-   "owner": "杜氏",
+   "owner": "杜氏/麹菌/酒米",
    "owner_lift": 3.35,
    "spec": "韻合わせ",
    "weak": true,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "酒米",
@@ -616,11 +616,11 @@
    "df": 1533,
    "stage": "香味製品",
    "stage_lift": 2.23,
-   "owner": "麹菌",
+   "owner": "麹菌/乳酸菌/酒米",
    "owner_lift": 1.37,
    "spec": "一般",
    "weak": true,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "乾杯",
@@ -705,11 +705,11 @@
    "df": 15,
    "stage": "香味製品",
    "stage_lift": 4.0,
-   "owner": "酵母",
+   "owner": "酵母/乳酸菌/酒米",
    "owner_lift": 1.5,
    "spec": "一般",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "祝杯",
@@ -731,10 +731,11 @@
    "df": 2664,
    "stage": "原料米",
    "stage_lift": 9.04,
-   "owner": "酒米",
+   "owner": "酒米/麹菌",
    "owner_lift": 5.92,
    "spec": "一般",
-   "weak": false
+   "weak": false,
+   "fixed_by": " / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "山田錦",
@@ -921,10 +922,11 @@
    "df": 10678,
    "stage": "製麹",
    "stage_lift": 2.71,
-   "owner": "麹菌",
+   "owner": "麹菌/酵母",
    "owner_lift": 4.89,
    "spec": "一般",
-   "weak": false
+   "weak": false,
+   "fixed_by": " / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "清酒酵母",
@@ -1031,11 +1033,11 @@
    "df": 328,
    "stage": "製麹",
    "stage_lift": 3.94,
-   "owner": "麹菌",
+   "owner": "麹菌/酵母",
    "owner_lift": 4.89,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "精白米",
@@ -1106,11 +1108,11 @@
    "df": 327,
    "stage": "醪",
    "stage_lift": 11.14,
-   "owner": "杜氏",
+   "owner": "杜氏/麹菌/酒米",
    "owner_lift": 4.19,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "粕歩合",
@@ -1119,11 +1121,11 @@
    "df": 320,
    "stage": "上槽貯蔵",
    "stage_lift": 6.83,
-   "owner": "杜氏",
+   "owner": "杜氏/麹菌/酒米",
    "owner_lift": 4.16,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "吟醸酒",
@@ -1416,11 +1418,11 @@
    "df": 174,
    "stage": "酒母",
    "stage_lift": 33.12,
-   "owner": "杜氏",
+   "owner": "杜氏/乳酸菌",
    "owner_lift": 9.57,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "麹室",
@@ -1429,11 +1431,11 @@
    "df": 339,
    "stage": "製麹",
    "stage_lift": 18.88,
-   "owner": "麹菌/杜氏",
+   "owner": "麹菌/杜氏/乳酸菌",
    "owner_lift": 5.25,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "酢酸菌",
@@ -1455,11 +1457,11 @@
    "df": 823,
    "stage": "醪",
    "stage_lift": 2.74,
-   "owner": "酵母",
+   "owner": "酵母/乳酸菌",
    "owner_lift": 4.51,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "酢酸",
@@ -1519,11 +1521,11 @@
    "df": 1363,
    "stage": "醪",
    "stage_lift": 2.93,
-   "owner": "酵母",
+   "owner": "酵母/乳酸菌",
    "owner_lift": 4.24,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "アミノ酸",
@@ -1532,11 +1534,11 @@
    "df": 6697,
    "stage": "醪",
    "stage_lift": 2.47,
-   "owner": "麹菌",
+   "owner": "麹菌/乳酸菌",
    "owner_lift": 1.99,
    "spec": "一般",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "辛口",
@@ -1663,11 +1665,11 @@
    "df": 3080,
    "stage": "醪",
    "stage_lift": 10.64,
-   "owner": "酵母/麹菌",
+   "owner": "酵母/麹菌/乳酸菌",
    "owner_lift": 2.71,
    "spec": "一般",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "山卸し",
@@ -1676,11 +1678,11 @@
    "df": 16,
    "stage": "酒母",
    "stage_lift": 31.05,
-   "owner": "杜氏",
+   "owner": "杜氏/乳酸菌",
    "owner_lift": 9.57,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "踊り",
@@ -1689,11 +1691,11 @@
    "df": 122,
    "stage": "醪",
    "stage_lift": 11.4,
-   "owner": "酵母",
+   "owner": "酵母/乳酸菌",
    "owner_lift": 4.24,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "床もみ",
@@ -1702,10 +1704,11 @@
    "df": 38,
    "stage": "製麹",
    "stage_lift": 18.39,
-   "owner": "杜氏",
+   "owner": "杜氏/乳酸菌",
    "owner_lift": 6.17,
    "spec": "専門",
-   "weak": false
+   "weak": false,
+   "fixed_by": " / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "生酛造り",
@@ -1727,11 +1730,11 @@
    "df": 41,
    "stage": "通年",
    "stage_lift": 2.59,
-   "owner": "杜氏",
+   "owner": "杜氏/乳酸菌",
    "owner_lift": 6.29,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "手造り",
@@ -1740,11 +1743,11 @@
    "df": 91,
    "stage": "通年",
    "stage_lift": 4.73,
-   "owner": "杜氏",
+   "owner": "杜氏/乳酸菌",
    "owner_lift": 4.76,
    "spec": "一般",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "酒造り",
@@ -1753,11 +1756,11 @@
    "df": 1525,
    "stage": "通年",
    "stage_lift": 3.39,
-   "owner": "杜氏",
+   "owner": "杜氏/乳酸菌",
    "owner_lift": 4.32,
    "spec": "一般",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "山廃造り",
@@ -1778,10 +1781,10 @@
    "role": "zukuri",
    "df": 0,
    "stage": "醪",
-   "owner": "杜氏",
+   "owner": "杜氏/乳酸菌",
    "spec": "専門",
    "weak": true,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "地酒",
@@ -1919,11 +1922,11 @@
    "df": 183,
    "stage": "上槽貯蔵",
    "stage_lift": 4.53,
-   "owner": "乳酸菌",
+   "owner": "乳酸菌/杜氏",
    "owner_lift": 9.57,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "原料処理",
@@ -1932,10 +1935,11 @@
    "df": 859,
    "stage": "洗米蒸米",
    "stage_lift": 7.05,
-   "owner": "酒米",
+   "owner": "酒米/杜氏",
    "owner_lift": 3.53,
    "spec": "専門",
-   "weak": false
+   "weak": false,
+   "fixed_by": " / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "新酒",
@@ -1970,11 +1974,11 @@
    "df": 165,
    "stage": "醪",
    "stage_lift": 5.82,
-   "owner": "杜氏",
+   "owner": "杜氏/酒米",
    "owner_lift": 3.31,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "割水",
@@ -1983,11 +1987,11 @@
    "df": 215,
    "stage": "上槽貯蔵",
    "stage_lift": 3.39,
-   "owner": "杜氏",
+   "owner": "杜氏/酒米",
    "owner_lift": 2.07,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "清酒",
@@ -2035,11 +2039,11 @@
    "df": 714,
    "stage": "香味製品",
    "stage_lift": 2.24,
-   "owner": "杜氏",
+   "owner": "杜氏/酒米",
    "owner_lift": 2.36,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
+   "fixed_by": "content / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "製成酒",
@@ -2052,19 +2056,6 @@
    "owner_lift": 3.3,
    "spec": "専門",
    "weak": false,
-   "fixed_by": "content"
-  },
-  {
-   "w": "ビール",
-   "yomi": "びーる",
-   "role": "shinshu",
-   "df": 4945,
-   "stage": "通年",
-   "stage_lift": 1.96,
-   "owner": "酵母",
-   "owner_lift": 1.34,
-   "spec": "一般",
-   "weak": true,
    "fixed_by": "content"
   },
   {
@@ -2164,10 +2155,11 @@
    "df": 679,
    "stage": "酒母",
    "stage_lift": 2.34,
-   "owner": "乳酸菌",
+   "owner": "乳酸菌/酵母/杜氏",
    "owner_lift": 9.57,
    "spec": "専門",
-   "weak": false
+   "weak": false,
+   "fixed_by": " / 2026-09-24 縄張り整合（role保有キャラを追記）"
   },
   {
    "w": "好適米",
