@@ -22,6 +22,8 @@ const FORM = {
   spirit:'心意気', hokori:'心意気', kihaku:'心意気',
   teppeki:'心意気', shukumei:'心意気', ikigomi:'心意気',
   shinpaku:'物', dodai:'物', takuwae:'物', butai:'物', hinshu:'物',
+  toudo:'物', sugata:'物', kouka:'物', fuseki:'物',
+  shuyaku:'人', star:'人', katsuyaku:'心意気', umasa:'味', muteki:'様子',
   degree:'様子', hanayaka:'様子', nobiyaka:'様子', nameraka:'様子',
 };
 const NOUN=['物','器','人','産酒','香り','味','果実','工程','掛け声','心意気']; // 様子以外＝名詞系
