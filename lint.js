@@ -17,8 +17,9 @@ const FORM = {
   umami:'味', sweet:'味', bitter:'味', acid:'味', nyusan:'味', sousan:'味', ringosan:'味',
   fruit:'果実', pear:'果実',
   banzai:'掛け声', shukuhai:'掛け声',
-  hakkou:'工程', shikomi:'工程', moromi:'工程', zukuri:'工程',
-  spirit:'心意気',
+  hakkou:'工程', shikomi:'工程', moromi:'工程', zukuri:'工程', touka:'工程',
+  spirit:'心意気', hokori:'心意気', kihaku:'心意気',
+  shinpaku:'物', dodai:'物',
   degree:'様子', hanayaka:'様子', nobiyaka:'様子', nameraka:'様子',
 };
 const NOUN=['物','器','人','産酒','香り','味','果実','工程','掛け声','心意気']; // 様子以外＝名詞系
