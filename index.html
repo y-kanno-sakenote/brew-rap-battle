@@ -111,7 +111,7 @@
     <p class="hint" id="selHint">上から2体を選ぶと対戦成立。1体目が <span style="color:var(--red)">赤コーナー</span>、2体目が <span style="color:var(--blue)">青コーナー</span>。</p>
     <div class="controls">
       <label class="opt">生成エンジン
-        <select id="engine"><option value="template" selected>テンプレート (A案)</option><option value="ollama">ローカルLLM (C案)</option><option value="gemini">Gemini AI (B案)</option></select>
+        <select id="engine"><option value="template" selected>ルール（そのまま遊べる）</option><option value="ollama">Ollama（手元のPCで）</option><option value="gemini">Gemini（APIキーが必要）</option></select>
       </label>
       <label class="opt">小節数
         <select id="bars"><option value="4">4小節（ショート）</option><option value="8" selected>8小節（スタンダード）</option><option value="12">12小節（ロング）</option></select>
@@ -193,8 +193,8 @@
 
   <footer>
     単語シグネチャ・エンジン方式 ── 醸造語を単一辞書に集約し、末尾3母音を自動計算してバケット化。文テンプレの韻スロットに、韻の合う語を差し込んで毎回違うリリックを生成（韻は母音バケットで保証）。用語は麹菌・清酒酵母・生酛の乳酸菌・酒造好適米など醸造の実際にもとづく。<br>
-    <span class="kicker">単一HTML / オフライン動作 / APIキー不要</span><br>
-    © SAKENOTE ｜ <a href="docs/corpus_viewer.html" style="color:inherit;text-decoration:none;cursor:text">遊び心</a>の社内ツール<br>
+    <span class="kicker">ルールはオフラインで動き、APIキー不要（Geminiは各自のAPIキーを使用）</span><br>
+    © SAKENOTE<br>
     <span class="updated" id="updated">最終更新: 2026-09-24 23:21</span>
   </footer>
 </div>
@@ -1359,7 +1359,9 @@ const CORPUS_KEY = 'brew_corpus';
 const corpusTray = document.getElementById('corpusTray');
 const corpusCountEl = document.getElementById('corpusCount');
 function loadCorpus(){ try{ return JSON.parse(localStorage.getItem(CORPUS_KEY)) || []; }catch(e){ return []; } }
-function refreshCorpusTray(){ const n = loadCorpus().length; corpusCountEl.textContent = n; corpusTray.style.display = n ? 'flex' : 'none'; }
+// 書き出しトレイは開発用。公開画面には出さず、URLに ?dev を付けたときだけ表示する（蓄積そのものは続ける）
+const CORPUS_DEV = typeof location !== 'undefined' && new URLSearchParams(location.search).has('dev');
+function refreshCorpusTray(){ const n = loadCorpus().length; corpusCountEl.textContent = n; corpusTray.style.display = (n && CORPUS_DEV) ? 'flex' : 'none'; }
 function saveToCorpus(rec){ try{ if(rec.data && rec.data.verses) rec.usage = usageScore(rec.data.verses); }catch(e){} const arr = loadCorpus(); arr.push(rec); localStorage.setItem(CORPUS_KEY, JSON.stringify(arr)); refreshCorpusTray(); }
 function exportCorpus(){
   const arr = loadCorpus();
