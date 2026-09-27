@@ -165,7 +165,7 @@
         <span style="white-space:nowrap;">ホスト:</span>
         <input type="text" id="ollamaHost" placeholder="http://localhost:11434" style="background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px; width:200px;">
       </label>
-      <span style="font-size:11px; color:var(--sub); display:block; text-align:center; width:100%; margin-top:4px;">※ 手元のOllamaと直接通信（無料）。蓄積したGeminiの出力を手本にします。<code>localhost</code> で開いたページなら起動しているだけで使えます。公開URLから使うには、Ollama側の環境変数 <code>OLLAMA_ORIGINS</code> に <code>https://y-kanno-sakenote.github.io</code> を足して再起動が必要です（<code>file://</code> では不可）。</span>
+      <span style="font-size:11px; color:var(--sub); display:block; text-align:center; width:100%; margin-top:4px;">※ 手元のOllamaと直接通信（無料）。</span>
     </div>
   </div>
 
@@ -194,7 +194,6 @@
 
   <footer>
     単語シグネチャ・エンジン方式 ── 醸造語を単一辞書に集約し、末尾3母音を自動計算してバケット化。文テンプレの韻スロットに、韻の合う語を差し込んで毎回違うリリックを生成（韻は母音バケットで保証）。用語は麹菌・清酒酵母・生酛の乳酸菌・酒造好適米など醸造の実際にもとづく。<br>
-    <span class="kicker">ルールはオフラインで動き、APIキー不要（Geminiは各自のAPIキーを使用）</span><br>
     © SAKENOTE ｜ <a href="docs/corpus_viewer.html" style="color:inherit;text-decoration:none;cursor:text">遊び心</a>の社内ツール<br>
     <span class="updated" id="updated">最終更新: 2026-09-24 23:21</span>
   </footer>
@@ -1003,7 +1002,7 @@ async function withTimeout(fn, ms = LLM_TIMEOUT_MS){
   const timer = setTimeout(() => { timedOut = true; ctl.abort(); }, ms);
   try{ return await fn(ctl.signal); }
   catch(e){
-    if(timedOut){ const t = new Error(`${Math.round(ms/1000)}秒待っても応答がありませんでした（タイムアウト）。時間をおいてもう一度お試しください。`); t.timeout = true; throw t; }
+    if(timedOut){ const t = new Error(`${Math.round(ms/1000)}秒待っても応答がありませんでした。時間をおいてもう一度お試しください。`); t.timeout = true; throw t; }
     throw e;
   }
   finally{ clearTimeout(timer); }
@@ -1343,18 +1342,23 @@ async function renderBattleOllama(aId, bId, bars){
     if(!best) throw (lastErr || new Error('生成に失敗しました。'));
     const { data, cleanVerses } = best;
 
+    // モデル出力はHTMLとして解釈させない：文字はすべてエスケープ（textContent と同じ結果）し、韻の <span class="rhyme"> だけ組み直す
+    const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const rhymeLine = line => { const re = /<span class="rhyme">([^<]*)<\/span>/g, str = String(line); let out = '', last = 0, m;
+      while((m = re.exec(str))){ out += esc(str.slice(last, m.index)) + `<span class="rhyme">${esc(m[1])}</span>`; last = re.lastIndex; }
+      return out + esc(str.slice(last)); };
     let html = "", delay = 0;
     cleanVerses.forEach(v => {
       const char = FIGHTERS[v.characterId];
       const side = v.characterId===aId ? 'a' : 'b';
       html += `<div class="verse ${side}" style="animation-delay:${delay}s">
-        <div class="head"><span class="em">${char.emoji}</span>${char.name}<span class="rk">Ollama韻:-${v.displayRhyme}</span></div>
-        <div class="bars">${v.lines.join("\n")}</div></div>`;
+        <div class="head"><span class="em">${char.emoji}</span>${char.name}<span class="rk">Ollama韻:-${esc(v.displayRhyme)}</span></div>
+        <div class="bars">${v.lines.map(rhymeLine).join("\n")}</div></div>`;
       delay += 0.15;
     });
 
     html += `<div class="drop">🎤 …mic drop.</div>`;
-    html += `<div class="cheer">🍶 今宵の一杯は「${data.flavor||'一献'}」で乾杯</div>`;
+    html += `<div class="cheer">🍶 今宵の一杯は「${esc(data.flavor||'一献')}」で乾杯</div>`;
     battle.innerHTML = html;
 
     // 採掘用コーパスへ蓄積（B案と同じ器。model名で出所が分かる。gate/tries はゲートの記録）
