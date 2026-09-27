@@ -17,7 +17,7 @@ const RESP_LINES=new Set();
 text.split('\n').forEach(l=>{ try{ const d=JSON.parse(l); d.data.verses.forEach((v,vi)=>{ if(vi>0){ RESP_LINES.add(strip(v.lines[0])); RESP_LINES.add(strip(v.lines[1])); } }); }catch(e){} });
 const fb={};
 const ids=Object.keys(FIGHTERS);
-const themeHist={}; let looseB=0, missSum=0, battles=0, fails=0, verses=0, dupEnd=0, badHead=0, resp=0, recomb=0, multiTheme=0, crossR=0, crossHit=0;
+let looseB=0, missSum=0, battles=0, fails=0, verses=0, dupEnd=0, badHead=0, resp=0, recomb=0, multiTheme=0, crossR=0, crossHit=0;
 const seen=new Set(); let uniq=0;
 const couplets=Object.values(C.pools).reduce((n,p)=>n+p.length,0);
 for(const a of ids) for(const b of ids){ if(a===b) continue;
@@ -43,8 +43,7 @@ for(const a of ids) for(const b of ids){ if(a===b) continue;
     // お題の混在: 各2行組の出どころのお題を辿る
     const pools=Object.values(C.pools).flat();
     cb.verses.forEach(([id,v])=>{ for(const c of pools){ if(v.lines.includes(c.lines[0]) && c.theme) themes.add(c.theme); } });
-    if(themes.size>1 && !cb.themeLoose) multiTheme++;
-    const hk=bars+'小節:'+Math.min(themes.size,3); themeHist[hk]=(themeHist[hk]||0)+1;   // お題の切替は「そろえると組めない」時だけ許す
+    if(themes.size>1) multiTheme++;   // お題は1バトル1種が必須
   }
 }
 // 組み替え率（別バトルの2行組を繋いだ割合）: 代表サンプルで測る
@@ -77,6 +76,15 @@ console.log(`  出どころのお題が2種以上のバトル: ${multiTheme}   �
 console.log(`  別バトル由来の組み替え率: ${recomb.toFixed(1)}%`);
 console.log(`  相手向けの2行組を含むバース: ${pct(aimed,aimedN)}`);
 console.log(`  跨ぎ韻で後攻が同じ韻を踏めた: ${crossHit}/${crossR} (${pct(crossHit,crossR)})  告知つきソロ落ち ${missSum}  ← 告知なしの外れは0が必須`);
+// 決め台詞の使い回し: 同じバトルで同じキャラが同じ6文字以上の言い回しを2回使う割合（8/12小節）
+{ const nz=x=>String(x).replace(/<[^>]*>/g,'').replace(/[、。！？!?\s]/g,''); let n=0,h=0;
+  const byMode={ソロ:[0,0],跨ぎ:[0,0]};
+  for(const a of ids) for(const b of ids){ if(a===b) continue; for(const bars of [8,12]) for(const cross of [false,true]) for(let s=0;s<20;s++){
+    const cb=battleOf(a,b,bars/4,(s*2654435761^bars)>>>0,cross); if(!cb) continue; n++; const m=byMode[cross?'跨ぎ':'ソロ']; m[1]++;
+    const L=cb.verses.flatMap(([id,v])=>v.lines.map(x=>[id,nz(x)])); let f=false;
+    for(let i=0;i<L.length&&!f;i++) for(let j=i+1;j<L.length&&!f;j++){ if(L[i][0]!==L[j][0]) continue; for(let k=0;k+6<=L[i][1].length;k++){ if(L[j][1].includes(L[i][1].slice(k,k+6))){ f=true; break; } } }
+    if(f){ h++; m[0]++; } } }
+  console.log(`  同じキャラが同じ言い回しを2回使うバトル: ソロ ${pct(byMode.ソロ[0],byMode.ソロ[1])} ／ 跨ぎ ${pct(byMode.跨ぎ[0],byMode.跨ぎ[1])}`); }
 console.log(`  「もう一本」で前のバトルと同じ2行組: 平均 ${(rep2.reduce((x,y)=>x+y,0)/rep2.length*100).toFixed(1)}% ／ 最悪 ${worst[0]} ${(worst[1]*100).toFixed(1)}%`);
 const ng = dupEnd||badHead||resp||multiTheme||(crossHit<crossR-missSum);
 console.log(ng?'要修正':'✅ 組み替え規則すべて適合');

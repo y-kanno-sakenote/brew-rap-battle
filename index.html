@@ -195,7 +195,7 @@
   <footer>
     名勝負ミックス ── Claudeが書いた名勝負を2行ずつに切り、同じ相手・同じ韻の2行を別の試合から繋いで1バースに。用語は麹菌・清酒酵母・生酛の乳酸菌・酒造好適米など醸造の実際にもとづく。<br>
     © SAKENOTE ｜ <a href="docs/corpus_viewer.html" style="color:inherit;text-decoration:none;cursor:text">遊び心</a>の社内ツール<br>
-    <span class="updated" id="updated">最終更新: 2026-09-27 23:59</span>
+    <span class="updated" id="updated">最終更新: 2026-09-28 00:54</span>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -992,16 +992,17 @@ let CORPUS = null;
 const CP_RESP = /^[^、。！!]{0,16}[？?]|だと[？?]|と来たか|ときたか|って[？?]|^(?!いいか)[^、。！!？?]{1,7}か、/;   // 相手の行への返し（「うぬぼれ？」「〜だと？」「祈りか、」「心強いと来たか」）＝他の文脈に移せない
 const CP_CONN = /^(だが|でも|なら|だから|それ|その|しかし|そして|けど|だけど|つまり|だって|ただ|もっとも)/;   // 前の行を受ける書き出し＝バースの頭に置かない
 // 相手を名指ししない2行組（自慢系）は、どの相手との戦いにも持ち出せる。ただし元の相手の看板語を含む行は当てこすりなので持ち出さない
-const CP_YOU = /お前|おまえ|てめえ|貴様|あんた|君は|君の|お宅|そっち|そちら/;
+const CP_YOU = /お前|おまえ|てめえ|貴様|あんた|君は|君の|お宅|そっち|そちら|二人|ふたり|俺たち|俺ら|お互い|互い|並んで|一緒に|組んで|手を組|連帯/;   // 二人称と、相手との関係を語る語
 const CP_ALIAS = {koji:['麹菌','麹','国菌'], yeast:['酵母','セレビシエ'], toji:['杜氏','頭領','親方'], lactic:['乳酸菌','乳酸'], rice:['酒米','米']};
 // 各キャラの領分の語（名指ししなくても、これを含む行はその相手への当てこすりになりうる）
-const CP_DOMAIN = {koji:['糖','菌糸','製麹','破精','甘'], yeast:['香','泡','アルコール','華','りんご'], toji:['采配','温度','儂','束ね','読み切'],
-                   lactic:['酸','雑菌','生酛','酒母','守り','縁の下'], rice:['粒','心白','磨','削','田','稲','白い','素材','原点']};
+const CP_DOMAIN = {koji:['糖','菌糸','製麹','破精','甘','設計','甘い水'], yeast:['香','泡','アルコール','華','りんご','主役','スター'], toji:['采配','温度','儂','束ね','読み切','ただの人','手の内','生かすも殺すも','頭領'],
+                   lactic:['酸','雑菌','生酛','酒母','守り','縁の下','地味','酸菌'], rice:['粒','心白','磨','削','田','稲','白い','素材','原点','飯']};
+// ↑ 相手の人格設定（personas.md の pride/weakness/dis）をなぞる言い回しも含める。名指ししなくても元の相手への当てこすりになるため
 function cpGeneric(sp, opp, t){
   if(CP_YOU.test(t)) return false;
   for(const k in CP_ALIAS){ if(k!==sp && CP_ALIAS[k].some(a=>t.includes(a))) return false; }
   const own = [...(CP_DOMAIN[sp]||[]), ...((typeof PERSONA!=='undefined' && PERSONA[sp]) ? PERSONA[sp].signature : [])];
-  const theirs = [...(CP_DOMAIN[opp]||[]), ...((typeof PERSONA!=='undefined' && PERSONA[opp]) ? PERSONA[opp].signature : [])].filter(w=>w!=='蔵' && !own.some(o=>o.includes(w)||w.includes(o)));
+  const theirs = [...(CP_DOMAIN[opp]||[]), ...((typeof PERSONA!=='undefined' && PERSONA[opp]) ? PERSONA[opp].signature : [])].filter(w=>w!=='蔵' && !own.includes(w));   // 自分の領分と完全一致する語だけ外す（部分一致だと「甘い水」が相手の「甘」まで消した）
   return !theirs.some(w=>t.includes(w));
 }
 function parseCorpus(text){
@@ -1023,7 +1024,8 @@ function parseCorpus(text){
         if(ends.some(e=>!e) || ends[0]===ends[1]) continue;
         const k=sp+'|'+softKey(key);   // 響き韻（i≈e・u≈o、最後の母音は一致）で束ねる＝ルールエンジンと同じ基準
         const tt=t0+strip(L[1]);
-        (pools[k]=pools[k]||[]).push({b:bi, sig:key, opp, gen:cpGeneric(sp,opp,tt), head:!CP_CONN.test(t0), theme:d.theme||'', lines:L.map(safe), ends});
+        const flat=tt.replace(/[、。！？!?\s]/g,''), g6=new Set(); for(let i=0;i+6<=flat.length;i++) g6.add(flat.slice(i,i+6));
+        (pools[k]=pools[k]||[]).push({b:bi, sig:key, opp, gen:cpGeneric(sp,opp,tt), head:!CP_CONN.test(t0), theme:d.theme||'', lines:L.map(safe), ends, g6});
       }
     });
   });
@@ -1039,16 +1041,19 @@ const cpFits = (c,opp) => c.opp===opp || c.gen;   // この相手に向けて使
 function corpusKeys(sp,opp){ const p=sp+'|'; return Object.keys(CORPUS.pools).filter(k=>k.startsWith(p) && CORPUS.pools[k].some(c=>cpFits(c,opp))).map(k=>k.slice(p.length)); }
 // その韻で頭に置ける2行組＋繋げる2行組が揃うか（副作用なし）
 const CP_RECENT = new Set();   // 直前のバトルで使った2行組（「もう一本」で同じ歌詞が続かないよう、なるべく避ける）
-function corpusPair(sp,opp,key,rnd,st){
+function corpusPair(sp,opp,key,rnd,st,allowSaid){
   // お題は1バトル1種（st.theme）。お題なしの2行組はどのバトルにも使える
   const ok = c => cpFits(c,opp) && !st.used.has(c) && (!c.theme || c.theme===st.theme);
   const all=(CORPUS.pools[sp+'|'+key]||[]).filter(ok);
+  // 同じバトルでこのキャラが既に使った言い回し（決め台詞「一年を読み切る」等）を含む2行組は、なるべく避ける
+  const said=st.said&&st.said[sp], clean=c=>!said || ![...c.g6].some(g=>said.has(g));
   const fresh=all.filter(c=>!CP_RECENT.has(c));
+  if(!allowSaid) return corpusPairFrom(fresh.filter(clean),rnd) || corpusPairFrom(all.filter(clean),rnd);
   return corpusPairFrom(fresh,rnd) || corpusPairFrom(all,rnd);
 }
 function corpusPairFrom(pool,rnd){
   for(const h of shuffle(pool.filter(c=>c.head),rnd)){
-    const rest=pool.filter(c=>c!==h && !c.ends.some(e=>h.ends.includes(e)) && (!h.theme||!c.theme||c.theme===h.theme));
+    const rest=pool.filter(c=>c!==h && !c.ends.some(e=>h.ends.includes(e)) && ![...c.g6].some(g=>h.g6.has(g)) && (!h.theme||!c.theme||c.theme===h.theme));
     if(!rest.length) continue;
     const other=rest.filter(c=>c.b!==h.b);   // 別バトルから＝組み替え
     const from=other.length?other:rest;
@@ -1056,13 +1061,15 @@ function corpusPairFrom(pool,rnd){
   }
   return null;
 }
-function corpusVerse(sp,opp,rnd,st,allowKeys){
+function corpusVerse(sp,opp,rnd,st,allowKeys,saidModes){
   let keys=shuffle(allowKeys||corpusKeys(sp,opp),rnd);
   keys=[...keys.filter(k=>!st.keys.has(sp+k)), ...keys.filter(k=>st.keys.has(sp+k))];   // 同じ韻を続けない
-  for(const key of keys){
-    const pr=corpusPair(sp,opp,key,rnd,st);
+  // まず全部の韻で「言い回しの重複なし」を探し、どの韻でも組めない時だけ重複を許す
+  for(const allowSaid of (saidModes||[false,true])) for(const key of keys){
+    const pr=corpusPair(sp,opp,key,rnd,st,allowSaid);
     if(!pr) continue;
-    pr.forEach(c=>st.used.add(c));
+    pr.forEach(c=>{ st.used.add(c); st.said=st.said||{}; const z=(st.said[sp]=st.said[sp]||new Set()); c.g6.forEach(g=>z.add(g)); });
+    if(allowSaid) st.saidHit=(st.saidHit||0)+1;   // 言い回しの重複を許して組んだ回数（お題選びの減点に使う）
     st.keys.add(sp+key);
     return {key, lines:[...pr[0].lines, ...pr[1].lines]};
   }
@@ -1075,8 +1082,8 @@ function corpusBattle(aId,bId,rounds,seed,cross){
   const cand=[null, ...shuffle([...themes],rng(seed^4242))];
   // お題なし:お題つき＝1:1で先頭候補を選ぶ（お題つきの情景も楽しめるように）
   if(rng(seed^77)()<0.5 && cand.length>1){ cand.push(cand.shift()); }
-  // 組めたお題の中から選ぶ基準: ①跨ぎ韻の踏み返しが多く成立 ②直前のバトルと同じ2行組が少ない（「もう一本」で同じ歌詞が続かない）
-  const score = b => (cross && b.crossOK ? b.crossMiss*100 : 0) + b.used.filter(c=>CP_RECENT.has(c)).length;
+  // 組めたお題の中から選ぶ基準: ①跨ぎ韻の踏み返しが多く成立 ②同じキャラの言い回しの重複が少ない ③直前のバトルと同じ2行組が少ない
+  const score = b => (cross && b.crossOK ? b.crossMiss*100 : 0) + b.saidHit*10 + b.used.filter(c=>CP_RECENT.has(c)).length;
   let best=null, bs=Infinity;
   for(const th of cand){
     const b=corpusBattleWith(aId,bId,rounds,seed,cross,th);
@@ -1090,17 +1097,22 @@ function corpusBattle(aId,bId,rounds,seed,cross){
 function corpusBattleWith(aId,bId,rounds,seed,cross,theme){
   const st={used:new Set(), keys:new Set(), theme}, out=[];
   const shared = cross ? corpusKeys(aId,bId).filter(k=>corpusKeys(bId,aId).includes(k)) : [];
-  const clone = s => ({used:new Set(s.used), keys:new Set(s.keys), theme:s.theme});
+  const clone = s => ({used:new Set(s.used), keys:new Set(s.keys), theme:s.theme, saidHit:s.saidHit||0, said:Object.fromEntries(Object.entries(s.said||{}).map(([k,v])=>[k,new Set(v)]))});
   let miss=0;
   for(let r=0;r<rounds;r++){
     const ra=rng(seed^((r*2+1)*131)), rb=rng(seed^((r*2+2)*197));
     let pair=null;
     // キャラ跨ぎ韻：先攻の組を仮置きした上で（お題の確定も含めて）後攻が同じ韻を組めるものだけ採る＝踏み返し
-    for(const k of shuffle(shared,ra)){
-      const t=clone(st);
-      const va=corpusVerse(aId,bId,ra,t,[k]); if(!va) continue;
-      const vb=corpusVerse(bId,aId,rb,t,[k]); if(!vb) continue;
-      Object.assign(st,t); pair=[va,vb]; break;
+    // まず全部の共通韻で「言い回しの重複なし」を探し、無理な時だけ重複を許す（ソロと同じ二段構え）
+    const ks=shuffle(shared,ra);
+    for(const mode of [[false],[true]]){
+      for(const k of ks){
+        const t=clone(st);
+        const va=corpusVerse(aId,bId,ra,t,[k],mode); if(!va) continue;
+        const vb=corpusVerse(bId,aId,rb,t,[k],mode); if(!vb) continue;
+        Object.assign(st,t); pair=[va,vb]; break;
+      }
+      if(pair) break;
     }
     if(!pair){
       if(shared.length) miss++;
@@ -1110,7 +1122,7 @@ function corpusBattleWith(aId,bId,rounds,seed,cross,theme){
     }
     out.push([aId,pair[0]],[bId,pair[1]]);
   }
-  return {verses:out, crossOK: shared.length>0, crossMiss: miss, theme, used:[...st.used]};
+  return {verses:out, crossOK: shared.length>0, crossMiss: miss, theme, used:[...st.used], saidHit: st.saidHit||0};
 }
 
 let lastBattleTheme = '';  // 画像保存用：バトル生成時に使ったお題（AIエンジン以外は空）
