@@ -115,7 +115,7 @@ async function loop() {
   check('(g\') 本数が揃えば従来どおり2回目で採用・full=true', r.calls === 2 && r.rec && r.rec.full === true, `calls=${r.calls} full=${r.rec && r.rec.full}`);
 
   r = await run([neterr, http500, badjson]);
-  check('(d) 3回失敗: fetch 3回・コーパス未保存・画面に ⚠️', r.calls === 3 && r.corpusLen === 0 && r.html.includes('⚠️ ローカルLLMでエラー'), `calls=${r.calls} corpus=${r.corpusLen}`);
+  check('(d) 3回失敗: fetch 3回・コーパス未保存・画面に ⚠️', r.calls === 3 && r.corpusLen === 0 && r.html.includes('⚠️ Ollamaでエラー'), `calls=${r.calls} corpus=${r.corpusLen}`);
   check('(d) 表示メッセージは最後の例外（JSON取り出し失敗）', r.html.includes('モデル出力からJSONを取り出せませんでした'), r.html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').slice(0, 120));
   r = await run([http500, http500, http500]);
   check('(d\') HTTP500×3 → 画面に "Ollama HTTP 500 boom"', r.calls === 3 && r.html.includes('Ollama HTTP 500 boom'));

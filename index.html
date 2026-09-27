@@ -38,8 +38,8 @@
   .fighter .badge{position:absolute;top:-9px;right:-9px;font-size:10px;font-weight:800;padding:3px 8px;
                   border-radius:20px;color:#fff}
   .badge.a{background:var(--red)} .badge.b{background:var(--blue)}
-  .pinfo{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--sub);font-size:15px;cursor:pointer;padding:2px 4px;line-height:1;z-index:2;transition:.15s}
-  .pinfo:hover{color:var(--gold);transform:scale(1.15)}
+  .pinfo{position:absolute;top:0;right:0;width:44px;height:44px;display:flex;align-items:flex-start;justify-content:flex-end;padding:6px 8px 0 0;background:none;border:none;color:var(--sub);font-size:15px;cursor:pointer;line-height:1;z-index:2;transition:color .15s}
+  .pinfo:hover{color:var(--gold)}
   .pmodal{position:fixed;inset:0;background:rgba(0,0,0,.66);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
   .pcard{background:var(--bg2);border:1px solid var(--line);border-radius:16px;max-width:640px;width:100%;max-height:85vh;overflow:auto;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
   .pcard h3{font-family:var(--mincho);font-size:22px;margin:0 0 4px}
@@ -65,6 +65,7 @@
   .btn-main:disabled{opacity:.4;cursor:not-allowed;transform:none}
   .btn-ghost{background:transparent;color:var(--gold);border:1px solid var(--gold2);font-size:13px;padding:9px 18px}
   .btn-ghost:hover{background:rgba(232,193,90,.1)}
+  .btn-ghost:disabled{opacity:.4;cursor:not-allowed;background:transparent}
   #stage{margin-top:22px;display:none}
   .vs-head{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px}
   .vs-head .who{font-family:var(--mincho);font-size:22px;font-weight:900}
@@ -147,9 +148,9 @@
     </div>
 
     <div class="controls" id="apiKeyArea" style="display:none; margin-top: 14px; width: 100%; justify-content: center; gap: 8px; flex-wrap: wrap;">
-      <label class="opt" style="display: flex; align-items: center; gap: 8px; width: 100%; max-width: 450px;">
+      <label class="opt" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: 100%; max-width: 450px;">
         <span style="white-space: nowrap;">Gemini APIキー:</span>
-        <input type="password" id="apiKey" placeholder="AI Studioで取得したAPIキーを入力" style="flex-grow:1; background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px;">
+        <input type="password" id="apiKey" placeholder="AI Studioで取得したAPIキーを入力" style="flex:1 1 140px; min-width:0; background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px;">
         <button class="btn btn-ghost" id="toggleApiKey" style="padding:6px 12px; font-size:12px; margin:0;">表示</button>
       </label>
       <span style="font-size:11px; color:var(--sub); display:block; text-align:center; width:100%; margin-top:4px;">※ キーはローカル（localStorage）に保存され、Google APIと直接通信します。</span>
@@ -164,7 +165,7 @@
         <span style="white-space:nowrap;">ホスト:</span>
         <input type="text" id="ollamaHost" placeholder="http://localhost:11434" style="background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px; width:200px;">
       </label>
-      <span style="font-size:11px; color:var(--sub); display:block; text-align:center; width:100%; margin-top:4px;">※ ローカルのOllamaと直接通信（無料・オフライン）。蓄積したB案の出力を手本にします。Ollamaが起動していればそのまま使えます（<code>file://</code>で開いた時だけ不可）。</span>
+      <span style="font-size:11px; color:var(--sub); display:block; text-align:center; width:100%; margin-top:4px;">※ 手元のOllamaと直接通信（無料）。蓄積したGeminiの出力を手本にします。<code>localhost</code> で開いたページなら起動しているだけで使えます。公開URLから使うには、Ollama側の環境変数 <code>OLLAMA_ORIGINS</code> に <code>https://y-kanno-sakenote.github.io</code> を足して再起動が必要です（<code>file://</code> では不可）。</span>
     </div>
   </div>
 
@@ -186,7 +187,7 @@
   </div>
 
   <div id="corpusTray" style="display:none; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin:18px auto 0; max-width:720px; padding:10px 14px; border:1px solid var(--line); border-radius:10px; background:var(--bg2); font-size:12px; color:var(--sub);">
-    <span>🧪 B案コーパス <b id="corpusCount" style="color:var(--ink);">0</b> バトル蓄積（採掘用素材）</span>
+    <span>🧪 Gemini/Ollamaコーパス <b id="corpusCount" style="color:var(--ink);">0</b> バトル蓄積（採掘用素材）</span>
     <button class="btn btn-ghost" id="corpusExport" style="font-size:12px; padding:5px 10px;">⬇ 書き出し(.jsonl)</button>
     <button class="btn btn-ghost" id="corpusClear" style="font-size:12px; padding:5px 10px;">🗑 クリア</button>
   </div>
@@ -986,7 +987,35 @@ function verseHTML(meId, side, delay, rnd, forcedKey, echoWord){
 }
 
 let lastBattleTheme = '';  // 画像保存用：バトル生成時に使ったお題（AIエンジン以外は空）
+// 生成中フラグ：AIエンジンの応答待ちの間は開始/作り直し/攻守交代を止め、連打による多重生成を防ぐ
+let _generating = false;
+function setGenerating(on){
+  _generating = on;
+  const g = document.getElementById('go');
+  if(g) g.disabled = on || selected.length !== 2;
+  ['regen','swap'].forEach(id => { const b = document.getElementById(id); if(b) b.disabled = on; });
+}
+// AIエンジンの通信タイムアウト（Gemini・Ollama共通）。応答が無いまま「醸造中」で固まらないようにする
+const LLM_TIMEOUT_MS = 60000;
+async function withTimeout(fn, ms = LLM_TIMEOUT_MS){
+  const ctl = new AbortController();
+  let timedOut = false;
+  const timer = setTimeout(() => { timedOut = true; ctl.abort(); }, ms);
+  try{ return await fn(ctl.signal); }
+  catch(e){
+    if(timedOut){ const t = new Error(`${Math.round(ms/1000)}秒待っても応答がありませんでした（タイムアウト）。時間をおいてもう一度お試しください。`); t.timeout = true; throw t; }
+    throw e;
+  }
+  finally{ clearTimeout(timer); }
+}
 async function renderBattle(){
+  if(_generating) return;
+  if(engineSel.value === 'gemini' && !apiKeyInput.value.trim()){
+    toast('Gemini APIキーを入力してください。');
+    engineSel.value = 'template';
+    engineSel.dispatchEvent(new Event('change'));
+    return;
+  }
   const [aId,bId] = selected;
   lastBattleTheme = (engineSel.value === 'gemini' || engineSel.value === 'ollama') ? currentTheme() : '';
   const bars = parseInt(barsSel.value,10);
@@ -998,12 +1027,12 @@ async function renderBattle(){
 
   startBeat();   // バトル開始でビート再生（クリック=ユーザー操作なので自動再生ブロックに掛からない）
 
-  if (engineSel.value === 'gemini') {
-    await renderBattleGemini(aId, bId, bars);
-    return;
-  }
-  if (engineSel.value === 'ollama') {
-    await renderBattleOllama(aId, bId, bars);
+  if (engineSel.value === 'gemini' || engineSel.value === 'ollama') {
+    setGenerating(true);
+    try{
+      if (engineSel.value === 'gemini') await renderBattleGemini(aId, bId, bars);
+      else await renderBattleOllama(aId, bId, bars);
+    }finally{ setGenerating(false); }
     return;
   }
 
@@ -1078,17 +1107,11 @@ function themeDirective(){
 }
 
 async function renderBattleGemini(aId, bId, bars) {
-  const apiKey = apiKeyInput.value.trim();
-  if (!apiKey) {
-    toast('Gemini APIキーを入力してください。');
-    engineSel.value = 'template';
-    engineSel.dispatchEvent(new Event('change'));
-    return;
-  }
+  const apiKey = apiKeyInput.value.trim();   // 未入力は renderBattle 側で弾いてからここへ来る（ビートを鳴らす前に確認）
 
   // ローディング表示
   battle.innerHTML = `<div class="cheer" style="animation-delay: 0s; font-size: 16px; color: var(--gold);">
-    🔮 Gemini AIが極上のリリックを醸造中...<br>
+    🔮 Geminiが極上のリリックを醸造中...<br>
     <span style="font-size: 12px; color: var(--sub);">（初回は少し時間がかかる場合があります）</span>
   </div>`;
   beat.innerHTML = Array.from({length:16}).map((_,i)=>`<i style="animation-delay:${(i*0.06).toFixed(2)}s"></i>`).join("");
@@ -1159,7 +1182,9 @@ ${themeDirective()}
 
   try {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+    const resJson = await withTimeout(async (signal) => {
     const response = await fetch(url, {
+      signal,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -1179,8 +1204,8 @@ ${themeDirective()}
       const errData = await response.json().catch(() => ({}));
       throw new Error(errData.error?.message || `HTTP error! status: ${response.status}`);
     }
-
-    const resJson = await response.json();
+    return await response.json();
+    });
     const resultText = resJson.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!resultText) {
       throw new Error('AIからのレスポンスが空でした。');
@@ -1188,34 +1213,43 @@ ${themeDirective()}
 
     const data = JSON.parse(resultText);
     
-    // バトルのHTML組み立て
-    let html = "";
+    // バトルの組み立て（モデル出力はHTMLとして解釈せず textContent で入れる。韻の <span class="rhyme"> だけ要素に組み直す）
+    const mk = (tag, cls, text) => { const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; };
+    const fillRhymeLine = (parent, line) => {
+      const re = /<span class="rhyme">([^<]*)<\/span>/g; const str = String(line); let last = 0, m;
+      while((m = re.exec(str))){
+        if(m.index > last) parent.appendChild(document.createTextNode(str.slice(last, m.index)));
+        parent.appendChild(mk('span', 'rhyme', m[1])); last = re.lastIndex;
+      }
+      if(last < str.length) parent.appendChild(document.createTextNode(str.slice(last)));
+    };
+    battle.innerHTML = "";
     let delay = 0;
-    
-    data.verses.forEach((v) => {
+    (data.verses || []).forEach((v) => {
       const side = v.characterId === aId ? 'a' : 'b';
       const char = FIGHTERS[v.characterId] || { emoji: "🎤", name: v.characterName };
-      html += `<div class="verse ${side}" style="animation-delay:${delay}s">
-        <div class="head"><span class="em">${char.emoji}</span>${char.name}<span class="rk">AI韻:-${v.displayRhyme}</span></div>
-        <div class="bars">${v.lines.join("\n")}</div>
-      </div>`;
+      const verse = mk('div', `verse ${side}`); verse.style.animationDelay = `${delay}s`;
+      const head = mk('div', 'head');
+      head.append(mk('span', 'em', char.emoji), document.createTextNode(char.name || ''), mk('span', 'rk', `Gemini韻:-${v.displayRhyme || ''}`));
+      const barsEl = mk('div', 'bars');
+      (v.lines || []).forEach((l, i) => { if(i) barsEl.appendChild(document.createTextNode("\n")); fillRhymeLine(barsEl, l); });
+      verse.append(head, barsEl);
+      battle.appendChild(verse);
       delay += 0.15;
     });
-
-    html += `<div class="drop">🎤 …mic drop.</div>`;
-    html += `<div class="cheer">🍶 今宵の一杯は「${data.flavor}」で乾杯</div>`;
-
-    battle.innerHTML = html;
+    battle.appendChild(mk('div', 'drop', '🎤 …mic drop.'));
+    battle.appendChild(mk('div', 'cheer', `🍶 今宵の一杯は「${data.flavor}」で乾杯`));
 
     // 採掘用コーパスへ蓄積（構造化出力そのまま。APIキーは含めない）
     saveToCorpus({ ts:new Date().toISOString(), model:'gemini-3.5-flash', aId, bId, bars, mode: modeSel.value, style: (document.getElementById('battleStyle')||{}).value, theme: currentTheme(), data });
   } catch (error) {
     console.error(error);
     battle.innerHTML = `<div class="cheer" style="color:var(--red);">
-      ⚠️ エラーが発生しました。<br>
-      ${error.message}<br>
-      <button class="btn btn-ghost" onclick="engineSel.value='template'; engineSel.dispatchEvent(new Event('change')); renderBattle();" style="margin-top: 10px;">テンプレート方式で実行する</button>
+      ⚠️ Geminiでエラーが発生しました。<br>
+      <span class="errmsg"></span><br>
+      <button class="btn btn-ghost" onclick="engineSel.value='template'; engineSel.dispatchEvent(new Event('change')); renderBattle();" style="margin-top: 10px;">ルールで遊ぶ</button>
     </div>`;
+    battle.querySelector('.errmsg').textContent = error.message;
   }
 }
 
@@ -1241,7 +1275,7 @@ async function renderBattleOllama(aId, bId, bars){
   const a = FIGHTERS[aId], b = FIGHTERS[bId];
 
   battle.innerHTML = `<div class="cheer" style="animation-delay:0s; font-size:16px; color:var(--gold);">
-    🖥 ローカルLLM（${model}）がリリックを醸造中...<br>
+    🖥 Ollama（${model}）がリリックを醸造中...<br>
     <span style="font-size:12px; color:var(--sub);">（初回のモデル読み込みは時間がかかります）</span></div>`;
   beat.innerHTML = Array.from({length:16}).map((_,i)=>`<i style="animation-delay:${(i*0.06).toFixed(2)}s"></i>`).join("");
   stage.style.display="block";
@@ -1257,13 +1291,15 @@ async function renderBattleOllama(aId, bId, bars){
   const user = `手本の質感:\n${buildFewShot()}\n\n【人格（保つこと）】\n${personaBlock(aId,bId)}\n${personaBlock(bId,aId)}\n\n${usageGuide(aId,bId)}\n\n${styleDirective()}\n${themeDirective()}\n本番：先攻=${a.name}(id:${aId})、後攻=${b.name}(id:${bId})。合計${rounds*2}バース・各4行のバトルをJSONで出力。`;
 
   const callOllama = async () => {
-    const response = await fetch(`${host}/api/chat`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model, stream:false, format:"json", options:{ temperature:0.85, num_predict: 500 + rounds*400 },
-        messages:[{role:'system',content:system},{role:'user',content:user}] })
+    const resJson = await withTimeout(async (signal) => {
+      const response = await fetch(`${host}/api/chat`, {
+        signal, method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ model, stream:false, format:"json", options:{ temperature:0.85, num_predict: 500 + rounds*400 },
+          messages:[{role:'system',content:system},{role:'user',content:user}] })
+      });
+      if(!response.ok){ const t=await response.text().catch(()=> ''); throw new Error(`Ollama HTTP ${response.status} ${t.slice(0,200)}`); }
+      return await response.json();
     });
-    if(!response.ok){ const t=await response.text().catch(()=> ''); throw new Error(`Ollama HTTP ${response.status} ${t.slice(0,200)}`); }
-    const resJson = await response.json();
     const content = resJson.message?.content || '';
     const m = content.match(/\{[\s\S]*\}/);
     if(!m) throw new Error('モデル出力からJSONを取り出せませんでした。');
@@ -1290,7 +1326,7 @@ async function renderBattleOllama(aId, bId, bars){
     let best = null, lastErr = null;
     for(let t=1; t<=tries; t++){
       if(t>1) battle.innerHTML = `<div class="cheer" style="animation-delay:0s; font-size:16px; color:var(--gold);">
-        🖥 ローカルLLM（${model}）が納得いかず、リリックを醸造し直し中（${t}/${tries}）...</div>`;
+        🖥 Ollama（${model}）が納得いかず、リリックを醸造し直し中（${t}/${tries}）...</div>`;
       try{
         const r = await callOllama();
         r.gate = usageGateValue(usageScore(r.cleanVerses)); r.tries = t;
@@ -1298,7 +1334,11 @@ async function renderBattleOllama(aId, bId, bars){
         const rank = x => (x.full ? 10 : 0) + (x.gate ?? -1);  // 本数が揃った試行を常に優先、その中で採点最大
         if(!best || rank(r) > rank(best)) best = r;
         if(r.full && r.gate != null && r.gate >= USAGE_GATE.min) break;
-      }catch(e){ lastErr = e; if(t===tries && !best) throw e; }
+      }catch(e){
+        lastErr = e;
+        if(e.timeout){ if(!best) throw e; break; }   // 応答が無いなら再試行しても待たせるだけ。取れた分があればそれを出す
+        if(t===tries && !best) throw e;
+      }
     }
     if(!best) throw (lastErr || new Error('生成に失敗しました。'));
     const { data, cleanVerses } = best;
@@ -1308,7 +1348,7 @@ async function renderBattleOllama(aId, bId, bars){
       const char = FIGHTERS[v.characterId];
       const side = v.characterId===aId ? 'a' : 'b';
       html += `<div class="verse ${side}" style="animation-delay:${delay}s">
-        <div class="head"><span class="em">${char.emoji}</span>${char.name}<span class="rk">ローカルAI韻:-${v.displayRhyme}</span></div>
+        <div class="head"><span class="em">${char.emoji}</span>${char.name}<span class="rk">Ollama韻:-${v.displayRhyme}</span></div>
         <div class="bars">${v.lines.join("\n")}</div></div>`;
       delay += 0.15;
     });
@@ -1321,12 +1361,12 @@ async function renderBattleOllama(aId, bId, bars){
     saveToCorpus({ ts:new Date().toISOString(), model:`ollama:${model}`, aId, bId, bars, mode:'ollama', style: (document.getElementById('battleStyle')||{}).value, theme: currentTheme(), gate: best.gate, tries: best.tries, full: best.full, data:{ verses: cleanVerses, flavor: data.flavor||'' } });
   }catch(error){
     console.error(error);
-    const hint = /Failed to fetch|NetworkError|load failed/i.test(error.message)
-      ? 'Ollamaに接続できません。Ollamaが起動しているか確認してください（メニューバーの Ollama.app、またはターミナルで <code>ollama serve</code>）。<br>※ このページを <code>file://</code> で開いている場合は仕様上つながりません。<code>http://localhost</code> か公開URLからお試しください。'
-      : error.message;
+    const hint = /Failed to fetch|NetworkError|load failed|HTTP 403/i.test(error.message)
+      ? 'Ollamaに接続できません。①Ollamaが起動しているか（メニューバーの Ollama.app、またはターミナルで <code>ollama serve</code>）。<br>②公開URLから使う場合は、Ollama側の環境変数 <code>OLLAMA_ORIGINS</code> に <code>https://y-kanno-sakenote.github.io</code> を足して再起動が必要です（Macなら <code>launchctl setenv OLLAMA_ORIGINS "https://y-kanno-sakenote.github.io"</code> のあと Ollama.app を再起動）。<br>※ <code>file://</code> で開いたページからはつながりません。'
+      : error.message.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     battle.innerHTML = `<div class="cheer" style="color:var(--red);">
-      ⚠️ ローカルLLMでエラー。<br>${hint}<br>
-      <button class="btn btn-ghost" onclick="engineSel.value='template'; engineSel.dispatchEvent(new Event('change')); renderBattle();" style="margin-top:10px;">テンプレート方式で実行する</button>
+      ⚠️ Ollamaでエラー。<br>${hint}<br>
+      <button class="btn btn-ghost" onclick="engineSel.value='template'; engineSel.dispatchEvent(new Event('change')); renderBattle();" style="margin-top:10px;">ルールで遊ぶ</button>
     </div>`;
   }
 }
@@ -1460,7 +1500,7 @@ function refreshSel(){
     if(i===0){ el.classList.add('sel-a'); el.insertAdjacentHTML('beforeend','<span class="badge a">赤</span>'); }
     if(i===1){ el.classList.add('sel-b'); el.insertAdjacentHTML('beforeend','<span class="badge b">青</span>'); }
   });
-  go.disabled = selected.length!==2;
+  go.disabled = selected.length!==2 || _generating;
   if(selected.length===2){
     const [a,b]=selected;
     selHint.innerHTML = `<b style="color:var(--red)">${FIGHTERS[a].name}</b> × <b style="color:var(--blue)">${FIGHTERS[b].name}</b> ── 準備OK！`;
