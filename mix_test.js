@@ -86,5 +86,15 @@ console.log(`  跨ぎ韻で後攻が同じ韻を踏めた: ${crossHit}/${crossR}
     if(f){ h++; m[0]++; } } }
   console.log(`  同じキャラが同じ言い回しを2回使うバトル: ソロ ${pct(byMode.ソロ[0],byMode.ソロ[1])} ／ 跨ぎ ${pct(byMode.跨ぎ[0],byMode.跨ぎ[1])}`); }
 console.log(`  「もう一本」で前のバトルと同じ2行組: 平均 ${(rep2.reduce((x,y)=>x+y,0)/rep2.length*100).toFixed(1)}% ／ 最悪 ${worst[0]} ${(worst[1]*100).toFixed(1)}%`);
+// 跨ぎ韻12小節の「もう一本」（跨ぎは2人が同じ韻で組むため素材が細い＝ここが最後に残る）
+{ const r=[]; let w=['',0];
+  for(const a of ids) for(const b of ids){ if(a===b) continue; let sh=0,n=0;
+    for(let s=0;s<20;s++){ sb2.CP_RECENT.clear();
+      const b1=sb2.corpusBattle(a,b,3,(s*7919)>>>0,true); if(!b1) continue; b1.used.forEach(c=>sb2.CP_RECENT.add(c));
+      const b2=sb2.corpusBattle(a,b,3,(s*7919+1)>>>0,true); if(!b2) continue;
+      const u=new Set(b1.used); sh+=b2.used.filter(c=>u.has(c)).length; n+=b2.used.length; }
+    const x=n?sh/n:0; r.push([a+'>'+b,x]); if(x>w[1]) w=[a+'>'+b,x]; }
+  console.log(`  跨ぎ12小節の「もう一本」: 平均 ${(r.reduce((s,[,x])=>s+x,0)/r.length*100).toFixed(1)}% ／ 最悪 ${w[0]} ${(w[1]*100).toFixed(1)}%`);
+  if(process.env.DETAIL) console.log('   '+r.sort((p,q)=>q[1]-p[1]).map(([k,x])=>k+' '+(x*100).toFixed(0)+'%').join(' / ')); }
 const ng = dupEnd||badHead||resp||multiTheme||(crossHit<crossR-missSum);
 console.log(ng?'要修正':'✅ 組み替え規則すべて適合');
