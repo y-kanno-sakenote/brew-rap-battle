@@ -1456,7 +1456,7 @@ function battleResponseFormat(aId, bId, verseCount){
           characterId:{ type:'string', enum:[...new Set([aId, bId])] },
           characterName:{ type:'string' },
           displayRhyme:{ type:'string' },
-          lines:{ type:'array', minItems:4, maxItems:4, items:{ type:'string' } } },
+          lines:{ type:'array', minItems:4, maxItems:4, items:{ type:'string', maxLength:48, pattern:'^[^A-Za-zＡ-Ｚａ-ｚ/／\\n\\r]+$' } } },
         required:['characterId','characterName','displayRhyme','lines'], additionalProperties:false } },
       flavor:{ type:'string' } },
     required:['verses','flavor'], additionalProperties:false } } };
