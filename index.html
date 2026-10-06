@@ -112,7 +112,7 @@
     <p class="hint" id="selHint">上から2体を選ぶと対戦成立。1体目が <span style="color:var(--red)">赤コーナー</span>、2体目が <span style="color:var(--blue)">青コーナー</span>。</p>
     <div class="controls">
       <label class="opt">生成エンジン
-        <select id="engine"><option value="template" selected>名勝負ミックス（そのまま遊べる）</option><option value="ollama">ローカルAI（手元のPCで）</option><option value="gemini">Gemini（APIキーが必要）</option></select>
+        <select id="engine"><option value="template" selected>名勝負ミックス（そのまま遊べる）</option><option value="ollama">Ollama（手元のPCで）</option><option value="gemini">Gemini（APIキーが必要）</option></select>
       </label>
       <label class="opt">小節数
         <select id="bars"><option value="4">4小節（ショート）</option><option value="8" selected>8小節（スタンダード）</option><option value="12">12小節（ロング）</option></select>
@@ -158,18 +158,14 @@
 
     <div class="controls" id="ollamaArea" style="display:none; margin-top: 14px; width: 100%; justify-content: center; gap: 8px; flex-wrap: wrap;">
       <label class="opt" style="display:flex; align-items:center; gap:8px;">
-        <span style="white-space:nowrap;">アプリ:</span>
-        <select id="localApi"><option value="ollama" selected>Ollama</option><option value="lmstudio">LM Studio</option></select>
-      </label>
-      <label class="opt" style="display:flex; align-items:center; gap:8px;">
         <span style="white-space:nowrap;">モデル:</span>
-        <input type="text" id="ollamaModel" placeholder="gemma-4-12b-it-mlx" style="background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px; width:160px;">
+        <input type="text" id="ollamaModel" placeholder="qwen2.5:7b" style="background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px; width:160px;">
       </label>
       <label class="opt" style="display:flex; align-items:center; gap:8px;">
         <span style="white-space:nowrap;">ホスト:</span>
-        <input type="text" id="ollamaHost" placeholder="http://localhost:1234" style="background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px; width:200px;">
+        <input type="text" id="ollamaHost" placeholder="http://localhost:11434" style="background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px; width:200px;">
       </label>
-      <span style="font-size:11px; color:var(--sub); display:block; text-align:center; width:100%; margin-top:4px;">※ 手元の<span id="localApiName">LM Studio</span>と直接通信（無料）。</span>
+      <span style="font-size:11px; color:var(--sub); display:block; text-align:center; width:100%; margin-top:4px;">※ 手元のOllamaと直接通信（無料）。</span>
     </div>
   </div>
 
@@ -1423,13 +1419,7 @@ ${themeDirective()}
   }
 }
 
-// ---- C案：ローカルLLM（LM Studio＝OpenAI互換 /v1/chat/completions ／ Ollama＝/api/chat）。無料・オフラインで中品質を大量生成。蓄積したB案を手本(few-shot)にする ----
-//   形式は #localApi で選ぶ（既定 LM Studio）。値が取れない時（テストのスタブ等）は従来どおり Ollama。
-const LOCAL_API = {
-  lmstudio: { label:'LM Studio', host:'http://localhost:1234',  model:'gemma-4-12b-it-mlx', keyHost:'lmstudio_host', keyModel:'lmstudio_model' },
-  ollama:   { label:'Ollama',    host:'http://localhost:11434', model:'qwen2.5:7b',         keyHost:'ollama_host',   keyModel:'ollama_model' },
-};
-function localApiKind(){ const el = document.getElementById('localApi'); return (el && el.value === 'lmstudio') ? 'lmstudio' : 'ollama'; }
+// ---- C案：ローカルLLM(Ollama)。無料・オフラインで中品質を大量生成。蓄積したB案を手本(few-shot)にする ----
 //   設計要点: 7B級モデルは <span class="rhyme"> のクォート入りJSONを壊すため、モデルには韻語を【】で囲ませ、
 //   HTML化はこちら側で行う。行の分割・余分な括弧・バース数不足も頑健に吸収する。
 function spanToBracket(line){ return String(line).replace(/<span class="rhyme">([^<]+)<\/span>/g, '【$1】'); }
@@ -1444,33 +1434,14 @@ function buildFewShot(){
   return `麹菌『蔵に舞う【白麹】、糖化操る【種麹】／芯まで攻める【突破精】、隙見せぬ我が【采配】／米を溶かして生む甘み、これぞ国菌の底力／お前ら酵母は俺の下、糖なきゃ踊れぬその身体』`;
 }
 
-// LM Studio（OpenAI互換）は出力の型を json_schema で縛る（Ollama の format:"json" に相当）。
-//   バース数＝小節数から決まる数ちょうど・各4行ちょうど・characterId は対戦の2人に限る。縛っても下の整形処理はそのまま通す。
-function battleResponseFormat(aId, bId, verseCount){
-  return { type:'json_schema', json_schema:{ name:'battle', strict:true, schema:{
-    type:'object',
-    properties:{
-      verses:{ type:'array', minItems:verseCount, maxItems:verseCount, items:{
-        type:'object',
-        properties:{
-          characterId:{ type:'string', enum:[...new Set([aId, bId])] },
-          characterName:{ type:'string' },
-          displayRhyme:{ type:'string' },
-          lines:{ type:'array', minItems:4, maxItems:4, items:{ type:'string', maxLength:48, pattern:'^[^A-Za-zＡ-Ｚａ-ｚ/／\\n\\r]+$' } } },
-        required:['characterId','characterName','displayRhyme','lines'], additionalProperties:false } },
-      flavor:{ type:'string' } },
-    required:['verses','flavor'], additionalProperties:false } } };
-}
-
 async function renderBattleOllama(aId, bId, bars){
-  const api = localApiKind(), API = LOCAL_API[api], label = API.label;
-  const model = (ollamaModelInput.value.trim() || API.model);
-  const host = (ollamaHostInput.value.trim() || API.host).replace(/\/$/, '');
+  const model = (ollamaModelInput.value.trim() || 'qwen2.5:7b');
+  const host = (ollamaHostInput.value.trim() || 'http://localhost:11434').replace(/\/$/, '');
   const rounds = Math.max(1, Math.round(bars/4));
   const a = FIGHTERS[aId], b = FIGHTERS[bId];
 
   battle.innerHTML = `<div class="cheer" style="animation-delay:0s; font-size:16px; color:var(--gold);">
-    🖥 ${label}（${model}）がリリックを醸造中...<br>
+    🖥 Ollama（${model}）がリリックを醸造中...<br>
     <span style="font-size:12px; color:var(--sub);">（初回のモデル読み込みは時間がかかります）</span></div>`;
   beat.innerHTML = Array.from({length:16}).map((_,i)=>`<i style="animation-delay:${(i*0.06).toFixed(2)}s"></i>`).join("");
   stage.style.display="block";
@@ -1486,20 +1457,16 @@ async function renderBattleOllama(aId, bId, bars){
   const user = `手本の質感:\n${buildFewShot()}\n\n【人格（保つこと）】\n${personaBlock(aId,bId)}\n${personaBlock(bId,aId)}\n\n${usageGuide(aId,bId)}\n\n${styleDirective()}\n${themeDirective()}\n本番：先攻=${a.name}(id:${aId})、後攻=${b.name}(id:${bId})。合計${rounds*2}バース・各4行のバトルをJSONで出力。`;
 
   const callOllama = async () => {
-    const messages = [{role:'system',content:system},{role:'user',content:user}];
-    const maxTokens = 500 + rounds*400;
     const resJson = await withTimeout(async (signal) => {
-      const response = api === 'lmstudio'
-        ? await fetch(`${host}/v1/chat/completions`, {
-            signal, method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ model, stream:false, temperature:0.85, max_tokens: maxTokens, response_format: battleResponseFormat(aId, bId, rounds*2), messages }) })
-        : await fetch(`${host}/api/chat`, {
-            signal, method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ model, stream:false, format:"json", options:{ temperature:0.85, num_predict: maxTokens }, messages }) });
-      if(!response.ok){ const t=await response.text().catch(()=> ''); throw new Error(`${label} HTTP ${response.status} ${t.slice(0,200)}`); }
+      const response = await fetch(`${host}/api/chat`, {
+        signal, method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ model, stream:false, format:"json", options:{ temperature:0.85, num_predict: 500 + rounds*400 },
+          messages:[{role:'system',content:system},{role:'user',content:user}] })
+      });
+      if(!response.ok){ const t=await response.text().catch(()=> ''); throw new Error(`Ollama HTTP ${response.status} ${t.slice(0,200)}`); }
       return await response.json();
     });
-    const content = (api === 'lmstudio' ? resJson.choices?.[0]?.message?.content : resJson.message?.content) || '';
+    const content = resJson.message?.content || '';
     const m = content.match(/\{[\s\S]*\}/);
     if(!m) throw new Error('モデル出力からJSONを取り出せませんでした。');
     const data = JSON.parse(m[0]);
@@ -1525,7 +1492,7 @@ async function renderBattleOllama(aId, bId, bars){
     let best = null, lastErr = null;
     for(let t=1; t<=tries; t++){
       if(t>1) battle.innerHTML = `<div class="cheer" style="animation-delay:0s; font-size:16px; color:var(--gold);">
-        🖥 ${label}（${model}）が納得いかず、リリックを醸造し直し中（${t}/${tries}）...</div>`;
+        🖥 Ollama（${model}）が納得いかず、リリックを醸造し直し中（${t}/${tries}）...</div>`;
       try{
         const r = await callOllama();
         r.gate = usageGateValue(usageScore(r.cleanVerses)); r.tries = t;
@@ -1562,16 +1529,14 @@ async function renderBattleOllama(aId, bId, bars){
     battle.innerHTML = html;
 
     // 採掘用コーパスへ蓄積（B案と同じ器。model名で出所が分かる。gate/tries はゲートの記録）
-    saveToCorpus({ ts:new Date().toISOString(), model:`${api}:${model}`, aId, bId, bars, mode:'ollama', style: (document.getElementById('battleStyle')||{}).value, theme: currentTheme(), gate: best.gate, tries: best.tries, full: best.full, data:{ verses: cleanVerses, flavor: data.flavor||'' } });
+    saveToCorpus({ ts:new Date().toISOString(), model:`ollama:${model}`, aId, bId, bars, mode:'ollama', style: (document.getElementById('battleStyle')||{}).value, theme: currentTheme(), gate: best.gate, tries: best.tries, full: best.full, data:{ verses: cleanVerses, flavor: data.flavor||'' } });
   }catch(error){
     console.error(error);
     const hint = /Failed to fetch|NetworkError|load failed|HTTP 403/i.test(error.message)
-      ? (api === 'lmstudio'
-        ? 'LM Studioに接続できません。①LM Studioでサーバーを起動しているか ②その設定で「CORS」をオンにしているか'
-        : 'Ollamaに接続できません。①Ollamaが起動しているか（メニューバーの Ollama.app、またはターミナルで <code>ollama serve</code>）。<br>②公開URLから使う場合は、Ollama側の環境変数 <code>OLLAMA_ORIGINS</code> に <code>https://y-kanno-sakenote.github.io</code> を足して再起動が必要です（Macなら <code>launchctl setenv OLLAMA_ORIGINS "https://y-kanno-sakenote.github.io"</code> のあと Ollama.app を再起動）。<br>※ <code>file://</code> で開いたページからはつながりません。')
+      ? 'Ollamaに接続できません。①Ollamaが起動しているか（メニューバーの Ollama.app、またはターミナルで <code>ollama serve</code>）。<br>②公開URLから使う場合は、Ollama側の環境変数 <code>OLLAMA_ORIGINS</code> に <code>https://y-kanno-sakenote.github.io</code> を足して再起動が必要です（Macなら <code>launchctl setenv OLLAMA_ORIGINS "https://y-kanno-sakenote.github.io"</code> のあと Ollama.app を再起動）。<br>※ <code>file://</code> で開いたページからはつながりません。'
       : error.message.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     battle.innerHTML = `<div class="cheer" style="color:var(--red);">
-      ⚠️ ${label}でエラー。<br>${hint}<br>
+      ⚠️ Ollamaでエラー。<br>${hint}<br>
       <button class="btn btn-ghost" onclick="engineSel.value='template'; engineSel.dispatchEvent(new Event('change')); renderBattle();" style="margin-top:10px;">名勝負ミックスで遊ぶ</button>
     </div>`;
   }
@@ -1629,22 +1594,11 @@ if (localStorage.getItem('gemini_api_key')) {
   apiKeyInput.value = localStorage.getItem('gemini_api_key');
 }
 
-// C案(ローカルLLM)の設定を復元。形式ごとに別キーで保存（Ollama は従来の ollama_model / ollama_host をそのまま使う）。
-// 形式の既定は LM Studio。ただし形式未保存で Ollama の設定が保存済みの人（既存利用者）は Ollama のまま開く。
-const localApiSel = document.getElementById('localApi');
-// 既定は Ollama（qwen2.5:7b）。2026-10-06 の比較で Gemma は型で縛っても1行への詰め込み・語尾切れ・括弧崩れが出たため
-localApiSel.value = localStorage.getItem('local_api') || 'ollama';
-function applyLocalApi(){
-  const A = LOCAL_API[localApiKind()];
-  ollamaModelInput.value = localStorage.getItem(A.keyModel) || A.model;
-  ollamaHostInput.value = localStorage.getItem(A.keyHost) || A.host;
-  ollamaModelInput.placeholder = A.model; ollamaHostInput.placeholder = A.host;
-  document.getElementById('localApiName').textContent = A.label;
-}
-applyLocalApi();
-localApiSel.onchange = () => { localStorage.setItem('local_api', localApiKind()); applyLocalApi(); };
-ollamaModelInput.oninput = () => localStorage.setItem(LOCAL_API[localApiKind()].keyModel, ollamaModelInput.value.trim());
-ollamaHostInput.oninput = () => localStorage.setItem(LOCAL_API[localApiKind()].keyHost, ollamaHostInput.value.trim());
+// C案(ローカルLLM)の設定を復元（デフォルト: qwen2.5:7b / localhost:11434）
+ollamaModelInput.value = localStorage.getItem('ollama_model') || 'qwen2.5:7b';
+ollamaHostInput.value = localStorage.getItem('ollama_host') || 'http://localhost:11434';
+ollamaModelInput.oninput = () => localStorage.setItem('ollama_model', ollamaModelInput.value.trim());
+ollamaHostInput.oninput = () => localStorage.setItem('ollama_host', ollamaHostInput.value.trim());
 
 // エンジン切り替え時の表示制御（A案=テンプレ / B案=Gemini / C案=Ollama）
 engineSel.onchange = () => {
