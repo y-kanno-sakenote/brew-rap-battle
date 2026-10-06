@@ -7,7 +7,7 @@ const fs = require('fs');
 const HTML = '/Users/ymacmini/Documents/claudecode@macmini/dev/brew-rap-battle/index.html';
 const html = fs.readFileSync(HTML, 'utf8');
 
-function load({ usageLogic = true, hook = null } = {}) {
+function load({ usageLogic = true, hook = null, api = null } = {}) {
   let script = html.slice(html.indexOf('<script>') + 8, html.indexOf('// ---- 選択UI ----'));
   // 実コードの corpus 部分（CORPUS_KEY〜saveToCorpus）を原文のまま連結
   const cs = html.indexOf("const CORPUS_KEY = 'brew_corpus';");
@@ -28,11 +28,13 @@ function load({ usageLogic = true, hook = null } = {}) {
     o.scrollIntoView = () => {}; return o; };
   const elements = { battleStyle: el(), battleTheme: el(), corpusTray: el(), corpusCount: el() };
   elements.battleStyle.value = 'standard';
+  if (api) { elements.localApi = el(); elements.localApi.value = api; }  // 形式の選択（未指定=従来の Ollama 経路）
   const document = { getElementById: id => elements[id] || el(), createElement: () => el() };
   const store = {};
   const localStorage = { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } };
   const battle = el(), beat = el(), stage = el(), ollamaModelInput = el(), ollamaHostInput = el();
   ollamaModelInput.value = 'qwen2.5:7b'; ollamaHostInput.value = 'http://localhost:11434';
+  if (api === 'lmstudio') { ollamaModelInput.value = ''; ollamaHostInput.value = ''; }  // 空欄＝既定値（1234 / gemma-4-12b-it-mlx）に落ちるかを見る
   const fetchHolder = { fn: () => { throw new Error('fetch 未設定'); } };
   const fetch = (...a) => fetchHolder.fn(...a);
   const quiet = { error: () => {}, log: console.log, warn: () => {} };
@@ -51,6 +53,7 @@ const LOW = [V('koji', '麹菌', ['乾杯', '祝杯', '徳利', '吟醸']), V('y
 const LOW2 = [V('koji', '麹菌', ['山田錦', '乾杯', '山田錦', '吟醸']), V('yeast', '酵母', ['山田錦', '乾杯', '山田錦', '吟醸'])];
 const NONE = [V('koji', '麹菌', ['あ', 'い', 'う', 'え']), V('yeast', '酵母', ['か', 'き', 'く', 'け'])];
 const ok = verses => async () => ({ ok: true, status: 200, json: async () => ({ message: { content: JSON.stringify({ verses, flavor: 'test' }) } }), text: async () => '' });
+const okLM = verses => async () => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: '```json\n' + JSON.stringify({ verses, flavor: 'test' }) + '\n```' } }] }), text: async () => '' });
 const badjson = async () => ({ ok: true, status: 200, json: async () => ({ message: { content: 'これはJSONではない' } }), text: async () => '' });
 const neterr = async () => { throw new TypeError('Failed to fetch'); };
 const http500 = async () => ({ ok: false, status: 500, json: async () => ({}), text: async () => 'boom' });
@@ -85,7 +88,7 @@ async function run(list, opts = {}) {
   await env.renderBattleOllama('koji', 'yeast', opts.bars || 4);
   const corpus = env.loadCorpus();
   const rec = corpus[corpus.length - 1] || null;
-  return { calls: s.calls.length, gates, rec, html: env.battle.innerHTML, history: env.battle.history, corpusLen: corpus.length };
+  return { callList: s.calls, calls: s.calls.length, gates, rec, html: env.battle.innerHTML, history: env.battle.history, corpusLen: corpus.length };
 }
 
 async function loop() {
@@ -136,6 +139,17 @@ async function loop() {
   console.log(`  (f2) 低(1.0)→語彙ゼロ(null)→高: calls=${r.calls} gates=${JSON.stringify(r.gates)} rec.gate=${r.rec && r.rec.gate} tries=${r.rec && r.rec.tries} → ${r.calls === 2 ? 'null でループ打ち切り、基準未満の1回目を採用（3回目の高スコアは試されない）' : '3回目まで試した'}`);
   r = await run([ok(LOW)]);
   check('保存レコードに usage/gate/tries/model が揃う', r.rec && r.rec.usage && typeof r.rec.gate === 'number' && r.rec.tries === 1 && r.rec.model === 'ollama:qwen2.5:7b' && r.rec.mode === 'ollama', JSON.stringify({ gate: r.rec.gate, tries: r.rec.tries, usage: r.rec.usage }));
+
+  console.log('-- LM Studio（OpenAI互換）経路 --');
+  r = await run([okLM(HIGH)], { api: 'lmstudio' });
+  const c0 = r.callList[0] || {}, body = c0.opt ? JSON.parse(c0.opt.body) : {};
+  check('(h) 既定の宛先 http://localhost:1234/v1/chat/completions', c0.url === 'http://localhost:1234/v1/chat/completions', c0.url);
+  check('(h) 本文: model=gemma-4-12b-it-mlx・temperature 0.85・max_tokens=900（4小節）・format/options なし・system/user', body.model === 'gemma-4-12b-it-mlx' && body.temperature === 0.85 && body.max_tokens === 900 && !('format' in body) && !('options' in body) && body.messages && body.messages.map(m => m.role).join() === 'system,user', JSON.stringify({ model: body.model, t: body.temperature, mt: body.max_tokens }));
+  check('(h) choices[0].message.content（コードフェンス付き）から verses を取り出し表示・保存', r.html.includes('糖化酵素') && r.html.includes('LM Studio韻') && r.rec && r.rec.model === 'lmstudio:gemma-4-12b-it-mlx' && r.rec.mode === 'ollama', r.rec && r.rec.model);
+  r = await run([http500, http500, http500], { api: 'lmstudio' });
+  check('(h) HTTP500×3 → "⚠️ LM Studioでエラー" と "LM Studio HTTP 500 boom"', r.html.includes('⚠️ LM Studioでエラー') && r.html.includes('LM Studio HTTP 500 boom'));
+  r = await run([neterr, neterr, neterr], { api: 'lmstudio' });
+  check('(h) Failed to fetch×3 → LM Studio の接続案内', r.html.includes('LM Studioに接続できません') && !r.html.includes('OLLAMA_ORIGINS'));
 }
 
 async function live() {
