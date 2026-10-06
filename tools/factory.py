@@ -77,7 +77,7 @@ def check_row(r):
     assert list(r) == KEYS, f"キー順が違う: {list(r)}"
     assert r["model"] == "claude-opus-sub", f"model が claude-opus-sub でない: {r['model']}"
     assert r["bars"] == 8, f"bars が 8 でない: {r['bars']}"
-    assert r["mode"] == "claude-teacher", f"mode が claude-teacher でない: {r['mode']}"
+    assert r["mode"] in ("claude-teacher", "claude-teacher-hard"), f"mode が claude-teacher（がっつり回は claude-teacher-hard）でない: {r['mode']}"
     assert r["aId"] in IDS and r["bId"] in IDS and r["aId"] != r["bId"], "aId/bId が不正"
     assert r["style"] in ("standard", "savage"), f"style が standard/savage でない: {r['style']}"
     v = r["data"]["verses"]
@@ -112,7 +112,8 @@ def plan():
         if k % 2 == 1:
             a, b = b, a
         st = "savage" if (k * n_savage) // n != ((k + 1) * n_savage) // n else "standard"
-        print(f"  {k + 1:2d} {a}→{b} {st}")
+        hard = "  ← がっつり回（規格書「がっつり回の決まり」で書き、mode は claude-teacher-hard・お題なし）" if k == 0 else ""
+        print(f"  {k + 1:2d} {a}→{b} {st}{hard}")
     ts0 = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M")
     print(f"ts: \"{ts0}:01Z\" から1秒ずつの連番")
 
