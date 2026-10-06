@@ -158,7 +158,7 @@
 
     <div class="controls" id="ollamaArea" style="display:none; margin-top: 14px; width: 100%; justify-content: center; gap: 8px; flex-wrap: wrap;">
       <label class="opt" style="display:flex; align-items:center; gap:8px;">
-        <span style="white-space:nowrap;">形式:</span>
+        <span style="white-space:nowrap;">アプリ:</span>
         <select id="localApi"><option value="lmstudio" selected>LM Studio</option><option value="ollama">Ollama</option></select>
       </label>
       <label class="opt" style="display:flex; align-items:center; gap:8px;">
@@ -1497,7 +1497,7 @@ async function renderBattleOllama(aId, bId, bars){
       const char = FIGHTERS[cid] || { emoji:"🎤", name: v.characterName||"?" };
       cleanVerses.push({ characterId: cid, characterName: char.name, displayRhyme: v.displayRhyme || '', lines: lines.map(bracketToSpan) });
     });
-    if(!cleanVerses.length) throw new Error('有効なバースが得られませんでした（モデルを qwen2.5:7b 等に変えてみてください）。');
+    if(!cleanVerses.length) throw new Error('有効なバースが得られませんでした（別のモデルに変えてみてください）。');
     return { data, cleanVerses };
   };
 
@@ -1534,7 +1534,7 @@ async function renderBattleOllama(aId, bId, bars){
       const char = FIGHTERS[v.characterId];
       const side = v.characterId===aId ? 'a' : 'b';
       html += `<div class="verse ${side}" style="animation-delay:${delay}s">
-        <div class="head"><span class="em">${char.emoji}</span>${char.name}<span class="rk">${label}韻:-${esc(v.displayRhyme)}</span></div>
+        <div class="head"><span class="em">${char.emoji}</span>${char.name}<span class="rk">韻:-${esc(v.displayRhyme)}</span></div>
         <div class="bars">${v.lines.map(rhymeLine).join("\n")}</div></div>`;
       delay += 0.15;
     });
@@ -1549,7 +1549,7 @@ async function renderBattleOllama(aId, bId, bars){
     console.error(error);
     const hint = /Failed to fetch|NetworkError|load failed|HTTP 403/i.test(error.message)
       ? (api === 'lmstudio'
-        ? 'LM Studioに接続できません。①LM Studioのサーバーが起動しているか。②公開URLから使う場合は、LM Studioのサーバー設定で CORS を有効にする必要があります。<br>※ <code>file://</code> で開いたページからはつながりません。'
+        ? 'LM Studioに接続できません。①LM Studioでサーバーを起動しているか ②その設定で「CORS」をオンにしているか'
         : 'Ollamaに接続できません。①Ollamaが起動しているか（メニューバーの Ollama.app、またはターミナルで <code>ollama serve</code>）。<br>②公開URLから使う場合は、Ollama側の環境変数 <code>OLLAMA_ORIGINS</code> に <code>https://y-kanno-sakenote.github.io</code> を足して再起動が必要です（Macなら <code>launchctl setenv OLLAMA_ORIGINS "https://y-kanno-sakenote.github.io"</code> のあと Ollama.app を再起動）。<br>※ <code>file://</code> で開いたページからはつながりません。')
       : error.message.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     battle.innerHTML = `<div class="cheer" style="color:var(--red);">
