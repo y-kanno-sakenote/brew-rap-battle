@@ -2,7 +2,7 @@
 // C案（Ollama）採点ゲートの独立検証。index.html の <script> を harness.js と同じ流儀で eval し、
 // DOM/localStorage/fetch をスタブにして renderBattleOllama を直接叩く。
 //   node gate_test.js        … 単体＋モック fetch のループ検証
-//   node gate_test.js live   … 実機 Ollama(localhost:11434, qwen2.5:7b) で3バトル
+//   node gate_test.js live   … 実機 Ollama(localhost:11434, gemma4:12b) で3バトル
 const fs = require('fs');
 const HTML = '/Users/ymacmini/Documents/claudecode@macmini/dev/brew-rap-battle/index.html';
 const html = fs.readFileSync(HTML, 'utf8');
@@ -32,7 +32,7 @@ function load({ usageLogic = true, hook = null } = {}) {
   const store = {};
   const localStorage = { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } };
   const battle = el(), beat = el(), stage = el(), ollamaModelInput = el(), ollamaHostInput = el();
-  ollamaModelInput.value = 'qwen2.5:7b'; ollamaHostInput.value = 'http://localhost:11434';
+  ollamaModelInput.value = 'gemma4:12b'; ollamaHostInput.value = 'http://localhost:11434';
   const fetchHolder = { fn: () => { throw new Error('fetch 未設定'); } };
   const fetch = (...a) => fetchHolder.fn(...a);
   const quiet = { error: () => {}, log: console.log, warn: () => {} };
@@ -85,7 +85,7 @@ async function run(list, opts = {}) {
   await env.renderBattleOllama('koji', 'yeast', opts.bars || 4);
   const corpus = env.loadCorpus();
   const rec = corpus[corpus.length - 1] || null;
-  return { calls: s.calls.length, gates, rec, html: env.battle.innerHTML, history: env.battle.history, corpusLen: corpus.length };
+  return { callList: s.calls, calls: s.calls.length, gates, rec, html: env.battle.innerHTML, history: env.battle.history, corpusLen: corpus.length };
 }
 
 async function loop() {
@@ -135,11 +135,13 @@ async function loop() {
   r = await run([ok(LOW), ok(NONE), ok(HIGH)]);
   console.log(`  (f2) 低(1.0)→語彙ゼロ(null)→高: calls=${r.calls} gates=${JSON.stringify(r.gates)} rec.gate=${r.rec && r.rec.gate} tries=${r.rec && r.rec.tries} → ${r.calls === 2 ? 'null でループ打ち切り、基準未満の1回目を採用（3回目の高スコアは試されない）' : '3回目まで試した'}`);
   r = await run([ok(LOW)]);
-  check('保存レコードに usage/gate/tries/model が揃う', r.rec && r.rec.usage && typeof r.rec.gate === 'number' && r.rec.tries === 1 && r.rec.model === 'ollama:qwen2.5:7b' && r.rec.mode === 'ollama', JSON.stringify({ gate: r.rec.gate, tries: r.rec.tries, usage: r.rec.usage }));
+  check('保存レコードに usage/gate/tries/model が揃う', r.rec && r.rec.usage && typeof r.rec.gate === 'number' && r.rec.tries === 1 && r.rec.model === 'ollama:gemma4:12b' && r.rec.mode === 'ollama', JSON.stringify({ gate: r.rec.gate, tries: r.rec.tries, usage: r.rec.usage }));
+  { const c0 = r.callList[0] || {}, bo = c0.opt ? JSON.parse(c0.opt.body) : {};
+    check('(t) Ollama への送信に think:false（gemma4 の思考オンで空出力・時間切れになるのを防ぐ）と format:"json"', bo.think === false && bo.format === 'json', JSON.stringify({ think: bo.think, format: bo.format })); }
 }
 
 async function live() {
-  console.log('== 3. 実機 Ollama（qwen2.5:7b, 8小節=4バース, 各バトル最大3回生成） ==');
+  console.log('== 3. 実機 Ollama（gemma4:12b, 8小節=4バース, 各バトル最大3回生成） ==');
   const pairs = [['koji', 'yeast'], ['lactic', 'toji'], ['rice', 'koji']];
   const out = [];
   for (const [a, b] of pairs) {

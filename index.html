@@ -159,7 +159,7 @@
     <div class="controls" id="ollamaArea" style="display:none; margin-top: 14px; width: 100%; justify-content: center; gap: 8px; flex-wrap: wrap;">
       <label class="opt" style="display:flex; align-items:center; gap:8px;">
         <span style="white-space:nowrap;">モデル:</span>
-        <input type="text" id="ollamaModel" placeholder="qwen2.5:7b" style="background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px; width:160px;">
+        <input type="text" id="ollamaModel" placeholder="gemma4:12b" style="background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px; width:160px;">
       </label>
       <label class="opt" style="display:flex; align-items:center; gap:8px;">
         <span style="white-space:nowrap;">ホスト:</span>
@@ -1134,8 +1134,9 @@ function setGenerating(on){
   if(g) g.disabled = on || selected.length !== 2;
   ['regen','swap'].forEach(id => { const b = document.getElementById(id); if(b) b.disabled = on; });
 }
-// AIエンジンの通信タイムアウト（Gemini・Ollama共通）。応答が無いまま「醸造中」で固まらないようにする
+// AIエンジンの通信タイムアウト（既定60秒＝Gemini。Ollama は呼び出し側で小節数に応じて延ばす）。応答が無いまま「醸造中」で固まらないようにする
 const LLM_TIMEOUT_MS = 60000;
+const OLLAMA_DEFAULT_MODEL = 'gemma4:12b';   // 2026-10-06 オーナー判断で全用途 gemma4:12b（横断検証でラップ生成も最良）
 async function withTimeout(fn, ms = LLM_TIMEOUT_MS){
   const ctl = new AbortController();
   let timedOut = false;
@@ -1435,7 +1436,7 @@ function buildFewShot(){
 }
 
 async function renderBattleOllama(aId, bId, bars){
-  const model = (ollamaModelInput.value.trim() || 'qwen2.5:7b');
+  const model = (ollamaModelInput.value.trim() || OLLAMA_DEFAULT_MODEL);
   const host = (ollamaHostInput.value.trim() || 'http://localhost:11434').replace(/\/$/, '');
   const rounds = Math.max(1, Math.round(bars/4));
   const a = FIGHTERS[aId], b = FIGHTERS[bId];
@@ -1460,12 +1461,13 @@ async function renderBattleOllama(aId, bId, bars){
     const resJson = await withTimeout(async (signal) => {
       const response = await fetch(`${host}/api/chat`, {
         signal, method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ model, stream:false, format:"json", options:{ temperature:0.85, num_predict: 500 + rounds*400 },
+        // think:false＝gemma4 は Ollama で思考が既定オンで、オンのままだと空出力・時間切れになる（思考しないモデルに送っても害なし）
+        body: JSON.stringify({ model, stream:false, think:false, format:"json", options:{ temperature:0.85, num_predict: 500 + rounds*400 },
           messages:[{role:'system',content:system},{role:'user',content:user}] })
       });
       if(!response.ok){ const t=await response.text().catch(()=> ''); throw new Error(`Ollama HTTP ${response.status} ${t.slice(0,200)}`); }
       return await response.json();
-    });
+    }, 40000 + rounds*25000);   // 4小節65秒・8小節90秒・12小節115秒（gemma4:12b の実測 4小節24.5秒・12小節57.6秒に余裕）
     const content = resJson.message?.content || '';
     const m = content.match(/\{[\s\S]*\}/);
     if(!m) throw new Error('モデル出力からJSONを取り出せませんでした。');
@@ -1594,8 +1596,13 @@ if (localStorage.getItem('gemini_api_key')) {
   apiKeyInput.value = localStorage.getItem('gemini_api_key');
 }
 
-// C案(ローカルLLM)の設定を復元（デフォルト: qwen2.5:7b / localhost:11434）
-ollamaModelInput.value = localStorage.getItem('ollama_model') || 'qwen2.5:7b';
+// C案(ローカルLLM)の設定を復元（デフォルト: gemma4:12b / localhost:11434）
+// 旧既定の qwen2.5:7b が保存されたままなら新既定へ移す（意図した選択とは限らず、qwen は後で消す予定のため）。他のモデルを自分で入れた設定は触らない
+if (!localStorage.getItem('ollama_model_moved_20261006')) {   // 一度きり（あとで自分で qwen2.5:7b を入れ直した人は戻さない）
+  if (localStorage.getItem('ollama_model') === 'qwen2.5:7b') localStorage.setItem('ollama_model', OLLAMA_DEFAULT_MODEL);
+  localStorage.setItem('ollama_model_moved_20261006', '1');
+}
+ollamaModelInput.value = localStorage.getItem('ollama_model') || OLLAMA_DEFAULT_MODEL;
 ollamaHostInput.value = localStorage.getItem('ollama_host') || 'http://localhost:11434';
 ollamaModelInput.oninput = () => localStorage.setItem('ollama_model', ollamaModelInput.value.trim());
 ollamaHostInput.oninput = () => localStorage.setItem('ollama_host', ollamaHostInput.value.trim());
