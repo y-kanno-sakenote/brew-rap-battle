@@ -8,6 +8,13 @@
   plan               本数・作風・ペア割り当て・ts・今日すでに回ったかを表示
   append <batch>     バッチを検証→マスターに追記→全行検証（失敗なら元に戻す）→受け渡しノートに1行
   fail <理由>        受け渡しノートに失敗の1行だけ書く
+  publish [--dry-run]  コーパスのファイルだけを公開版（origin/main）に載せて押し込む
+
+publish は手元の main を押し込まない（保留中のコミットを巻き込まない）。公開版から切った
+使い捨ての作業場にコーパスだけ写して1コミットし、origin の main へ早送りで押し込む。
+関門：①全行が規格どおり ②公開版の行がそのまま先頭に残っている（追記だけ）③node mix_test.js が
+「✅ 組み替え規則すべて適合」④公開版にない行が1本以上。どれかが崩れたら押し込まない。
+2026-10-06 オーナー判断で自動公開にした（それまでは9/28以降の96本が未公開のまま溜まっていた）。
 """
 import json
 import sys
@@ -67,9 +74,11 @@ def write_handoff(line):
 
 def check_row(r):
     assert list(r) == KEYS, f"キー順が違う: {list(r)}"
-    assert r["model"] == "claude-opus-sub" and r["bars"] == 8 and r["mode"] == "claude-teacher"
+    assert r["model"] == "claude-opus-sub", f"model が claude-opus-sub でない: {r['model']}"
+    assert r["bars"] == 8, f"bars が 8 でない: {r['bars']}"
+    assert r["mode"] == "claude-teacher", f"mode が claude-teacher でない: {r['mode']}"
     assert r["aId"] in IDS and r["bId"] in IDS and r["aId"] != r["bId"], "aId/bId が不正"
-    assert r["style"] in ("standard", "savage")
+    assert r["style"] in ("standard", "savage"), f"style が standard/savage でない: {r['style']}"
     v = r["data"]["verses"]
     assert len(v) == 4 and all(len(x["lines"]) == 4 for x in v), "verses4×lines4 でない"
     assert [x["characterId"] for x in v] == [r["aId"], r["bId"], r["aId"], r["bId"]], "話者順が a,b,a,b でない"
@@ -130,12 +139,78 @@ def append(batch_path, style_label):
     write_handoff(f"- {MARK} {len(new)}本追加（累計{len(rows)}本・作風={style_label}）")
 
 
+def git(*args, cwd=None, check=True):
+    import subprocess
+    return subprocess.run(["git", *args], cwd=cwd or ROOT, capture_output=True, text=True, check=check)
+
+
+def publish(dry_run=False):
+    import shutil
+    import subprocess
+    import tempfile
+
+    def stop(reason):
+        reason = " ".join(str(reason).split())[:120]  # 改行を潰して1行に（受け渡しノートの箇条書きを崩さない）
+        print(f"公開しない: {reason}")
+        if not dry_run:
+            write_handoff(f"- {MARK} 公開を見送り（{reason}）")
+        sys.exit(1)
+
+    rows = load_rows()
+    for i, r in enumerate(rows, 1):
+        try:
+            check_row(r)
+        except Exception as e:
+            stop(f"{i}行目が規格外: {e}")
+    try:
+        git("fetch", "-q", "origin")
+        published = git("show", "origin/main:docs/claude_corpus.jsonl").stdout
+    except Exception as e:
+        stop(f"公開版を取得できない（ネット断・認証切れの可能性）: {getattr(e, 'stderr', '') or e}")
+    local = CORPUS.read_text(encoding="utf-8")
+    if not local.startswith(published):
+        stop("公開版の行が手元で書き換わっている（追記以外の変更）")
+    n_pub = len([l for l in published.splitlines() if l.strip()])
+    n_new = len(rows) - n_pub
+    if n_new <= 0:
+        print(f"公開版と同じ（{len(rows)}本）。押し込むものなし")
+        return
+    try:
+        mt = subprocess.run(["node", "mix_test.js"], cwd=ROOT, capture_output=True, text=True)
+    except Exception as e:
+        stop(f"node mix_test.js を実行できない: {e}")
+    if "✅ 組み替え規則すべて適合" not in mt.stdout:
+        stop("node mix_test.js が不合格")
+    msg = f"名勝負コーパスを公開：{n_new}本追加（累計{len(rows)}本）\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+    if dry_run:
+        print(f"[試し] 関門はすべて通過。公開版{n_pub}本 → {len(rows)}本（+{n_new}）で押し込む予定。押し込みはしていない")
+        return
+    wt = tempfile.mkdtemp(prefix="corpus-publish-")
+    shutil.rmtree(wt)
+    try:
+        git("worktree", "add", "--detach", wt, "origin/main")
+        shutil.copyfile(CORPUS, Path(wt) / "docs" / "claude_corpus.jsonl")
+        git("add", "docs/claude_corpus.jsonl", cwd=wt)
+        git("commit", "-q", "-m", msg, cwd=wt)
+        git("push", "-q", "origin", "HEAD:main", cwd=wt)
+        sha = git("rev-parse", "--short", "HEAD", cwd=wt).stdout.strip()
+    except subprocess.CalledProcessError as e:
+        sub = e.cmd[1] if isinstance(e.cmd, (list, tuple)) and len(e.cmd) > 1 else "?"
+        stop(f"git {sub} に失敗: {(e.stderr or '').strip()[:120]}")
+    finally:
+        git("worktree", "remove", "--force", wt, check=False)
+    print(f"公開した: {n_new}本追加（累計{len(rows)}本・{sha}）")
+    write_handoff(f"- {MARK} 公開：{n_new}本追加（累計{len(rows)}本・{sha}）")
+
+
 def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "plan":
         plan()
     elif cmd == "append" and len(sys.argv) == 4:
         append(sys.argv[2], sys.argv[3])
+    elif cmd == "publish":
+        publish(dry_run="--dry-run" in sys.argv[2:])
     elif cmd == "fail" and len(sys.argv) >= 3:
         write_handoff(f"- {MARK} 本日失敗（{' '.join(sys.argv[2:])}）")
     else:
