@@ -35,6 +35,10 @@ STYLE_BY_WEEKDAY = ["王道戦", "毒舌回", "季節テーマ戦", "変わり�
 SAVAGE_SHARE = {"王道戦": 1 / 3, "毒舌回": 2 / 3, "季節テーマ戦": 1 / 4, "変わり種テーマ戦": 1 / 4, "リスペクト戦": 0}
 THEMED_SHARE = {"季節テーマ戦": 1 / 3, "変わり種テーマ戦": 1 / 3}  # 規格は「半数未満」
 MARK = "醸造ラップバトル工場:"
+# 1日の割り当ての先頭から順に付ける形式（2026-10-07 オーナー判断: 普通2・がっつり1・頭韻1・しりとり韻1・掛詞しばり1）。残りは普通
+FORMATS = [("がっつり回", "claude-teacher-hard"), ("頭韻", "claude-teacher-head"),
+           ("しりとり韻", "claude-teacher-chain"), ("掛詞しばり", "claude-teacher-pun")]
+MODES = ("claude-teacher",) + tuple(m for _, m in FORMATS)
 JST = timezone(timedelta(hours=9))
 
 
@@ -77,7 +81,7 @@ def check_row(r):
     assert list(r) == KEYS, f"キー順が違う: {list(r)}"
     assert r["model"] == "claude-opus-sub", f"model が claude-opus-sub でない: {r['model']}"
     assert r["bars"] == 8, f"bars が 8 でない: {r['bars']}"
-    assert r["mode"] in ("claude-teacher", "claude-teacher-hard"), f"mode が claude-teacher（がっつり回は claude-teacher-hard）でない: {r['mode']}"
+    assert r["mode"] in MODES, f"mode が {MODES} のどれでもない: {r['mode']}"
     assert r["aId"] in IDS and r["bId"] in IDS and r["aId"] != r["bId"], "aId/bId が不正"
     assert r["style"] in ("standard", "savage"), f"style が standard/savage でない: {r['style']}"
     v = r["data"]["verses"]
@@ -112,35 +116,46 @@ def plan():
         if k % 2 == 1:
             a, b = b, a
         st = "savage" if (k * n_savage) // n != ((k + 1) * n_savage) // n else "standard"
-        hard = "  ← がっつり回（規格書「がっつり回の決まり」で書き、mode は claude-teacher-hard・お題なし）" if k == 0 else ""
-        print(f"  {k + 1:2d} {a}→{b} {st}{hard}")
+        if k < len(FORMATS):
+            name, mode = FORMATS[k]
+            fmt = f"  ← {name}（規格書「形式の決まり」の{name}で書く・mode は {mode}・お題なし）"
+        else:
+            fmt = "  ← 普通（mode は claude-teacher）"
+        print(f"  {k + 1:2d} {a}→{b} {st}{fmt}")
     ts0 = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M")
     print(f"ts: \"{ts0}:01Z\" から1秒ずつの連番")
 
 
 LEDGER = ROOT / "docs" / "rhyme_pairs_ledger.txt"
 
-def ledger():
-    """使用済みの韻語の組の台帳（2026-10 押韻の組み直し）。同じバースの印の語（行末＋中韻）の2語の組を全部。
-    2番目以降のバースの冒頭の最初の印は、相手の締め語を拾う返しなので除く。外部ライブラリは使わない。"""
+def row_pairs(r, ends=None):
+    """1バトルの韻語の組（同じバースの印の語＝行末＋中韻の2語の組）。2番目以降のバースの冒頭の最初の印は返しなので除く"""
     import itertools, re
     span = re.compile(r'<span class="rhyme">([^<]*)</span>')
+    out = []
+    for vi, v in enumerate(r["data"]["verses"]):
+        words = set()
+        for li, l in enumerate(v["lines"]):
+            ms = span.findall(l)
+            if not ms:
+                continue
+            if ends is not None:
+                ends[ms[-1]] += 1
+            for k, w in enumerate(ms):
+                if vi > 0 and li == 0 and k == 0 and len(ms) > 1:
+                    continue
+                words.add(w)
+        out += [f"{a}|{b}" for a, b in itertools.combinations(sorted(words), 2)]
+    return out
+
+
+def ledger():
+    """使用済みの韻語の組の台帳（2026-10 押韻の組み直し）。外部ライブラリは使わない。"""
     rows = load_rows()
     pairs, ends = Counter(), Counter()
     for r in rows:
-        for vi, v in enumerate(r["data"]["verses"]):
-            words = set()
-            for li, l in enumerate(v["lines"]):
-                ms = span.findall(l)
-                if not ms:
-                    continue
-                ends[ms[-1]] += 1
-                for k, w in enumerate(ms):
-                    if vi > 0 and li == 0 and k == 0 and len(ms) > 1:
-                        continue
-                    words.add(w)
-            for a, b in itertools.combinations(sorted(words), 2):
-                pairs[f"{a}|{b}"] += 1
+        for p in row_pairs(r, ends):
+            pairs[p] += 1
     head = [f"# 使用済みの韻語の組の台帳（docs/claude_corpus.jsonl {len(rows)}本から tools/factory.py が自動生成・1行1組）。ここにある組は新しいバトルで使わない",
             "# 多用語（行末の韻語として5回以上）: " + "、".join(w for w, c in ends.most_common() if c >= 5)]
     LEDGER.write_text("\n".join(head + sorted(pairs)) + "\n", encoding="utf-8")
@@ -156,6 +171,21 @@ def append(batch_path, style_label):
         except Exception as e:
             print(f"バッチ{i}行目が不正: {e}。マスターは触っていない。")
             sys.exit(1)
+    # 韻語の組の使い回し（台帳＝既存のコーパス、と同じバッチの別のバトル）。台帳は追記の後にしか作り直さないので、ここで止める
+    used = {l.strip() for l in LEDGER.read_text(encoding="utf-8").splitlines() if l.strip() and not l.startswith("#")} if LEDGER.exists() else set()
+    seen, bad = {}, []
+    for i, l in enumerate(new, 1):
+        for p in sorted(set(row_pairs(json.loads(l)))):
+            if p in used:
+                bad.append(f"バッチ{i}行目が不正: 韻語の組「{p}」は台帳（使用済み）にある")
+            elif p in seen:
+                bad.append(f"バッチ{i}行目が不正: 韻語の組「{p}」が同じバッチの{seen[p]}行目と重なっている")
+            else:
+                seen[p] = i
+    if bad:
+        print("\n".join(bad))
+        print(f"→ 上の{len(bad)}件の組を、どちらかの語を別の語に替えて解消すること（全件まとめて直す）。マスターは触っていない。")
+        sys.exit(1)
     before = CORPUS.read_bytes()
     body = before if before.endswith(b"\n") or not before else before + b"\n"
     CORPUS.write_bytes(body + ("\n".join(new) + "\n").encode("utf-8"))
