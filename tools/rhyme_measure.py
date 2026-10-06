@@ -3,6 +3,7 @@
 #   使い方: <fugashi と unidic-lite を入れた python> tools/rhyme_measure.py measure <対象.jsonl> [--ledger docs/rhyme_pairs_ledger.txt]
 #   測るもの: 語幹で数えた韻の長さ・行末の品詞・「〜の【名詞】」締めの率・韻の種類の偏り・中韻・使用済みの韻語の組との重複
 #   台帳そのものは tools/factory.py ledger が作る（こちらの ledger は比較用の別コーパスから作る時だけ使う）
+#   weakmap <コーパス.jsonl> docs/weak_verses.json … 甘いバースの一覧（名勝負ミックスが後回しにする。書き直したら作り直す）
 import json, re, sys, itertools
 from collections import Counter
 import fugashi
@@ -116,7 +117,29 @@ def measure(path, ledger_path=None):
     if ledger_path:
         print(f"  韻語の組 {len(ps)}組のうち台帳に既出 {reused/max(1,len(ps))*100:.0f}% ／ バッチ内の重複 {dup_in_batch}組")
 
+def weakmap(path, out):
+    """甘いバースの一覧（名勝負ミックスが後回しにする）。キーは「L<コーパスの行番号>V<バース番号0始まり>」。
+    甘い＝語幹で数えた韻が組ごとの中央値で3母音未満、または動詞止め・「〜の【名詞】」締めが3行以上"""
+    import datetime
+    weak = []
+    for n, l in enumerate(open(path), 1):
+        if not l.strip(): continue
+        r = json.loads(l)
+        for vi, v in enumerate(r['data']['verses']):
+            ends, _ = verse_words(v, vi)
+            pl = [stem_len(a, b) for a, b in itertools.combinations(ends, 2)]
+            med = sorted(pl)[len(pl)//2] if pl else 0
+            verb = sum(1 for w in ends if A(w)[1] in ('動詞', '助動詞'))
+            no = sum(1 for x in v['lines'] if (m := list(SPAN.finditer(x))) and re.sub(r'<[^>]*>', '', x[:m[-1].start()]).endswith('の'))
+            if med < 3 or verb >= 3 or no >= 3:
+                weak.append(f"L{n}V{vi}")
+    json.dump({"generated": datetime.date.today().isoformat(), "rule": "語幹の韻が組ごとの中央値で3母音未満、または動詞止め・「〜の【名詞】」締めが3行以上", "weak": weak},
+              open(out, 'w'), ensure_ascii=False, indent=0)
+    print(f"甘いバース {len(weak)}件 → {out}")
+
 if __name__ == '__main__':
+    if sys.argv[1] == 'weakmap':
+        weakmap(sys.argv[2], sys.argv[3]); sys.exit(0)
     if sys.argv[1] == 'ledger': ledger(sys.argv[2], sys.argv[3])
     else:
         lp = sys.argv[sys.argv.index('--ledger')+1] if '--ledger' in sys.argv else None

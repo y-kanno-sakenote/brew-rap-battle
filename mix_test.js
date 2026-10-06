@@ -6,7 +6,8 @@ const script=html.slice(html.indexOf('<script>')+8, html.indexOf('// ---- 選択
 const sb={}; new Function('sandbox',script+'\n;Object.assign(sandbox,{FIGHTERS,parseCorpus,corpusBattle,rng,CP_RESP,CP_CONN});')(sb);
 const {FIGHTERS,parseCorpus,corpusBattle,rng,CP_RESP,CP_CONN}=sb;
 const text=fs.readFileSync(__dirname+'/docs/claude_corpus.jsonl','utf8');
-const C=parseCorpus(text);
+const WEAK=new Set(fs.existsSync(__dirname+'/docs/weak_verses.json') ? JSON.parse(fs.readFileSync(__dirname+'/docs/weak_verses.json','utf8')).weak : []);
+const C=parseCorpus(text, WEAK);
 // index.html の CORPUS はモジュール内 let なので、同じ関数群をこのコーパスで動かすため再評価する
 const sb2={}; new Function('sandbox','__C',script+'\n;CORPUS=__C;Object.assign(sandbox,{corpusBattle,CP_RECENT});')(sb2,C);
 const battleOf=(...a)=>{ sb2.CP_RECENT.clear(); return sb2.corpusBattle(...a); };   // 規則検査は毎回まっさらで
@@ -87,6 +88,9 @@ console.log(`  跨ぎ韻で後攻が同じ韻を踏めた: ${crossHit}/${crossR}
     for(let i=0;i<L.length&&!f;i++) for(let j=i+1;j<L.length&&!f;j++){ if(L[i][0]!==L[j][0]) continue; for(let k=0;k+6<=L[i][1].length;k++){ if(L[j][1].includes(L[i][1].slice(k,k+6))){ f=true; break; } } }
     if(f){ h++; m[0]++; } } }
   console.log(`  同じキャラが同じ言い回しを2回使うバトル: ソロ ${pct(byMode.ソロ[0],byMode.ソロ[1])} ／ 跨ぎ ${pct(byMode.跨ぎ[0],byMode.跨ぎ[1])}`); }
+{ const all=Object.values(C.pools).flat(); const share=all.filter(c=>c.weak).length/all.length; let u=0,w=0;
+  for(const a of ids) for(const b of ids){ if(a===b) continue; for(let s=0;s<20;s++){ const cb=battleOf(a,b,2,(s*104729)>>>0,false); if(!cb) continue; u+=cb.used.length; w+=cb.used.filter(c=>c.weak).length; } }
+  console.log(`  甘いバース由来の2行組: 在庫の${(share*100).toFixed(0)}% → 組んだバースでは${(w/Math.max(1,u)*100).toFixed(1)}%（後回しが効いているか）`); }
 console.log(`  「もう一本」で前のバトルと同じ2行組: 平均 ${(rep2.reduce((x,y)=>x+y,0)/rep2.length*100).toFixed(1)}% ／ 最悪 ${worst[0]} ${(worst[1]*100).toFixed(1)}%`);
 // 跨ぎ韻12小節の「もう一本」（跨ぎは2人が同じ韻で組むため素材が細い＝ここが最後に残る）
 { const r=[]; let w=['',0];

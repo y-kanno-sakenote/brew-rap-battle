@@ -1005,8 +1005,9 @@ function cpGeneric(sp, opp, t){
   const theirs = [...(CP_DOMAIN[opp]||[]), ...((typeof PERSONA!=='undefined' && PERSONA[opp]) ? PERSONA[opp].signature : [])].filter(w=>w!=='蔵' && !own.includes(w));   // 自分の領分と完全一致する語だけ外す（部分一致だと「甘い水」が相手の「甘」まで消した）
   return !theirs.some(w=>t.includes(w));
 }
-function parseCorpus(text){
+function parseCorpus(text, weak){
   const pools = {};
+  weak = weak || new Set();   // 甘いバース（docs/weak_verses.json・キー「L行番号V バース番号」）
   const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const safe = l => esc(String(l).replace(/<span class="rhyme">([^<]*)<\/span>/g,'【$1】').replace(/<[^>]*>/g,'')).replace(/【([^【】]+)】/g,'<span class="rhyme">$1</span>');
   const strip = l => String(l).replace(/<[^>]*>/g,'');
@@ -1026,7 +1027,7 @@ function parseCorpus(text){
         const tt=t0+strip(L[1]);
         const flat=tt.replace(/[、。！？!?\s]/g,''), g6=new Set(); for(let i=0;i+6<=flat.length;i++) g6.add(flat.slice(i,i+6));
         const words=L.flatMap(l=>[...String(l).matchAll(/<span class="rhyme">([^<]*)<\/span>/g)].map(m=>m[1]));   // 行の途中の韻（中韻）も含む印の語すべて
-        (pools[k]=pools[k]||[]).push({b:bi, sig:key, opp, gen:cpGeneric(sp,opp,tt), head:!CP_CONN.test(t0), theme:d.theme||'', lines:L.map(safe), ends, words, g6});
+        (pools[k]=pools[k]||[]).push({b:bi, sig:key, opp, gen:cpGeneric(sp,opp,tt), head:!CP_CONN.test(t0), theme:d.theme||'', lines:L.map(safe), ends, words, g6, weak:weak.has('L'+(bi+1)+'V'+vi)});
       }
     });
   });
@@ -1035,22 +1036,25 @@ function parseCorpus(text){
 async function loadMixCorpus(){
   try{
     const r = await fetch('docs/claude_corpus.jsonl', {cache:'no-store'});
-    if(r.ok) CORPUS = parseCorpus(await r.text());
+    let weak = new Set();
+    try{ const w = await fetch('docs/weak_verses.json', {cache:'no-store'}); if(w.ok) weak = new Set((await w.json()).weak || []); }catch(e){}
+    if(r.ok) CORPUS = parseCorpus(await r.text(), weak);
   }catch(e){ /* file:// 等では読めない→単語シグネチャ方式で遊ぶ */ }
 }
 const cpFits = (c,opp) => c.opp===opp || c.gen;   // この相手に向けて使える2行組
 function corpusKeys(sp,opp){ const p=sp+'|'; return Object.keys(CORPUS.pools).filter(k=>k.startsWith(p) && CORPUS.pools[k].some(c=>cpFits(c,opp))).map(k=>k.slice(p.length)); }
 // その韻で頭に置ける2行組＋繋げる2行組が揃うか（副作用なし）
 const CP_RECENT = new Set();   // 直前のバトルで使った2行組（「もう一本」で同じ歌詞が続かないよう、なるべく避ける）
-function corpusPair(sp,opp,key,rnd,st,allowSaid){
+function corpusPair(sp,opp,key,rnd,st,allowSaid,allowWeak){
   // お題は1バトル1種（st.theme）。お題なしの2行組はどのバトルにも使える
   const ok = c => cpFits(c,opp) && !st.used.has(c) && (!c.theme || c.theme===st.theme);
   const all=(CORPUS.pools[sp+'|'+key]||[]).filter(ok);
   // 同じバトルでこのキャラが既に使った言い回し（決め台詞「一年を読み切る」等）を含む2行組は、なるべく避ける
   const said=st.said&&st.said[sp], clean=c=>!said || ![...c.g6].some(g=>said.has(g));
-  const fresh=all.filter(c=>!CP_RECENT.has(c));
-  if(!allowSaid) return corpusPairFrom(fresh.filter(clean),rnd) || corpusPairFrom(all.filter(clean),rnd);
-  return corpusPairFrom(fresh,rnd) || corpusPairFrom(all,rnd);
+  const pool=allowWeak ? all : all.filter(c=>!c.weak);   // 甘いバース由来の2行組は、どの韻でも組めない時だけ使う
+  const fresh=pool.filter(c=>!CP_RECENT.has(c));
+  if(!allowSaid) return corpusPairFrom(fresh.filter(clean),rnd) || corpusPairFrom(pool.filter(clean),rnd);
+  return corpusPairFrom(fresh,rnd) || corpusPairFrom(pool,rnd);
 }
 function corpusPairFrom(pool,rnd){
   for(const h of shuffle(pool.filter(c=>c.head),rnd)){
@@ -1065,9 +1069,9 @@ function corpusPairFrom(pool,rnd){
 function corpusVerse(sp,opp,rnd,st,allowKeys,saidModes){
   let keys=shuffle(allowKeys||corpusKeys(sp,opp),rnd);
   keys=[...keys.filter(k=>!st.keys.has(sp+k)), ...keys.filter(k=>st.keys.has(sp+k))];   // 同じ韻を続けない
-  // まず全部の韻で「言い回しの重複なし」を探し、どの韻でも組めない時だけ重複を許す
-  for(const allowSaid of (saidModes||[false,true])) for(const key of keys){
-    const pr=corpusPair(sp,opp,key,rnd,st,allowSaid);
+  // まず全部の韻で「言い回しの重複なし・甘くない2行組」を探し、どの韻でも組めない時だけ甘い2行組→言い回しの重複の順に許す
+  for(const allowSaid of (saidModes||[false,true])) for(const allowWeak of [false,true]) for(const key of keys){
+    const pr=corpusPair(sp,opp,key,rnd,st,allowSaid,allowWeak);
     if(!pr) continue;
     pr.forEach(c=>{ st.used.add(c); st.said=st.said||{}; const z=(st.said[sp]=st.said[sp]||new Set()); c.g6.forEach(g=>z.add(g)); });
     if(allowSaid) st.saidHit=(st.saidHit||0)+1;   // 言い回しの重複を許して組んだ回数（お題選びの減点に使う）
@@ -1083,8 +1087,8 @@ function corpusBattle(aId,bId,rounds,seed,cross){
   const cand=[null, ...shuffle([...themes],rng(seed^4242))];
   // お題なし:お題つき＝1:1で先頭候補を選ぶ（お題つきの情景も楽しめるように）
   if(rng(seed^77)()<0.5 && cand.length>1){ cand.push(cand.shift()); }
-  // 組めたお題の中から選ぶ基準: ①跨ぎ韻の踏み返しが多く成立 ②同じキャラの言い回しの重複が少ない ③直前のバトルと同じ2行組が少ない
-  const score = b => (cross && b.crossOK ? b.crossMiss*100 : 0) + b.saidHit*10 + b.used.filter(c=>CP_RECENT.has(c)).length;
+  // 組めたお題の中から選ぶ基準: ①跨ぎ韻の踏み返しが多く成立 ②同じキャラの言い回しの重複が少ない ③甘いバース由来の2行組が少ない ④直前のバトルと同じ2行組が少ない
+  const score = b => (cross && b.crossOK ? b.crossMiss*100 : 0) + b.saidHit*10 + b.used.filter(c=>c.weak).length*3 + b.used.filter(c=>CP_RECENT.has(c)).length;
   let best=null, bs=Infinity;
   for(const th of cand){
     const b=corpusBattleWith(aId,bId,rounds,seed,cross,th);
