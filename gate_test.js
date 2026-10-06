@@ -146,6 +146,15 @@ async function loop() {
   check('(h) 既定の宛先 http://localhost:1234/v1/chat/completions', c0.url === 'http://localhost:1234/v1/chat/completions', c0.url);
   check('(h) 本文: model=gemma-4-12b-it-mlx・temperature 0.85・max_tokens=900（4小節）・format/options なし・system/user', body.model === 'gemma-4-12b-it-mlx' && body.temperature === 0.85 && body.max_tokens === 900 && !('format' in body) && !('options' in body) && body.messages && body.messages.map(m => m.role).join() === 'system,user', JSON.stringify({ model: body.model, t: body.temperature, mt: body.max_tokens }));
   check('(h) choices[0].message.content（コードフェンス付き）から verses を取り出し表示・保存', r.html.includes('糖化酵素') && r.html.includes('韻:-') && !r.html.includes('LM Studio韻') && r.rec && r.rec.model === 'lmstudio:gemma-4-12b-it-mlx' && r.rec.mode === 'ollama', r.rec && r.rec.model);
+  { const rf = body.response_format || {}, js = rf.json_schema || {}, sc = js.schema || {}, vs = (sc.properties || {}).verses || {}, it = vs.items || {}, ip = it.properties || {};
+    check('(i) LM Studio の本文に response_format（json_schema・strict）が入る', rf.type === 'json_schema' && js.strict === true && sc.type === 'object' && JSON.stringify(sc.required) === '["verses","flavor"]' && sc.additionalProperties === false, JSON.stringify({ type: rf.type, strict: js.strict }));
+    check('(i) 4小節 → verses はちょうど2・lines はちょうど4・characterId は対戦の2人の enum', vs.minItems === 2 && vs.maxItems === 2 && ip.lines && ip.lines.minItems === 4 && ip.lines.maxItems === 4 && JSON.stringify(ip.characterId && ip.characterId.enum) === '["koji","yeast"]' && JSON.stringify(it.required) === '["characterId","characterName","displayRhyme","lines"]' && it.additionalProperties === false, JSON.stringify({ min: vs.minItems, max: vs.maxItems, en: ip.characterId && ip.characterId.enum })); }
+  r = await run([okLM(HIGH)], { api: 'lmstudio', bars: 12 });
+  { const b12 = JSON.parse(r.callList[0].opt.body), v12 = b12.response_format.json_schema.schema.properties.verses;
+    check('(i) 12小節 → verses はちょうど6', v12.minItems === 6 && v12.maxItems === 6, `${v12.minItems}/${v12.maxItems}`); }
+  r = await run([ok(HIGH)]);
+  { const bo = JSON.parse(r.callList[0].opt.body);
+    check('(i) Ollama の本文は従来どおり format:"json"・response_format なし', bo.format === 'json' && !('response_format' in bo)); }
   r = await run([http500, http500, http500], { api: 'lmstudio' });
   check('(h) HTTP500×3 → "⚠️ LM Studioでエラー" と "LM Studio HTTP 500 boom"', r.html.includes('⚠️ LM Studioでエラー') && r.html.includes('LM Studio HTTP 500 boom'));
   r = await run([neterr, neterr, neterr], { api: 'lmstudio' });

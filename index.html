@@ -1444,6 +1444,24 @@ function buildFewShot(){
   return `麹菌『蔵に舞う【白麹】、糖化操る【種麹】／芯まで攻める【突破精】、隙見せぬ我が【采配】／米を溶かして生む甘み、これぞ国菌の底力／お前ら酵母は俺の下、糖なきゃ踊れぬその身体』`;
 }
 
+// LM Studio（OpenAI互換）は出力の型を json_schema で縛る（Ollama の format:"json" に相当）。
+//   バース数＝小節数から決まる数ちょうど・各4行ちょうど・characterId は対戦の2人に限る。縛っても下の整形処理はそのまま通す。
+function battleResponseFormat(aId, bId, verseCount){
+  return { type:'json_schema', json_schema:{ name:'battle', strict:true, schema:{
+    type:'object',
+    properties:{
+      verses:{ type:'array', minItems:verseCount, maxItems:verseCount, items:{
+        type:'object',
+        properties:{
+          characterId:{ type:'string', enum:[...new Set([aId, bId])] },
+          characterName:{ type:'string' },
+          displayRhyme:{ type:'string' },
+          lines:{ type:'array', minItems:4, maxItems:4, items:{ type:'string' } } },
+        required:['characterId','characterName','displayRhyme','lines'], additionalProperties:false } },
+      flavor:{ type:'string' } },
+    required:['verses','flavor'], additionalProperties:false } } };
+}
+
 async function renderBattleOllama(aId, bId, bars){
   const api = localApiKind(), API = LOCAL_API[api], label = API.label;
   const model = (ollamaModelInput.value.trim() || API.model);
@@ -1474,7 +1492,7 @@ async function renderBattleOllama(aId, bId, bars){
       const response = api === 'lmstudio'
         ? await fetch(`${host}/v1/chat/completions`, {
             signal, method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ model, stream:false, temperature:0.85, max_tokens: maxTokens, messages }) })
+            body: JSON.stringify({ model, stream:false, temperature:0.85, max_tokens: maxTokens, response_format: battleResponseFormat(aId, bId, rounds*2), messages }) })
         : await fetch(`${host}/api/chat`, {
             signal, method:'POST', headers:{'Content-Type':'application/json'},
             body: JSON.stringify({ model, stream:false, format:"json", options:{ temperature:0.85, num_predict: maxTokens }, messages }) });

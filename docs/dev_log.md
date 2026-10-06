@@ -302,3 +302,9 @@ Google Drive の日本酒資料（清酒酵母pptx, 香味特性別分類.pdf, 1
 - 画面の文言: エンジン選択肢「Ollama（手元のPCで）」→「ローカルAI（手元のPCで）」、読み込み・エラー・韻ラベルは選んだ形式の名前に。LM Studio 用の接続案内（サーバー起動・公開URLからは CORS 有効化が必要）を追加。
 - 検証: `node gate_test.js` に LM Studio 経路5件を追加し 33/33 PASS。実機（node からページと同じ組み立て・整形処理で LM Studio に1バトル8小節）: 1回で JSON 取得・4バース揃い・29.7秒・採点2.17で合格。質は醸造語（糖化・酒母・並行複発酵・吟醸香）とディスは入るが、韻の母音はそろわず（displayRhyme と実際の語が不一致）・造語の崩れ（「イメージョ」「プロポチ」）あり＝qwen2.5:7b と同程度の中品質。
 - 未確認: ブラウザ（公開URL）からの呼び出しは LM Studio 側の CORS 設定が必要で、まだ試していない。
+
+## 2026-10-06 LM Studio の道に出力の型の縛り（structured output）
+- 理由: 検証で Gemma 4 12B が呼び出しの58%で JSON を壊し、長い方（12小節）では5行目にゴミ単語が付いた。Ollama は `format:"json"` で縛っていたが、LM Studio（OpenAI互換）の道には縛りが無かった。
+- 仕組み: LM Studio への本文に `response_format:{type:"json_schema", json_schema:{name:"battle", strict:true, schema}}` を追加（`battleResponseFormat()`）。verses は小節数から決まる数ちょうど（rounds*2）、lines は4行ちょうど、characterId は対戦の2人の enum、`verses`/`flavor` 必須・余分なキー禁止。既存の「JSONを取り出して整える」処理はそのまま通す。Ollama の道は不変。
+- 検証: `node gate_test.js` に4件追加（本文に response_format・4小節で2バース/4行/enum・12小節で6バース・Ollama は format:json のまま）で 37/37 PASS。実機（LM Studio・gemma-4-12b-it-mlx・麹菌×酵母）: 4小節＝2呼び出しとも JSON 直パース可・2バース×4行・19秒/12秒（採点ゲートで1回作り直し、計31秒）／12小節＝1回で JSON 直パース可・6バース×4行・20秒。
+- 残る穴: 型は「1行の中身」までは縛れない。4小節の1回で、4行目の文字列の中に「／」区切りで余計な文言（英字の作業メモ風）を詰め込み、整形処理の「／で分割」で1バースが8行に膨らんだ。必要なら lines の各要素に maxLength を付ける／「／」を分割しない、を次の一手の候補に（未着手）。
