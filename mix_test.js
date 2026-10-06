@@ -17,7 +17,7 @@ const RESP_LINES=new Set();
 text.split('\n').forEach(l=>{ try{ const d=JSON.parse(l); d.data.verses.forEach((v,vi)=>{ if(vi>0){ RESP_LINES.add(strip(v.lines[0])); RESP_LINES.add(strip(v.lines[1])); } }); }catch(e){} });
 const fb={};
 const ids=Object.keys(FIGHTERS);
-let looseB=0, missSum=0, battles=0, fails=0, verses=0, dupEnd=0, badHead=0, resp=0, recomb=0, multiTheme=0, crossR=0, crossHit=0;
+let dupAll=0, looseB=0, missSum=0, battles=0, fails=0, verses=0, dupEnd=0, badHead=0, resp=0, recomb=0, multiTheme=0, crossR=0, crossHit=0;
 const seen=new Set(); let uniq=0;
 const couplets=Object.values(C.pools).reduce((n,p)=>n+p.length,0);
 for(const a of ids) for(const b of ids){ if(a===b) continue;
@@ -35,6 +35,7 @@ for(const a of ids) for(const b of ids){ if(a===b) continue;
       const L=v.lines.map(strip);
       const ends=v.lines.map(l=>{const m=[...l.matchAll(/<span class="rhyme">([^<]*)<\/span>/g)]; return m.length?m[m.length-1][1]:'';});
       if(new Set(ends).size<ends.length) dupEnd++;
+      const allw=v.lines.flatMap(l=>[...l.matchAll(/<span class="rhyme">([^<]*)<\/span>/g)].map(m=>m[1])); if(new Set(allw).size<allw.length) dupAll++;
       if(CP_CONN.test(L[0])) badHead++;
       if(L.some(x=>RESP_LINES.has(x) || CP_RESP.test(x))) resp++;
       const k=v.lines.join('|'); if(!seen.has(k)){ seen.add(k); uniq++; }
@@ -70,6 +71,7 @@ console.log(`材料: 2行組 ${couplets} ／ 韻プール ${Object.keys(C.pools)
 console.log(`バトル ${battles}（20方向ペア×4/8/12小節×ソロ/跨ぎ×40seed）`);
 console.log(`  組めず旧エンジンへ: ${fails} (${pct(fails,battles)})  内訳: `+Object.entries(fb).map(([k,[f,n]])=>k+' '+pct(f,n)).join(' / '));
 console.log(`  バース内の行末語重複: ${dupEnd}/${verses} (${pct(dupEnd,verses)})   ← 0が必須`);
+console.log(`  バース内の印の語（中韻を含む）の重複: ${dupAll}/${verses} (${pct(dupAll,verses)})   ← 0が必須`);
 console.log(`  頭の行が「だが/その」等: ${badHead} (${pct(badHead,verses)})   ← 0が必須`);
 console.log(`  返しの行（尻取り返し・〜だと？）混入: ${resp} (${pct(resp,verses)})   ← 0が必須`);
 console.log(`  出どころのお題が2種以上のバトル: ${multiTheme}   ← 0が必須 ／ お題つきで組んだバトル: ${looseB} (${pct(looseB,battles-fails)})`);
@@ -96,5 +98,5 @@ console.log(`  「もう一本」で前のバトルと同じ2行組: 平均 ${(r
     const x=n?sh/n:0; r.push([a+'>'+b,x]); if(x>w[1]) w=[a+'>'+b,x]; }
   console.log(`  跨ぎ12小節の「もう一本」: 平均 ${(r.reduce((s,[,x])=>s+x,0)/r.length*100).toFixed(1)}% ／ 最悪 ${w[0]} ${(w[1]*100).toFixed(1)}%`);
   if(process.env.DETAIL) console.log('   '+r.sort((p,q)=>q[1]-p[1]).map(([k,x])=>k+' '+(x*100).toFixed(0)+'%').join(' / ')); }
-const ng = dupEnd||badHead||resp||multiTheme||(crossHit<crossR-missSum);
+const ng = dupEnd||dupAll||badHead||resp||multiTheme||(crossHit<crossR-missSum);
 console.log(ng?'要修正':'✅ 組み替え規則すべて適合');

@@ -1025,7 +1025,8 @@ function parseCorpus(text){
         const k=sp+'|'+softKey(key);   // 響き韻（i≈e・u≈o、最後の母音は一致）で束ねる＝ルールエンジンと同じ基準
         const tt=t0+strip(L[1]);
         const flat=tt.replace(/[、。！？!?\s]/g,''), g6=new Set(); for(let i=0;i+6<=flat.length;i++) g6.add(flat.slice(i,i+6));
-        (pools[k]=pools[k]||[]).push({b:bi, sig:key, opp, gen:cpGeneric(sp,opp,tt), head:!CP_CONN.test(t0), theme:d.theme||'', lines:L.map(safe), ends, g6});
+        const words=L.flatMap(l=>[...String(l).matchAll(/<span class="rhyme">([^<]*)<\/span>/g)].map(m=>m[1]));   // 行の途中の韻（中韻）も含む印の語すべて
+        (pools[k]=pools[k]||[]).push({b:bi, sig:key, opp, gen:cpGeneric(sp,opp,tt), head:!CP_CONN.test(t0), theme:d.theme||'', lines:L.map(safe), ends, words, g6});
       }
     });
   });
@@ -1053,7 +1054,7 @@ function corpusPair(sp,opp,key,rnd,st,allowSaid){
 }
 function corpusPairFrom(pool,rnd){
   for(const h of shuffle(pool.filter(c=>c.head),rnd)){
-    const rest=pool.filter(c=>c!==h && !c.ends.some(e=>h.ends.includes(e)) && ![...c.g6].some(g=>h.g6.has(g)) && (!h.theme||!c.theme||c.theme===h.theme));
+    const rest=pool.filter(c=>c!==h && !c.words.some(w=>h.words.includes(w)) && ![...c.g6].some(g=>h.g6.has(g)) && (!h.theme||!c.theme||c.theme===h.theme));
     if(!rest.length) continue;
     const other=rest.filter(c=>c.b!==h.b);   // 別バトルから＝組み替え
     const from=other.length?other:rest;

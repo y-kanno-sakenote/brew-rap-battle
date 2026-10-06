@@ -9,6 +9,7 @@
   append <batch>     バッチを検証→マスターに追記→全行検証（失敗なら元に戻す）→受け渡しノートに1行
   fail <理由>        受け渡しノートに失敗の1行だけ書く
   publish [--dry-run]  コーパスのファイルだけを公開版（origin/main）に載せて押し込む
+  ledger             使用済みの韻語の組の台帳 docs/rhyme_pairs_ledger.txt を作り直す（append の後にも自動で作り直す）
 
 publish は手元の main を押し込まない（保留中のコミットを巻き込まない）。公開版から切った
 使い捨ての作業場にコーパスだけ写して1コミットし、origin の main へ早送りで押し込む。
@@ -116,6 +117,35 @@ def plan():
     print(f"ts: \"{ts0}:01Z\" から1秒ずつの連番")
 
 
+LEDGER = ROOT / "docs" / "rhyme_pairs_ledger.txt"
+
+def ledger():
+    """使用済みの韻語の組の台帳（2026-10 押韻の組み直し）。同じバースの印の語（行末＋中韻）の2語の組を全部。
+    2番目以降のバースの冒頭の最初の印は、相手の締め語を拾う返しなので除く。外部ライブラリは使わない。"""
+    import itertools, re
+    span = re.compile(r'<span class="rhyme">([^<]*)</span>')
+    rows = load_rows()
+    pairs, ends = Counter(), Counter()
+    for r in rows:
+        for vi, v in enumerate(r["data"]["verses"]):
+            words = set()
+            for li, l in enumerate(v["lines"]):
+                ms = span.findall(l)
+                if not ms:
+                    continue
+                ends[ms[-1]] += 1
+                for k, w in enumerate(ms):
+                    if vi > 0 and li == 0 and k == 0 and len(ms) > 1:
+                        continue
+                    words.add(w)
+            for a, b in itertools.combinations(sorted(words), 2):
+                pairs[f"{a}|{b}"] += 1
+    head = [f"# 使用済みの韻語の組の台帳（docs/claude_corpus.jsonl {len(rows)}本から tools/factory.py が自動生成・1行1組）。ここにある組は新しいバトルで使わない",
+            "# 多用語（行末の韻語として5回以上）: " + "、".join(w for w, c in ends.most_common() if c >= 5)]
+    LEDGER.write_text("\n".join(head + sorted(pairs)) + "\n", encoding="utf-8")
+    print(f"台帳を作り直した: {len(pairs)}組・多用語{sum(1 for c in ends.values() if c >= 5)}語")
+
+
 def append(batch_path, style_label):
     batch = Path(batch_path)
     new = [l for l in batch.read_text(encoding="utf-8").splitlines() if l.strip()]
@@ -136,6 +166,7 @@ def append(batch_path, style_label):
         print(f"追記後の検証に失敗（{e}）。マスターを元に戻した。")
         sys.exit(1)
     print(f"{len(new)}本追記・全{len(rows)}行OK")
+    ledger()
     write_handoff(f"- {MARK} {len(new)}本追加（累計{len(rows)}本・作風={style_label}）")
 
 
@@ -209,6 +240,8 @@ def main():
         plan()
     elif cmd == "append" and len(sys.argv) == 4:
         append(sys.argv[2], sys.argv[3])
+    elif cmd == "ledger":
+        ledger()
     elif cmd == "publish":
         publish(dry_run="--dry-run" in sys.argv[2:])
     elif cmd == "fail" and len(sys.argv) >= 3:
