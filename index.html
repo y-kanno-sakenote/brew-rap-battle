@@ -159,7 +159,7 @@
     <div class="controls" id="ollamaArea" style="display:none; margin-top: 14px; width: 100%; justify-content: center; gap: 8px; flex-wrap: wrap;">
       <label class="opt" style="display:flex; align-items:center; gap:8px;">
         <span style="white-space:nowrap;">アプリ:</span>
-        <select id="localApi"><option value="lmstudio" selected>LM Studio</option><option value="ollama">Ollama</option></select>
+        <select id="localApi"><option value="ollama" selected>Ollama</option><option value="lmstudio">LM Studio</option></select>
       </label>
       <label class="opt" style="display:flex; align-items:center; gap:8px;">
         <span style="white-space:nowrap;">モデル:</span>
@@ -1632,8 +1632,8 @@ if (localStorage.getItem('gemini_api_key')) {
 // C案(ローカルLLM)の設定を復元。形式ごとに別キーで保存（Ollama は従来の ollama_model / ollama_host をそのまま使う）。
 // 形式の既定は LM Studio。ただし形式未保存で Ollama の設定が保存済みの人（既存利用者）は Ollama のまま開く。
 const localApiSel = document.getElementById('localApi');
-localApiSel.value = localStorage.getItem('local_api')
-  || ((localStorage.getItem('ollama_model') || localStorage.getItem('ollama_host')) ? 'ollama' : 'lmstudio');
+// 既定は Ollama（qwen2.5:7b）。2026-10-06 の比較で Gemma は型で縛っても1行への詰め込み・語尾切れ・括弧崩れが出たため
+localApiSel.value = localStorage.getItem('local_api') || 'ollama';
 function applyLocalApi(){
   const A = LOCAL_API[localApiKind()];
   ollamaModelInput.value = localStorage.getItem(A.keyModel) || A.model;
