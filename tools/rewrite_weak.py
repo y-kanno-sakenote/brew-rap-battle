@@ -106,8 +106,78 @@ def apply(paths):
     print(f"{len(items)}バースを差し込んだ")
 
 
+# ── 返しの付け直し ──
+# 書き直しで4行目の締め語が変わると、次のバース（相手）の1行目が拾っている「相手の締め語」が古い語のまま浮く。
+#   heads <出力.json> <書き直し.json>...   … 書き直しを差し込んだと仮定して、新たにずれる返しを一覧にする（直す対象の項目を書き出す）
+#   applyheads <付け直し.json>             … 付け直しを検査（1〜2行目だけ変更・全行の行末の印は不変・1行目の最初の印＝新しい相手の締め語）して差し込む
+#   checkheads <付け直し.json> <書き直し.json>... … 差し込む前の検査だけ
+#   apply の後に applyheads の順で使う
+
+def _rows():
+    return [json.loads(l) for l in CORPUS.read_text(encoding='utf-8').splitlines() if l.strip()]
+
+
+def _breaks(rows):
+    out = set()
+    for n, r in enumerate(rows, 1):
+        vs = r['data']['verses']
+        for vi in range(1, len(vs)):
+            h = M.SPAN.findall(vs[vi]['lines'][0]); last = M.SPAN.findall(vs[vi - 1]['lines'][-1])
+            if not h or not last or h[0] != last[-1]: out.add((n, vi))
+    return out
+
+
+def heads(outfile, paths):
+    rows = _rows(); before = _breaks(rows)
+    for p in paths:
+        for it in json.load(open(p)):
+            rows[it['battle_line'] - 1]['data']['verses'][it['verse_index']]['lines'] = it['lines']
+    new = sorted(_breaks(rows) - before)
+    items = []
+    for n, vi in new:
+        vs = rows[n - 1]['data']['verses']; v = vs[vi]
+        items.append({'id': f"L{n}V{vi}", 'battle_line': n, 'verse_index': vi, 'speaker': v['characterId'],
+                      'old_prev_word': M.SPAN.findall(v['lines'][0])[0], 'new_prev_word': M.SPAN.findall(vs[vi - 1]['lines'][-1])[-1],
+                      'prev_lines': vs[vi - 1]['lines'], 'displayRhyme': v['displayRhyme'], 'lines': v['lines']})
+    Path(outfile).write_text(json.dumps(items, ensure_ascii=False, indent=1), encoding='utf-8')
+    print(f"付け直しが要る返し {len(items)}か所 → {outfile}（元からずれていた {len(before)}か所は対象外）")
+
+
+def head_problems(fix, base_lines):
+    key = fix['id']; L = fix['lines']; bad = []
+    if len(L) != 4: return [f"{key}: 4行でない"]
+    if L[2:] != base_lines[2:]: bad.append(f"{key}: 3〜4行目が変わっている")
+    for a, b in zip(L, base_lines):
+        ea, eb = M.SPAN.findall(a), M.SPAN.findall(b)
+        if not ea or not eb or ea[-1] != eb[-1]: bad.append(f"{key}: 行末の印が変わっている（{eb[-1:]}→{ea[-1:]}）")
+    h = M.SPAN.findall(L[0])
+    if not h or h[0] != fix['new_prev_word']: bad.append(f"{key}: 1行目の最初の印が新しい相手の締め語「{fix['new_prev_word']}」でない")
+    return bad
+
+
+def applyheads(path, dry=False, rewrites=()):
+    """dry=True と rewrites（書き直し.json）を渡すと、書き直しを差し込んだと仮定して検査だけする（コーパスは触らない）"""
+    fixes = json.load(open(path)); rows = _rows(); bad = []
+    for p in rewrites:
+        for it in json.load(open(p)): rows[it['battle_line'] - 1]['data']['verses'][it['verse_index']]['lines'] = it['lines']
+    for f in fixes:
+        v = rows[f['battle_line'] - 1]['data']['verses'][f['verse_index']]
+        prev = rows[f['battle_line'] - 1]['data']['verses'][f['verse_index'] - 1]
+        if M.SPAN.findall(prev['lines'][-1])[-1] != f['new_prev_word']: bad.append(f"{f['id']}: 相手の締め語が今のコーパスと違う（書き直しを先に apply する）")
+        bad += head_problems(f, v['lines'])
+    if bad:
+        print('\n'.join(bad)); print("検査に通らないので差し込まない"); sys.exit(1)
+    if dry: print(f"✅ {len(fixes)}か所 すべて合格"); return
+    for f in fixes: rows[f['battle_line'] - 1]['data']['verses'][f['verse_index']]['lines'] = f['lines']
+    CORPUS.write_text('\n'.join(json.dumps(r, ensure_ascii=False) for r in rows) + '\n', encoding='utf-8')
+    print(f"{len(fixes)}か所の返しを付け直した")
+
+
 if __name__ == '__main__':
     cmd = sys.argv[1]
     if cmd == 'split': split(int(sys.argv[2]), sys.argv[3])
     elif cmd == 'check': sys.exit(0 if check(sys.argv[2:]) else 1)
     elif cmd == 'apply': apply(sys.argv[2:])
+    elif cmd == 'heads': heads(sys.argv[2], sys.argv[3:])
+    elif cmd == 'applyheads': applyheads(sys.argv[2])
+    elif cmd == 'checkheads': applyheads(sys.argv[2], dry=True, rewrites=sys.argv[3:])
