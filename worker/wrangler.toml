@@ -2,6 +2,8 @@
 # APIキーはここに書かない：npx wrangler secret put ANTHROPIC_API_KEY（ローカルの wrangler dev は worker/.dev.vars に ANTHROPIC_API_KEY=... の1行・gitignore 済み）
 name = "brew-rap-live"
 main = "src/index.js"
+workers_dev = true
+preview_urls = false
 compatibility_date = "2026-09-01"
 
 # live/prompt.md（システムプロンプト。Python 試作と共通）を文字列として取り込む

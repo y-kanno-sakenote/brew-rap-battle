@@ -146,8 +146,8 @@ function loadClaude({ url = 'https://live.example/' } = {}) {
   let script = html.slice(html.indexOf('<script>') + 8, html.indexOf('// ---- 選択UI ----'));
   const cs = html.indexOf("const CORPUS_KEY = 'brew_corpus';"), ce = html.indexOf('function exportCorpus()');
   script += '\n' + html.slice(cs, ce);
-  if (!script.includes("const LIVE_API_URL = '';")) throw new Error('LIVE_API_URL 行が見つからない');
-  script = script.replace("const LIVE_API_URL = '';", `const LIVE_API_URL = ${JSON.stringify(url)};`);
+  if (!/const LIVE_API_URL = '[^']*';/.test(script)) throw new Error('LIVE_API_URL 行が見つからない');
+  script = script.replace(/const LIVE_API_URL = '[^']*';/, `const LIVE_API_URL = ${JSON.stringify(url)};`);
   // 子要素を持てる最小の DOM（textContent は子の連結。innerHTML を入れると子は消える）
   const node = () => { const o = { className: '', style: {}, value: '', children: [], _text: null, _html: '', history: [] };
     o.appendChild = c => { o.children.push(c); return c; }; o.append = (...cs) => cs.forEach(c => o.children.push(c));

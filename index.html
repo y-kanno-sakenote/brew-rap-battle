@@ -1133,7 +1133,7 @@ function setGenerating(on){
 // AIエンジンの通信タイムアウト（既定60秒。Ollama は呼び出し側で小節数に応じて延ばす）。応答が無いまま「醸造中」で固まらないようにする
 const LLM_TIMEOUT_MS = 60000;
 // Claude（お題でつくる）の中継（worker/ の Cloudflare Worker）。空のあいだは選択肢を出さない。デプロイ後にその URL を入れる
-const LIVE_API_URL = '';
+const LIVE_API_URL = 'https://brew-rap-live.jusetsu-tokushima.workers.dev';
 const LIVE_TIMEOUT_MS = 200000;   // 中継側の作り直し（最大約185秒）まで待つ
 const OLLAMA_DEFAULT_MODEL = 'gemma4:12b';   // 2026-10-06 オーナー判断で全用途 gemma4:12b（横断検証でラップ生成も最良）
 async function withTimeout(fn, ms = LLM_TIMEOUT_MS){

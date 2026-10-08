@@ -28,6 +28,8 @@ async function generate(env, system, userText, { timeoutMs = 185_000 } = {}) {
   try {
     msg = await stream.finalMessage();
   } catch (e) {
+    // 運用の手がかり（キーは出さない）: wrangler tail で見る
+    console.error("anthropic_error", e?.constructor?.name, e?.status ?? "", String(e?.message ?? e).slice(0, 300));
     if (e instanceof Anthropic.APIUserAbortError || e instanceof Anthropic.APIConnectionTimeoutError) {
       throw { status: 504, timeout: true, message: "時間がかかりすぎました。もう一度押してください" };
     }
