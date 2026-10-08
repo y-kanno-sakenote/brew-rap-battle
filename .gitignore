@@ -6,3 +6,6 @@ design_*.html
 verification/
 docs/corpus_batches/
 docs/rhyme_pairs_ledger.txt
+.dev.vars
+worker/node_modules/
+worker/.wrangler/

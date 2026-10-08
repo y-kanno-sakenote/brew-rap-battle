@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "properties": {
+    "verses": {
+      "type": "array",
+      "description": "先攻・後攻を交互に。数は指定のバース数ちょうど",
+      "items": {
+        "type": "object",
+        "properties": {
+          "characterId": { "type": "string", "enum": ["koji", "yeast", "toji", "lactic", "rice"] },
+          "characterName": { "type": "string" },
+          "displayRhyme": { "type": "string", "description": "行末の韻の末尾3母音をハイフンでつなぐ（例: o-u-a）" },
+          "lines": {
+            "type": "array",
+            "description": "ちょうど4行",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": { "type": "string", "description": "1行の歌詞。韻語を <span class=\"rhyme\">語</span> で囲む。行末は印の付いた韻語（後ろは記号だけ）" },
+                "end_kana": { "type": "string", "description": "行末の韻語の読み。ひらがなだけ" }
+              },
+              "required": ["text", "end_kana"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["characterId", "characterName", "displayRhyme", "lines"],
+        "additionalProperties": false
+      }
+    },
+    "flavor": { "type": "string", "description": "今宵の一杯（お酒のタイプと一言の説明）" }
+  },
+  "required": ["verses", "flavor"],
+  "additionalProperties": false
+}

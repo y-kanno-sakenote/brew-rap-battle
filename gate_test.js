@@ -1,6 +1,7 @@
 // 担当: ✅ 検証係（マンガー×ファインマン）
 // C案（Ollama）採点ゲートの独立検証。index.html の <script> を harness.js と同じ流儀で eval し、
 // DOM/localStorage/fetch をスタブにして renderBattleOllama を直接叩く。
+// 4節で B案「Claude（お題でつくる）」の画面側（中継への送信・描画・断られた時）もモック fetch で確かめる。
 //   node gate_test.js        … 単体＋モック fetch のループ検証
 //   node gate_test.js live   … 実機 Ollama(localhost:11434, gemma4:12b) で3バトル
 const fs = require('fs');
@@ -140,6 +141,86 @@ async function loop() {
     check('(t) Ollama への送信に think:false（gemma4 の思考オンで空出力・時間切れになるのを防ぐ）と format:"json"', bo.think === false && bo.format === 'json', JSON.stringify({ think: bo.think, format: bo.format })); }
 }
 
+// ---- B案 Claude（お題でつくる）：中継（worker/）の応答をモックして画面側を確かめる ----
+function loadClaude({ url = 'https://live.example/' } = {}) {
+  let script = html.slice(html.indexOf('<script>') + 8, html.indexOf('// ---- 選択UI ----'));
+  const cs = html.indexOf("const CORPUS_KEY = 'brew_corpus';"), ce = html.indexOf('function exportCorpus()');
+  script += '\n' + html.slice(cs, ce);
+  if (!script.includes("const LIVE_API_URL = '';")) throw new Error('LIVE_API_URL 行が見つからない');
+  script = script.replace("const LIVE_API_URL = '';", `const LIVE_API_URL = ${JSON.stringify(url)};`);
+  // 子要素を持てる最小の DOM（textContent は子の連結。innerHTML を入れると子は消える）
+  const node = () => { const o = { className: '', style: {}, value: '', children: [], _text: null, _html: '', history: [] };
+    o.appendChild = c => { o.children.push(c); return c; }; o.append = (...cs) => cs.forEach(c => o.children.push(c));
+    Object.defineProperty(o, 'textContent', { get() { return o._text != null ? o._text : o.children.map(c => c.textContent).join(''); }, set(v) { o._text = String(v); } });
+    Object.defineProperty(o, 'innerHTML', { get() { return o._html + o.children.map(c => c.textContent).join(''); }, set(v) { o._html = v; o.children = []; o.history.push(v); } });
+    o.querySelector = () => o.appendChild(node()); o.scrollIntoView = () => {}; o.dispatchEvent = () => {}; return o; };
+  const elements = { battleStyle: node(), battleTheme: node(), corpusTray: node(), corpusCount: node() };
+  elements.battleStyle.value = 'savage'; elements.battleTheme.value = '梅雨の夜';
+  const document = { getElementById: id => elements[id] || node(), createElement: () => node(), createTextNode: t => { const n = node(); n.textContent = t; return n; } };
+  const store = {};
+  const localStorage = { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } };
+  const battle = node(), beat = node(), stage = node(), engineSel = node();
+  engineSel.value = 'claude';
+  const calls = [], fetchHolder = { fn: null };
+  const fetch = (u, o) => { calls.push({ url: u, opt: o }); return fetchHolder.fn(u, o); };
+  const sandbox = {};
+  new Function('sandbox', 'document', 'localStorage', 'fetch', 'console', 'battle', 'beat', 'stage', 'engineSel', 'ollamaModelInput', 'ollamaHostInput',
+    script + '\n; Object.assign(sandbox,{renderBattleClaude,loadCorpus,LIVE_TIMEOUT_MS});')(sandbox, document, localStorage, fetch, { error: () => {}, log: console.log, warn: () => {} }, battle, beat, stage, engineSel, node(), node());
+  return { ...sandbox, battle, engineSel, calls, fetchHolder };
+}
+const reply = (status, body) => async () => ({ ok: status >= 200 && status < 300, status, json: async () => body });
+const LIVE_OK = { verses: [
+  { characterId: 'koji', characterName: '麹菌', displayRhyme: 'o-u-a', lines: ['蔵に舞う<span class="rhyme">糖化</span>', '二行目', '三行目', '四行目<span class="rhyme">効果</span>'] },
+  { characterId: 'yeast', characterName: '清酒酵母', displayRhyme: 'a-a-a', lines: ['<span class="rhyme">効果</span>なら俺', 'b2', 'b3', 'b4'] } ],
+  flavor: '吟醸酒', meta: { model: 'claude-opus-5-5', tries: 1, ok: true } };
+
+async function claude() {
+  console.log('== 4. B案 Claude（お題でつくる）・モック中継 ==');
+  let e = loadClaude();
+  e.fetchHolder.fn = reply(200, LIVE_OK);
+  await e.renderBattleClaude('koji', 'yeast', 4);
+  const sent = e.calls[0] && JSON.parse(e.calls[0].opt.body);
+  check('(L1) 中継へ1回 POST・送るのは対戦カード/小節数/作風/お題だけ', e.calls.length === 1 && e.calls[0].url === 'https://live.example/' && e.calls[0].opt.method === 'POST'
+    && JSON.stringify(sent) === JSON.stringify({ aId: 'koji', bId: 'yeast', bars: 4, style: 'savage', theme: '梅雨の夜' }), JSON.stringify(sent));
+  check('(L1) 生成中の表示が出てから描画される', e.battle.history.some(h => h.includes('醸造中')));
+  const txt = e.battle.textContent;
+  check('(L1) 返ってきた行・韻の印・乾杯が出る（印のタグは文字として出ない）', txt.includes('蔵に舞う糖化') && txt.includes('効果なら俺') && txt.includes('mic drop') && txt.includes('吟醸酒') && !txt.includes('<span'), txt.slice(0, 80));
+  const rhymes = e.battle.children.flatMap(v => (v.children[1] || { children: [] }).children).filter(c => c.className === 'rhyme').map(c => c.textContent);
+  check('(L1) 韻語は class="rhyme" の要素に組み直す', JSON.stringify(rhymes) === JSON.stringify(['糖化', '効果', '効果']), JSON.stringify(rhymes));
+  const rec = e.loadCorpus()[0];
+  check('(L1) コーパスに claude: のモデル名・お題・作風で残す', rec && rec.model === 'claude:claude-opus-5-5' && rec.theme === '梅雨の夜' && rec.style === 'savage' && rec.data.verses.length === 2, rec && rec.model);
+
+  e = loadClaude();
+  e.fetchHolder.fn = reply(200, { ...LIVE_OK, meta: { model: 'claude-opus-5-5', tries: 2, ok: false } });
+  await e.renderBattleClaude('koji', 'yeast', 4);
+  check('(L2) meta.ok:false（2回とも韻が外れた）でもそのまま出す', e.battle.textContent.includes('蔵に舞う糖化') && !e.battle._html.includes('名勝負ミックスで遊ぶ'));
+
+  e = loadClaude();
+  e.fetchHolder.fn = reply(429, { error: 'budget_day', message: '今日の分は終わりました' });
+  await e.renderBattleClaude('koji', 'yeast', 4);
+  check('(L3) 429：中継の文言を出し、名勝負ミックスに戻す・コーパスに残さない', e.battle.textContent.includes('今日の分は終わりました') && e.engineSel.value === 'template' && e.battle._html.includes('名勝負ミックスで遊ぶ') && e.loadCorpus().length === 0, e.battle.textContent);
+
+  e = loadClaude();
+  e.fetchHolder.fn = reply(502, { error: 'generation_failed', message: 'うまく書けませんでした。もう一度押してください' });
+  await e.renderBattleClaude('koji', 'yeast', 4);
+  check('(L4) 502：中継の日本語の理由を出す・エンジンはそのまま', e.battle.textContent.includes('うまく書けませんでした') && e.engineSel.value === 'claude');
+
+  e = loadClaude();
+  e.fetchHolder.fn = async () => { throw new TypeError('Failed to fetch'); };
+  await e.renderBattleClaude('koji', 'yeast', 4);
+  check('(L5) つながらない：英語の例外文をそのまま出さない', e.battle.textContent.includes('つながりませんでした') && !e.battle.textContent.includes('Failed to fetch'), e.battle.textContent);
+
+  e = loadClaude();
+  e.fetchHolder.fn = reply(500, {});
+  await e.renderBattleClaude('koji', 'yeast', 4);
+  check('(L6) 理由の無いエラーでも短い日本語', /うまくつながりませんでした（500）/.test(e.battle.textContent), e.battle.textContent);
+
+  check('(L7) 待ち時間の上限は約200秒（中継の持ち時間185秒より長い）', e.LIVE_TIMEOUT_MS >= 190000 && e.LIVE_TIMEOUT_MS <= 210000, e.LIVE_TIMEOUT_MS);
+  check('(L8) 中継の URL が空のあいだは選択肢を出さない', /if \(!LIVE_API_URL\)[^\n]*option\[value="claude"\][^\n]*remove\(\)/.test(html));
+  check('(L9) お題の入力欄は30字まで', /id="battleTheme"[^>]*maxlength="30"/.test(html));
+  check('(L10) Gemini の選択肢・キー入力欄・キーの保存が残っていない', !/value="gemini"|id="apiKey|setItem\('gemini_api_key'|generativelanguage/.test(html));
+}
+
 async function live() {
   console.log('== 3. 実機 Ollama（gemma4:12b, 8小節=4バース, 各バトル最大3回生成） ==');
   const pairs = [['koji', 'yeast'], ['lactic', 'toji'], ['rice', 'koji']];
@@ -164,7 +245,7 @@ async function live() {
 
 (async () => {
   if (process.argv[2] === 'live') { await live(); return; }
-  await unit(); await loop();
+  await unit(); await loop(); await claude();
   console.log(`\n合計: PASS ${pass} / FAIL ${fail}`);
   process.exitCode = fail ? 1 : 0;
 })().catch(e => { console.error('テスト実行エラー:', e); process.exitCode = 2; });

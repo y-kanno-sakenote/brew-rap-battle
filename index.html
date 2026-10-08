@@ -112,7 +112,7 @@
     <p class="hint" id="selHint">上から2体を選ぶと対戦成立。1体目が <span style="color:var(--red)">赤コーナー</span>、2体目が <span style="color:var(--blue)">青コーナー</span>。</p>
     <div class="controls">
       <label class="opt">生成エンジン
-        <select id="engine"><option value="template" selected>名勝負ミックス（そのまま遊べる）</option><option value="ollama">Ollama（手元のPCで）</option><option value="gemini">Gemini（APIキーが必要）</option></select>
+        <select id="engine"><option value="template" selected>名勝負ミックス（そのまま遊べる）</option><option value="ollama">Ollama（手元のPCで）</option><option value="claude">Claude（お題でつくる）</option></select>
       </label>
       <label class="opt">小節数
         <select id="bars"><option value="4">4小節（ショート）</option><option value="8" selected>8小節（スタンダード）</option><option value="12">12小節（ロング）</option></select>
@@ -127,7 +127,7 @@
         <select id="battleStyle"><option value="standard" selected>標準（敬意で締め）</option><option value="savage">ガチ煽り（フルディス）</option></select>
       </label>
       <label class="opt" id="themeOpt" style="display:none;">お題
-        <input type="text" id="battleTheme" list="themeList" placeholder="空欄=おまかせ" autocomplete="off"
+        <input type="text" id="battleTheme" list="themeList" placeholder="例：夏酒 vs 燗酒" autocomplete="off" maxlength="30"
                style="background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;width:190px;">
         <datalist id="themeList">
           <option value="伝統 vs 革新"></option>
@@ -145,15 +145,6 @@
         </datalist>
       </label>
       <button class="btn btn-main" id="go" disabled>▶ バトル開始</button>
-    </div>
-
-    <div class="controls" id="apiKeyArea" style="display:none; margin-top: 14px; width: 100%; justify-content: center; gap: 8px; flex-wrap: wrap;">
-      <label class="opt" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: 100%; max-width: 450px;">
-        <span style="white-space: nowrap;">Gemini APIキー:</span>
-        <input type="password" id="apiKey" placeholder="AI Studioで取得したAPIキーを入力" style="flex:1 1 140px; min-width:0; background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px;">
-        <button class="btn btn-ghost" id="toggleApiKey" style="padding:6px 12px; font-size:12px; margin:0;">表示</button>
-      </label>
-      <span style="font-size:11px; color:var(--sub); display:block; text-align:center; width:100%; margin-top:4px;">※ キーはローカル（localStorage）に保存され、Google APIと直接通信します。</span>
     </div>
 
     <div class="controls" id="ollamaArea" style="display:none; margin-top: 14px; width: 100%; justify-content: center; gap: 8px; flex-wrap: wrap;">
@@ -187,7 +178,7 @@
   </div>
 
   <div id="corpusTray" style="display:none; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin:18px auto 0; max-width:720px; padding:10px 14px; border:1px solid var(--line); border-radius:10px; background:var(--bg2); font-size:12px; color:var(--sub);">
-    <span>🧪 Gemini/Ollamaコーパス <b id="corpusCount" style="color:var(--ink);">0</b> バトル蓄積（採掘用素材）</span>
+    <span>🧪 Claude/Ollamaコーパス <b id="corpusCount" style="color:var(--ink);">0</b> バトル蓄積（採掘用素材）</span>
     <button class="btn btn-ghost" id="corpusExport" style="font-size:12px; padding:5px 10px;">⬇ 書き出し(.jsonl)</button>
     <button class="btn btn-ghost" id="corpusClear" style="font-size:12px; padding:5px 10px;">🗑 クリア</button>
   </div>
@@ -1139,8 +1130,11 @@ function setGenerating(on){
   if(g) g.disabled = on || selected.length !== 2;
   ['regen','swap'].forEach(id => { const b = document.getElementById(id); if(b) b.disabled = on; });
 }
-// AIエンジンの通信タイムアウト（既定60秒＝Gemini。Ollama は呼び出し側で小節数に応じて延ばす）。応答が無いまま「醸造中」で固まらないようにする
+// AIエンジンの通信タイムアウト（既定60秒。Ollama は呼び出し側で小節数に応じて延ばす）。応答が無いまま「醸造中」で固まらないようにする
 const LLM_TIMEOUT_MS = 60000;
+// Claude（お題でつくる）の中継（worker/ の Cloudflare Worker）。空のあいだは選択肢を出さない。デプロイ後にその URL を入れる
+const LIVE_API_URL = '';
+const LIVE_TIMEOUT_MS = 200000;   // 中継側の作り直し（最大約185秒）まで待つ
 const OLLAMA_DEFAULT_MODEL = 'gemma4:12b';   // 2026-10-06 オーナー判断で全用途 gemma4:12b（横断検証でラップ生成も最良）
 async function withTimeout(fn, ms = LLM_TIMEOUT_MS){
   const ctl = new AbortController();
@@ -1155,14 +1149,8 @@ async function withTimeout(fn, ms = LLM_TIMEOUT_MS){
 }
 async function renderBattle(){
   if(_generating) return;
-  if(engineSel.value === 'gemini' && !apiKeyInput.value.trim()){
-    toast('Gemini APIキーを入力してください。');
-    engineSel.value = 'template';
-    engineSel.dispatchEvent(new Event('change'));
-    return;
-  }
   const [aId,bId] = selected;
-  lastBattleTheme = (engineSel.value === 'gemini' || engineSel.value === 'ollama') ? currentTheme() : '';
+  lastBattleTheme = (engineSel.value === 'claude' || engineSel.value === 'ollama') ? currentTheme() : '';
   const bars = parseInt(barsSel.value,10);
   const seed = (Date.now() ^ (bars*7)) >>> 0;
 
@@ -1172,10 +1160,10 @@ async function renderBattle(){
 
   startBeat();   // バトル開始でビート再生（クリック=ユーザー操作なので自動再生ブロックに掛からない）
 
-  if (engineSel.value === 'gemini' || engineSel.value === 'ollama') {
+  if (engineSel.value === 'claude' || engineSel.value === 'ollama') {
     setGenerating(true);
     try{
-      if (engineSel.value === 'gemini') await renderBattleGemini(aId, bId, bars);
+      if (engineSel.value === 'claude') await renderBattleClaude(aId, bId, bars);
       else await renderBattleOllama(aId, bId, bars);
     }finally{ setGenerating(false); }
     return;
@@ -1278,150 +1266,71 @@ function themeDirective(){
   return v ? `【お題】今回のバトルのテーマは「${v}」。両者ともこのテーマに沿って、自分の役割の立場から主張・ディス・リスペクトを展開すること。テーマから逸れた一般論に流れないこと。` : '';
 }
 
-async function renderBattleGemini(aId, bId, bars) {
-  const apiKey = apiKeyInput.value.trim();   // 未入力は renderBattle 側で弾いてからここへ来る（ビートを鳴らす前に確認）
-
-  // ローディング表示
-  battle.innerHTML = `<div class="cheer" style="animation-delay: 0s; font-size: 16px; color: var(--gold);">
-    🔮 Geminiが極上のリリックを醸造中...<br>
-    <span style="font-size: 12px; color: var(--sub);">（初回は少し時間がかかる場合があります）</span>
-  </div>`;
+// ---- B案：Claude（お題でつくる）。中継（worker/）が生成・韻の検査・1回の作り直しまで済ませ、{verses, flavor, meta} を返す ----
+//   予算（日・月）とIPごとの回数は中継が見る。断られたら（429）名勝負ミックスに戻す
+function aiLoading(text){
+  battle.innerHTML = `<div class="cheer" style="animation-delay:0s; font-size:16px; color:var(--gold);">${text}</div>`;
   beat.innerHTML = Array.from({length:16}).map((_,i)=>`<i style="animation-delay:${(i*0.06).toFixed(2)}s"></i>`).join("");
   stage.style.display="block";
   stage.scrollIntoView({behavior:"smooth",block:"start"});
-
-  const rounds = Math.max(1, Math.round(bars/4)); // 4小節で1バース
-
-  const a = FIGHTERS[aId];
-  const b = FIGHTERS[bId];
-
-  const systemInstruction = `あなたは日本最高峰の日本語ラッパーであり、日本酒醸造の歴史と科学に精通した専門家です。
-与えられた2つのキャラクターによる、熱量が高く知的なラップバトル（交互のバース）を生成してください。
-バトルの長さは合計 ${rounds * 2} バース（交互に各 ${rounds} バースずつ）、1バースは正確に4小節（4行）です。
-
-【対戦カード】
-先攻（赤）：${a.name}（${a.desc}）
-後攻（青）：${b.name}（${b.desc}）
-
-【キャラクターの人格（一貫して演じ分け、口調・誇り・口癖を保つこと）】
-${personaBlock(aId, bId)}
-${personaBlock(bId, aId)}
-
-${styleDirective()}
-${themeDirective()}
-
-【超重要ルール：強烈なライミング（韻）の追求】
-1. **脚韻（行末の韻）と中間韻（行中の韻）の両立**:
-   - 各バースの行末では、必ず「3文字〜5文字以上」の長い母音で韻を踏んでください（AABB形式またはAAAA形式）。
-   - さらに、**行の途中（中間）や行の始まり（頭）でも韻を積極的に散りばめてください。**
-   - 1行の中で同じ母音の単語を連続して踏んで畳み掛ける（例：「**精米**（e-i-a-i）して**限界**（e-i-a-i）突破の**展開**（e-i-a-i）」、「**仕込み**（s-i-k-o-m-i）の段階、**絞り**（s-i-b-o-r-i）の限界」など）ことで、リズムに躍動感を出してください。
-2. **アンサーでの踏み返し**: 
-   - 後攻（青）は、先攻（赤）が吐いたリリックの最後の韻（母音）を聞き取り、同じ母音で1行目を踏み返しながらアンサーを返してください。
-3. **韻の可視化**: 
-   - **行末の韻だけでなく、行の途中で踏んでいる韻もすべて**、必ず \`<span class="rhyme">単語</span>\` で囲んでください。母音が一致していることが画面上で一目でわかるようにしてください。
-
-【その他のルール】
-- **キャラクター性**: お互いの醸造における役割（糖化、アルコール生成、酸による殺菌、職人技など）のプライドをぶつけ合ってください。
-- **ディスとアンサー**: 相手の役割の弱点（例：酵母は酸に弱い、麹は温度変化に弱い、等）を論理的かつユーモアを交えて攻撃し、それに対してアンサーを返してください。
-- **専門用語**: 「無濾過生原酒」「並行複発酵」「山卸し」「心白」などの実在する醸造用語をライミングの中に自然に溶け込ませてください。`;
-
-  const prompt = `${usageGuide(aId,bId)}\n\n先攻：${a.name}（${aId}） VS 後攻：${b.name}（${bId}）のラップバトル（合計 ${rounds * 2} バース、各バース4小節）を開始してください。必ず指定されたJSONスキーマに従って出力してください。`;
-
-  const schema = {
-    type: "OBJECT",
-    properties: {
-      verses: {
-        type: "ARRAY",
-        description: "交互に行われるラップバトルの各バースの配列",
-        items: {
-          type: "OBJECT",
-          properties: {
-            characterId: { type: "STRING", description: "キャラクターID ('" + aId + "' または '" + bId + "')" },
-            characterName: { type: "STRING", description: "キャラクター名" },
-            displayRhyme: { type: "STRING", description: "このバースで主に踏んだ韻の母音（例：o-u-i、a-a-i、u-a-iなど）" },
-            lines: {
-              type: "ARRAY",
-              items: { type: "STRING", description: "リリックの1行（4小節なので4要素）。韻を踏んでいるすべての単語は <span class=\"rhyme\">単語</span> のように囲んでください。" }
-            }
-          },
-          required: ["characterId", "characterName", "displayRhyme", "lines"]
-        }
-      },
-      flavor: { type: "STRING", description: "バトル終了後の今宵の一杯としておすすめするお酒のタイプ（FLAVORSから選択するか、新しく考案）" }
-    },
-    required: ["verses", "flavor"]
+}
+// AIの {verses:[{characterId, characterName, displayRhyme, lines}], flavor} を描く（出力はHTMLとして解釈せず textContent で入れ、韻の <span class="rhyme"> だけ要素に組み直す）
+function drawAiBattle(data, aId){
+  const mk = (tag, cls, text) => { const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; };
+  const fillRhymeLine = (parent, line) => {
+    const re = /<span class="rhyme">([^<]*)<\/span>/g; const str = String(line); let last = 0, m;
+    while((m = re.exec(str))){
+      if(m.index > last) parent.appendChild(document.createTextNode(str.slice(last, m.index)));
+      parent.appendChild(mk('span', 'rhyme', m[1])); last = re.lastIndex;
+    }
+    if(last < str.length) parent.appendChild(document.createTextNode(str.slice(last)));
   };
-
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
-    const resJson = await withTimeout(async (signal) => {
-    const response = await fetch(url, {
-      signal,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        systemInstruction: { parts: [{ text: systemInstruction }] },
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: schema,
-          temperature: 0.8
-        }
-      })
-    });
-
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error?.message || `HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-    });
-    const resultText = resJson.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!resultText) {
-      throw new Error('AIからのレスポンスが空でした。');
-    }
-
-    const data = JSON.parse(resultText);
-    
-    // バトルの組み立て（モデル出力はHTMLとして解釈せず textContent で入れる。韻の <span class="rhyme"> だけ要素に組み直す）
-    const mk = (tag, cls, text) => { const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; };
-    const fillRhymeLine = (parent, line) => {
-      const re = /<span class="rhyme">([^<]*)<\/span>/g; const str = String(line); let last = 0, m;
-      while((m = re.exec(str))){
-        if(m.index > last) parent.appendChild(document.createTextNode(str.slice(last, m.index)));
-        parent.appendChild(mk('span', 'rhyme', m[1])); last = re.lastIndex;
-      }
-      if(last < str.length) parent.appendChild(document.createTextNode(str.slice(last)));
-    };
-    battle.innerHTML = "";
-    let delay = 0;
-    (data.verses || []).forEach((v) => {
-      const side = v.characterId === aId ? 'a' : 'b';
-      const char = FIGHTERS[v.characterId] || { emoji: "🎤", name: v.characterName };
-      const verse = mk('div', `verse ${side}`); verse.style.animationDelay = `${delay}s`;
-      const head = mk('div', 'head');
-      head.append(mk('span', 'em', char.emoji), document.createTextNode(char.name || ''), mk('span', 'rk', `Gemini韻:-${v.displayRhyme || ''}`));
-      const barsEl = mk('div', 'bars');
-      (v.lines || []).forEach((l, i) => { if(i) barsEl.appendChild(document.createTextNode("\n")); fillRhymeLine(barsEl, l); });
-      verse.append(head, barsEl);
-      battle.appendChild(verse);
-      delay += 0.15;
-    });
-    battle.appendChild(mk('div', 'drop', '🎤 …mic drop.'));
-    battle.appendChild(mk('div', 'cheer', `🍶 今宵の一杯は「${data.flavor}」で乾杯`));
-
-    // 採掘用コーパスへ蓄積（構造化出力そのまま。APIキーは含めない）
-    saveToCorpus({ ts:new Date().toISOString(), model:'gemini-3.5-flash', aId, bId, bars, mode: modeSel.value, style: (document.getElementById('battleStyle')||{}).value, theme: currentTheme(), data });
-  } catch (error) {
-    console.error(error);
-    battle.innerHTML = `<div class="cheer" style="color:var(--red);">
-      ⚠️ Geminiでエラーが発生しました。<br>
+  battle.innerHTML = "";
+  let delay = 0;
+  (data.verses || []).forEach((v) => {
+    const side = v.characterId === aId ? 'a' : 'b';
+    const char = FIGHTERS[v.characterId] || { emoji: "🎤", name: v.characterName };
+    const verse = mk('div', `verse ${side}`); verse.style.animationDelay = `${delay}s`;
+    const head = mk('div', 'head');
+    head.append(mk('span', 'em', char.emoji), document.createTextNode(char.name || ''), mk('span', 'rk', `韻:-${v.displayRhyme || ''}`));
+    const barsEl = mk('div', 'bars');
+    (v.lines || []).forEach((l, i) => { if(i) barsEl.appendChild(document.createTextNode("\n")); fillRhymeLine(barsEl, l); });
+    verse.append(head, barsEl);
+    battle.appendChild(verse);
+    delay += 0.15;
+  });
+  battle.appendChild(mk('div', 'drop', '🎤 …mic drop.'));
+  battle.appendChild(mk('div', 'cheer', `🍶 今宵の一杯は「${data.flavor}」で乾杯`));
+}
+function aiError(message, backToMix){
+  if(backToMix){ engineSel.value = 'template'; engineSel.dispatchEvent(new Event('change')); }
+  battle.innerHTML = `<div class="cheer" style="color:var(--red);">
       <span class="errmsg"></span><br>
       <button class="btn btn-ghost" onclick="engineSel.value='template'; engineSel.dispatchEvent(new Event('change')); renderBattle();" style="margin-top: 10px;">名勝負ミックスで遊ぶ</button>
     </div>`;
-    battle.querySelector('.errmsg').textContent = error.message;
+  battle.querySelector('.errmsg').textContent = message;
+}
+
+async function renderBattleClaude(aId, bId, bars) {
+  aiLoading(`🍶 Claudeがリリックを醸造中...<br><span style="font-size:12px; color:var(--sub);">（韻を練っています。1〜2分）</span>`);
+  const style = (document.getElementById('battleStyle')||{}).value || 'standard';
+  const theme = currentTheme();
+  try {
+    const res = await withTimeout((signal) => fetch(LIVE_API_URL, {
+      signal, method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ aId, bId, bars, style, theme })
+    }), LIVE_TIMEOUT_MS);
+    const j = await res.json().catch(() => ({}));
+    if (res.status === 429) { aiError(j.message || '今日の分は終わりました', true); return; }
+    if (!res.ok) throw new Error(j.message || `うまくつながりませんでした（${res.status}）`);
+    if (!j.verses || !j.verses.length) throw new Error('うまく書けませんでした。もう一度押してください');
+    drawAiBattle(j, aId);   // meta.ok:false（2回とも韻が外れた）でもそのまま出す
+    saveToCorpus({ ts:new Date().toISOString(), model:`claude:${(j.meta && j.meta.model) || ''}`, aId, bId, bars, mode:'claude', style, theme, tries: j.meta && j.meta.tries, ok: j.meta && j.meta.ok, data:{ verses: j.verses, flavor: j.flavor } });
+  } catch (error) {
+    console.error(error);
+    const msg = error.timeout ? '時間がかかりすぎました。もう一度押してください'
+      : (error instanceof TypeError ? 'つながりませんでした。通信を確かめてもう一度押してください' : error.message);
+    aiError(msg, false);
   }
 }
 
@@ -1431,8 +1340,8 @@ ${themeDirective()}
 function spanToBracket(line){ return String(line).replace(/<span class="rhyme">([^<]+)<\/span>/g, '【$1】'); }
 function bracketToSpan(line){ return String(line).replace(/【([^【】]+)】/g, '<span class="rhyme">$1</span>').replace(/[【】]/g, ''); }
 function buildFewShot(){
-  // コーパスから Gemini(B案) のバースを最大2つ手本化（無ければ内蔵例）
-  const gem = loadCorpus().filter(r => (r.model||'').startsWith('gemini')).flatMap(r => (r.data?.verses)||[]);
+  // コーパスから B案（Claude）のバースを最大2つ手本化（無ければ内蔵例）
+  const gem = loadCorpus().filter(r => (r.model||'').startsWith('claude')).flatMap(r => (r.data?.verses)||[]);
   const pick = gem.slice(-2);
   if(pick.length){
     return pick.map(v => `${v.characterName}『${(v.lines||[]).map(spanToBracket).join('／')}』`).join('\n');
@@ -1561,9 +1470,6 @@ const nameA = document.getElementById('nameA');
 const nameB = document.getElementById('nameB');
 const selHint = document.getElementById('selHint');
 const engineSel = document.getElementById('engine');
-const apiKeyArea = document.getElementById('apiKeyArea');
-const apiKeyInput = document.getElementById('apiKey');
-const toggleApiKeyBtn = document.getElementById('toggleApiKey');
 const modeOpt = document.getElementById('modeOpt');
 const ollamaArea = document.getElementById('ollamaArea');
 const ollamaModelInput = document.getElementById('ollamaModel');
@@ -1571,7 +1477,7 @@ const ollamaHostInput = document.getElementById('ollamaHost');
 let selected = [];
 loadMixCorpus();   // 名勝負ミックスの材料（読めなければ単語シグネチャ方式のまま）
 
-// ---- B案コーパス：Gemini出力を溜めてA案採掘の素材にする（localStorage蓄積→.jsonl書き出し） ----
+// ---- B案コーパス：Claude/Ollama の出力を溜めてA案採掘の素材にする（localStorage蓄積→.jsonl書き出し） ----
 //   ブラウザは任意ファイルへ直接書けないため、localStorageに蓄積し、書き出しボタンで gemini_corpus.jsonl を保存→docs/ へ。
 //   APIキーは絶対にコーパスへ含めない（下の saveToCorpus のレコードに apiKey を入れていないこと）。
 const CORPUS_KEY = 'brew_corpus';
@@ -1596,10 +1502,10 @@ document.getElementById('corpusExport').onclick = exportCorpus;
 document.getElementById('corpusClear').onclick = () => { if(confirm('蓄積したコーパスを消去しますか？（書き出し済みのファイルは残ります）')){ localStorage.removeItem(CORPUS_KEY); refreshCorpusTray(); toast('コーパスをクリアしました'); } };
 refreshCorpusTray();
 
-// ローカルストレージからAPIキーを読み込む
-if (localStorage.getItem('gemini_api_key')) {
-  apiKeyInput.value = localStorage.getItem('gemini_api_key');
-}
+// 旧B案（Gemini）の自分のキー入力欄は廃止。保存されていたキーは消す
+try { localStorage.removeItem('gemini_api_key'); } catch(e) {}
+// Claude（お題でつくる）は中継の URL が入るまで選択肢に出さない
+if (!LIVE_API_URL) { const o = engineSel.querySelector('option[value="claude"]'); if (o) o.remove(); }
 
 // C案(ローカルLLM)の設定を復元（デフォルト: gemma4:12b / localhost:11434）
 // 旧既定の qwen2.5:7b が保存されたままなら新既定へ移す（意図した選択とは限らず、qwen は後で消す予定のため）。他のモデルを自分で入れた設定は触らない
@@ -1612,32 +1518,15 @@ ollamaHostInput.value = localStorage.getItem('ollama_host') || 'http://localhost
 ollamaModelInput.oninput = () => localStorage.setItem('ollama_model', ollamaModelInput.value.trim());
 ollamaHostInput.oninput = () => localStorage.setItem('ollama_host', ollamaHostInput.value.trim());
 
-// エンジン切り替え時の表示制御（A案=テンプレ / B案=Gemini / C案=Ollama）
+// エンジン切り替え時の表示制御（A案=名勝負ミックス / B案=Claude / C案=Ollama）
 engineSel.onchange = () => {
   const v = engineSel.value;
-  apiKeyArea.style.display = (v === 'gemini') ? 'flex' : 'none';
   ollamaArea.style.display = (v === 'ollama') ? 'flex' : 'none';
   modeOpt.style.display = (v === 'template') ? 'flex' : 'none';   // キャラ跨ぎ韻はA案専用
   document.getElementById('styleOpt').style.display = (v === 'template') ? 'none' : 'flex';  // バトルスタイルはB案/C案(LLM)向け
   document.getElementById('themeOpt').style.display = (v === 'template') ? 'none' : 'flex';  // お題も同様（A案はテンプレなので対象外）
 };
 engineSel.dispatchEvent(new Event('change'));
-
-// APIキー保存
-apiKeyInput.oninput = () => {
-  localStorage.setItem('gemini_api_key', apiKeyInput.value.trim());
-};
-
-// パスワード表示/非表示切り替え
-toggleApiKeyBtn.onclick = () => {
-  if (apiKeyInput.type === 'password') {
-    apiKeyInput.type = 'text';
-    toggleApiKeyBtn.textContent = '非表示';
-  } else {
-    apiKeyInput.type = 'password';
-    toggleApiKeyBtn.textContent = '表示';
-  }
-};
 
 Object.entries(FIGHTERS).forEach(([id,f])=>{
   const el = document.createElement('div');

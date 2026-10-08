@@ -1,0 +1,42 @@
+# 醸造ラップバトル「Claude（お題でつくる）」の中継（Cloudflare Workers）の雛形。まだデプロイしていない。
+# APIキーはここに書かない：npx wrangler secret put ANTHROPIC_API_KEY（ローカルの wrangler dev は worker/.dev.vars に ANTHROPIC_API_KEY=... の1行・gitignore 済み）
+name = "brew-rap-live"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+# live/prompt.md（システムプロンプト。Python 試作と共通）を文字列として取り込む
+[[rules]]
+type = "Text"
+globs = ["**/*.md"]
+fallthrough = true
+
+[vars]
+# 呼んでよいページのオリジン（スキーム＋ホストだけ・カンマ区切り）。8787 は手元の静的プレビュー（launch.json の brew-rap-static）
+ALLOWED_ORIGINS = "https://y-kanno-sakenote.github.io,http://localhost:8787"
+# モデルと考える深さ（2026-10-08 オーナー決定：試作で8/8が韻検査通過・伏せた読み比べで最良。1バトル平均 $0.098・約55秒）
+MODEL = "claude-opus-5-5"
+EFFORT = "low"
+# 予算（USD・実際に使った金額で数える。料金は handler.js の PRICE_PER_MTOK）。月20ドル、1日はその1/30
+# 生成の前に「今日（今月）の使用額＋1バトルの見込み EST_COST_USD」が予算を超えるなら 429 で断る。作り直しの分も数える
+DAILY_BUDGET_USD = "0.66"
+MONTHLY_BUDGET_USD = "20"
+EST_COST_USD = "0.15"
+# 1日（日本時間）に1つの IP（IPv6 は /64）から生成できる回数
+DAILY_LIMIT_PER_IP = "3"
+
+# 使用額と IP ごとの回数の帳場（Durable Object 1個・SQLite バックエンド＝無料プランで使える形）。
+# 判定・仮積み・精算を1件ずつ処理するので、同時の要求でも上限を素通りしない。中身は src/budget.js。作成は deploy が自動で行う
+[[durable_objects.bindings]]
+name = "BUDGET"
+class_name = "BudgetDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["BudgetDO"]
+
+# wrangler dev の待ち受け。8787 は静的プレビューが使うので 8788 にずらす
+[dev]
+port = 8788
+
+[observability]
+enabled = true

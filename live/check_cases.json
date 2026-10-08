@@ -1,0 +1,1565 @@
+[
+ {
+  "name": "コーパス1本目そのまま（3本目の返しが頭で拾っていない）",
+  "card": {
+   "aId": "koji",
+   "bId": "yeast",
+   "bars": 8
+  },
+  "data": {
+   "verses": [
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "o-u-a",
+     "lines": [
+      {
+       "text": "香りか味か？ 答えは米を甘く解く、俺の<span class=\"rhyme\">糖化</span>",
+       "end_kana": "とうか"
+      },
+      {
+       "text": "味の芯なき一杯なんて、見かけ倒しの<span class=\"rhyme\">豪華</span>",
+       "end_kana": "ごうか"
+      },
+      {
+       "text": "糖がなけりゃお前は飢えて踊れない、泡も香りも俺の<span class=\"rhyme\">効果</span>",
+       "end_kana": "こうか"
+      },
+      {
+       "text": "味わいを<span class=\"rhyme\">強化</span>してから名乗れ、その自慢の<span class=\"rhyme\">吟醸香</span>",
+       "end_kana": "ぎんじょうか"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-a",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">吟醸香</span>なら俺の領分！ 立ちのぼるりんごの香りは<span class=\"rhyme\">鮮やか</span>",
+       "end_kana": "あざやか"
+      },
+      {
+       "text": "糖を作るだけじゃ酒じゃない、アルコールと香りで咲かす<span class=\"rhyme\">華やかさ</span>",
+       "end_kana": "はなやかさ"
+      },
+      {
+       "text": "香りのない甘い水じゃ、お前の味わいも<span class=\"rhyme\">ささやか</span>",
+       "end_kana": "ささやか"
+      },
+      {
+       "text": "セレビシエ二億の同胞、泡立てる声は<span class=\"rhyme\">高らか</span>！",
+       "end_kana": "たからか"
+      }
+     ]
+    },
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "i-a-i",
+     "lines": [
+      {
+       "text": "香りは一瞬、グラスに残るのは俺が仕込んだ<span class=\"rhyme\">味わい</span>",
+       "end_kana": "あじわい"
+      },
+      {
+       "text": "破精込む菌糸は米の芯まで、糖化の深さは蔵で<span class=\"rhyme\">最大</span>",
+       "end_kana": "さいだい"
+      },
+      {
+       "text": "糖を作る俺を抜きに語れるか、酒の<span class=\"rhyme\">未来</span>",
+       "end_kana": "みらい"
+      },
+      {
+       "text": "だが香りとアルコールはお前の仕事、糖を託す相手として<span class=\"rhyme\">期待</span>",
+       "end_kana": "きたい"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-e",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">期待</span>に応えるぜ！ お前の糖こそ俺の<span class=\"rhyme\">支え</span>",
+       "end_kana": "ささえ"
+      },
+      {
+       "text": "糖をくれるお前なしじゃ始まらない、感謝を込めて一曲<span class=\"rhyme\">奏で</span>",
+       "end_kana": "かなで"
+      },
+      {
+       "text": "香りを<span class=\"rhyme\">高め</span>、味わいは<span class=\"rhyme\">甘め</span>、並行複発酵で二つの夢を<span class=\"rhyme\">叶え</span>",
+       "end_kana": "かなえ"
+      },
+      {
+       "text": "香りか味かじゃない、麹と酵母は共に醸す仲間、グラスを掲げて乾杯の<span class=\"rhyme\">構え</span>",
+       "end_kana": "かまえ"
+      }
+     ]
+    }
+   ],
+   "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
+  },
+  "expect": {
+   "ok": false,
+   "structural": true,
+   "codes": [
+    "V3L1:retort"
+   ]
+  }
+ },
+ {
+  "name": "返しを直した版（全部通る）",
+  "card": {
+   "aId": "koji",
+   "bId": "yeast",
+   "bars": 8
+  },
+  "data": {
+   "verses": [
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "o-u-a",
+     "lines": [
+      {
+       "text": "香りか味か？ 答えは米を甘く解く、俺の<span class=\"rhyme\">糖化</span>",
+       "end_kana": "とうか"
+      },
+      {
+       "text": "味の芯なき一杯なんて、見かけ倒しの<span class=\"rhyme\">豪華</span>",
+       "end_kana": "ごうか"
+      },
+      {
+       "text": "糖がなけりゃお前は飢えて踊れない、泡も香りも俺の<span class=\"rhyme\">効果</span>",
+       "end_kana": "こうか"
+      },
+      {
+       "text": "味わいを<span class=\"rhyme\">強化</span>してから名乗れ、その自慢の<span class=\"rhyme\">吟醸香</span>",
+       "end_kana": "ぎんじょうか"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-a",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">吟醸香</span>なら俺の領分！ 立ちのぼるりんごの香りは<span class=\"rhyme\">鮮やか</span>",
+       "end_kana": "あざやか"
+      },
+      {
+       "text": "糖を作るだけじゃ酒じゃない、アルコールと香りで咲かす<span class=\"rhyme\">華やかさ</span>",
+       "end_kana": "はなやかさ"
+      },
+      {
+       "text": "香りのない甘い水じゃ、お前の味わいも<span class=\"rhyme\">ささやか</span>",
+       "end_kana": "ささやか"
+      },
+      {
+       "text": "セレビシエ二億の同胞、泡立てる声は<span class=\"rhyme\">高らか</span>！",
+       "end_kana": "たからか"
+      }
+     ]
+    },
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "i-a-i",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">高らか</span>に吠えても、グラスに残るのは俺が仕込んだ<span class=\"rhyme\">味わい</span>",
+       "end_kana": "あじわい"
+      },
+      {
+       "text": "破精込む菌糸は米の芯まで、糖化の深さは蔵で<span class=\"rhyme\">最大</span>",
+       "end_kana": "さいだい"
+      },
+      {
+       "text": "糖を作る俺を抜きに語れるか、酒の<span class=\"rhyme\">未来</span>",
+       "end_kana": "みらい"
+      },
+      {
+       "text": "だが香りとアルコールはお前の仕事、糖を託す相手として<span class=\"rhyme\">期待</span>",
+       "end_kana": "きたい"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-e",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">期待</span>に応えるぜ！ お前の糖こそ俺の<span class=\"rhyme\">支え</span>",
+       "end_kana": "ささえ"
+      },
+      {
+       "text": "糖をくれるお前なしじゃ始まらない、感謝を込めて一曲<span class=\"rhyme\">奏で</span>",
+       "end_kana": "かなで"
+      },
+      {
+       "text": "香りを<span class=\"rhyme\">高め</span>、味わいは<span class=\"rhyme\">甘め</span>、並行複発酵で二つの夢を<span class=\"rhyme\">叶え</span>",
+       "end_kana": "かなえ"
+      },
+      {
+       "text": "香りか味かじゃない、麹と酵母は共に醸す仲間、グラスを掲げて乾杯の<span class=\"rhyme\">構え</span>",
+       "end_kana": "かまえ"
+      }
+     ]
+    }
+   ],
+   "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
+  },
+  "expect": {
+   "ok": true,
+   "structural": true,
+   "codes": []
+  }
+ },
+ {
+  "name": "小節数の食い違い（12小節なら6本）",
+  "card": {
+   "aId": "koji",
+   "bId": "yeast",
+   "bars": 12
+  },
+  "data": {
+   "verses": [
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "o-u-a",
+     "lines": [
+      {
+       "text": "香りか味か？ 答えは米を甘く解く、俺の<span class=\"rhyme\">糖化</span>",
+       "end_kana": "とうか"
+      },
+      {
+       "text": "味の芯なき一杯なんて、見かけ倒しの<span class=\"rhyme\">豪華</span>",
+       "end_kana": "ごうか"
+      },
+      {
+       "text": "糖がなけりゃお前は飢えて踊れない、泡も香りも俺の<span class=\"rhyme\">効果</span>",
+       "end_kana": "こうか"
+      },
+      {
+       "text": "味わいを<span class=\"rhyme\">強化</span>してから名乗れ、その自慢の<span class=\"rhyme\">吟醸香</span>",
+       "end_kana": "ぎんじょうか"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-a",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">吟醸香</span>なら俺の領分！ 立ちのぼるりんごの香りは<span class=\"rhyme\">鮮やか</span>",
+       "end_kana": "あざやか"
+      },
+      {
+       "text": "糖を作るだけじゃ酒じゃない、アルコールと香りで咲かす<span class=\"rhyme\">華やかさ</span>",
+       "end_kana": "はなやかさ"
+      },
+      {
+       "text": "香りのない甘い水じゃ、お前の味わいも<span class=\"rhyme\">ささやか</span>",
+       "end_kana": "ささやか"
+      },
+      {
+       "text": "セレビシエ二億の同胞、泡立てる声は<span class=\"rhyme\">高らか</span>！",
+       "end_kana": "たからか"
+      }
+     ]
+    },
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "i-a-i",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">高らか</span>に吠えても、グラスに残るのは俺が仕込んだ<span class=\"rhyme\">味わい</span>",
+       "end_kana": "あじわい"
+      },
+      {
+       "text": "破精込む菌糸は米の芯まで、糖化の深さは蔵で<span class=\"rhyme\">最大</span>",
+       "end_kana": "さいだい"
+      },
+      {
+       "text": "糖を作る俺を抜きに語れるか、酒の<span class=\"rhyme\">未来</span>",
+       "end_kana": "みらい"
+      },
+      {
+       "text": "だが香りとアルコールはお前の仕事、糖を託す相手として<span class=\"rhyme\">期待</span>",
+       "end_kana": "きたい"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-e",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">期待</span>に応えるぜ！ お前の糖こそ俺の<span class=\"rhyme\">支え</span>",
+       "end_kana": "ささえ"
+      },
+      {
+       "text": "糖をくれるお前なしじゃ始まらない、感謝を込めて一曲<span class=\"rhyme\">奏で</span>",
+       "end_kana": "かなで"
+      },
+      {
+       "text": "香りを<span class=\"rhyme\">高め</span>、味わいは<span class=\"rhyme\">甘め</span>、並行複発酵で二つの夢を<span class=\"rhyme\">叶え</span>",
+       "end_kana": "かなえ"
+      },
+      {
+       "text": "香りか味かじゃない、麹と酵母は共に醸す仲間、グラスを掲げて乾杯の<span class=\"rhyme\">構え</span>",
+       "end_kana": "かまえ"
+      }
+     ]
+    }
+   ],
+   "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
+  },
+  "expect": {
+   "ok": false,
+   "structural": false,
+   "codes": [
+    "all:count"
+   ]
+  }
+ },
+ {
+  "name": "先攻後攻の取り違え",
+  "card": {
+   "aId": "yeast",
+   "bId": "koji",
+   "bars": 8
+  },
+  "data": {
+   "verses": [
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "o-u-a",
+     "lines": [
+      {
+       "text": "香りか味か？ 答えは米を甘く解く、俺の<span class=\"rhyme\">糖化</span>",
+       "end_kana": "とうか"
+      },
+      {
+       "text": "味の芯なき一杯なんて、見かけ倒しの<span class=\"rhyme\">豪華</span>",
+       "end_kana": "ごうか"
+      },
+      {
+       "text": "糖がなけりゃお前は飢えて踊れない、泡も香りも俺の<span class=\"rhyme\">効果</span>",
+       "end_kana": "こうか"
+      },
+      {
+       "text": "味わいを<span class=\"rhyme\">強化</span>してから名乗れ、その自慢の<span class=\"rhyme\">吟醸香</span>",
+       "end_kana": "ぎんじょうか"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-a",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">吟醸香</span>なら俺の領分！ 立ちのぼるりんごの香りは<span class=\"rhyme\">鮮やか</span>",
+       "end_kana": "あざやか"
+      },
+      {
+       "text": "糖を作るだけじゃ酒じゃない、アルコールと香りで咲かす<span class=\"rhyme\">華やかさ</span>",
+       "end_kana": "はなやかさ"
+      },
+      {
+       "text": "香りのない甘い水じゃ、お前の味わいも<span class=\"rhyme\">ささやか</span>",
+       "end_kana": "ささやか"
+      },
+      {
+       "text": "セレビシエ二億の同胞、泡立てる声は<span class=\"rhyme\">高らか</span>！",
+       "end_kana": "たからか"
+      }
+     ]
+    },
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "i-a-i",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">高らか</span>に吠えても、グラスに残るのは俺が仕込んだ<span class=\"rhyme\">味わい</span>",
+       "end_kana": "あじわい"
+      },
+      {
+       "text": "破精込む菌糸は米の芯まで、糖化の深さは蔵で<span class=\"rhyme\">最大</span>",
+       "end_kana": "さいだい"
+      },
+      {
+       "text": "糖を作る俺を抜きに語れるか、酒の<span class=\"rhyme\">未来</span>",
+       "end_kana": "みらい"
+      },
+      {
+       "text": "だが香りとアルコールはお前の仕事、糖を託す相手として<span class=\"rhyme\">期待</span>",
+       "end_kana": "きたい"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-e",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">期待</span>に応えるぜ！ お前の糖こそ俺の<span class=\"rhyme\">支え</span>",
+       "end_kana": "ささえ"
+      },
+      {
+       "text": "糖をくれるお前なしじゃ始まらない、感謝を込めて一曲<span class=\"rhyme\">奏で</span>",
+       "end_kana": "かなで"
+      },
+      {
+       "text": "香りを<span class=\"rhyme\">高め</span>、味わいは<span class=\"rhyme\">甘め</span>、並行複発酵で二つの夢を<span class=\"rhyme\">叶え</span>",
+       "end_kana": "かなえ"
+      },
+      {
+       "text": "香りか味かじゃない、麹と酵母は共に醸す仲間、グラスを掲げて乾杯の<span class=\"rhyme\">構え</span>",
+       "end_kana": "かまえ"
+      }
+     ]
+    }
+   ],
+   "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
+  },
+  "expect": {
+   "ok": false,
+   "structural": false,
+   "codes": [
+    "V1:speaker",
+    "V2:speaker",
+    "V3:speaker",
+    "V4:speaker"
+   ]
+  }
+ },
+ {
+  "name": "最後の母音が割れる",
+  "card": {
+   "aId": "koji",
+   "bId": "yeast",
+   "bars": 8
+  },
+  "data": {
+   "verses": [
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "o-u-a",
+     "lines": [
+      {
+       "text": "香りか味か？ 答えは米を甘く解く、俺の<span class=\"rhyme\">糖化</span>",
+       "end_kana": "とうか"
+      },
+      {
+       "text": "味の芯なき一杯なんて、見かけ倒しの<span class=\"rhyme\">豪華</span>",
+       "end_kana": "ごうかい"
+      },
+      {
+       "text": "糖がなけりゃお前は飢えて踊れない、泡も香りも俺の<span class=\"rhyme\">効果</span>",
+       "end_kana": "こうか"
+      },
+      {
+       "text": "味わいを<span class=\"rhyme\">強化</span>してから名乗れ、その自慢の<span class=\"rhyme\">吟醸香</span>",
+       "end_kana": "ぎんじょうか"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-a",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">吟醸香</span>なら俺の領分！ 立ちのぼるりんごの香りは<span class=\"rhyme\">鮮やか</span>",
+       "end_kana": "あざやか"
+      },
+      {
+       "text": "糖を作るだけじゃ酒じゃない、アルコールと香りで咲かす<span class=\"rhyme\">華やかさ</span>",
+       "end_kana": "はなやかさ"
+      },
+      {
+       "text": "香りのない甘い水じゃ、お前の味わいも<span class=\"rhyme\">ささやか</span>",
+       "end_kana": "ささやか"
+      },
+      {
+       "text": "セレビシエ二億の同胞、泡立てる声は<span class=\"rhyme\">高らか</span>！",
+       "end_kana": "たからか"
+      }
+     ]
+    },
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "i-a-i",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">高らか</span>に吠えても、グラスに残るのは俺が仕込んだ<span class=\"rhyme\">味わい</span>",
+       "end_kana": "あじわい"
+      },
+      {
+       "text": "破精込む菌糸は米の芯まで、糖化の深さは蔵で<span class=\"rhyme\">最大</span>",
+       "end_kana": "さいだい"
+      },
+      {
+       "text": "糖を作る俺を抜きに語れるか、酒の<span class=\"rhyme\">未来</span>",
+       "end_kana": "みらい"
+      },
+      {
+       "text": "だが香りとアルコールはお前の仕事、糖を託す相手として<span class=\"rhyme\">期待</span>",
+       "end_kana": "きたい"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-e",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">期待</span>に応えるぜ！ お前の糖こそ俺の<span class=\"rhyme\">支え</span>",
+       "end_kana": "ささえ"
+      },
+      {
+       "text": "糖をくれるお前なしじゃ始まらない、感謝を込めて一曲<span class=\"rhyme\">奏で</span>",
+       "end_kana": "かなで"
+      },
+      {
+       "text": "香りを<span class=\"rhyme\">高め</span>、味わいは<span class=\"rhyme\">甘め</span>、並行複発酵で二つの夢を<span class=\"rhyme\">叶え</span>",
+       "end_kana": "かなえ"
+      },
+      {
+       "text": "香りか味かじゃない、麹と酵母は共に醸す仲間、グラスを掲げて乾杯の<span class=\"rhyme\">構え</span>",
+       "end_kana": "かまえ"
+      }
+     ]
+    }
+   ],
+   "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
+  },
+  "expect": {
+   "ok": false,
+   "structural": true,
+   "codes": [
+    "V1:last"
+   ]
+  }
+ },
+ {
+  "name": "末尾3母音の不一致",
+  "card": {
+   "aId": "koji",
+   "bId": "yeast",
+   "bars": 8
+  },
+  "data": {
+   "verses": [
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "o-u-a",
+     "lines": [
+      {
+       "text": "香りか味か？ 答えは米を甘く解く、俺の<span class=\"rhyme\">糖化</span>",
+       "end_kana": "とうか"
+      },
+      {
+       "text": "味の芯なき一杯なんて、見かけ倒しの<span class=\"rhyme\">豪華</span>",
+       "end_kana": "ごうか"
+      },
+      {
+       "text": "糖がなけりゃお前は飢えて踊れない、泡も香りも俺の<span class=\"rhyme\">効果</span>",
+       "end_kana": "こうか"
+      },
+      {
+       "text": "味わいを<span class=\"rhyme\">強化</span>してから名乗れ、その自慢の<span class=\"rhyme\">吟醸香</span>",
+       "end_kana": "ぎんじょうか"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-a",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">吟醸香</span>なら俺の領分！ 立ちのぼるりんごの香りは<span class=\"rhyme\">鮮やか</span>",
+       "end_kana": "あざやか"
+      },
+      {
+       "text": "糖を作るだけじゃ酒じゃない、アルコールと香りで咲かす<span class=\"rhyme\">華やかさ</span>",
+       "end_kana": "はなやかさ"
+      },
+      {
+       "text": "香りのない甘い水じゃ、お前の味わいも<span class=\"rhyme\">ささやか</span>",
+       "end_kana": "ささやか"
+      },
+      {
+       "text": "セレビシエ二億の同胞、泡立てる声は<span class=\"rhyme\">高らか</span>！",
+       "end_kana": "たからか"
+      }
+     ]
+    },
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "i-a-i",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">高らか</span>に吠えても、グラスに残るのは俺が仕込んだ<span class=\"rhyme\">味わい</span>",
+       "end_kana": "あじわい"
+      },
+      {
+       "text": "破精込む菌糸は米の芯まで、糖化の深さは蔵で<span class=\"rhyme\">最大</span>",
+       "end_kana": "かいてき"
+      },
+      {
+       "text": "糖を作る俺を抜きに語れるか、酒の<span class=\"rhyme\">未来</span>",
+       "end_kana": "みらい"
+      },
+      {
+       "text": "だが香りとアルコールはお前の仕事、糖を託す相手として<span class=\"rhyme\">期待</span>",
+       "end_kana": "きたい"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-e",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">期待</span>に応えるぜ！ お前の糖こそ俺の<span class=\"rhyme\">支え</span>",
+       "end_kana": "ささえ"
+      },
+      {
+       "text": "糖をくれるお前なしじゃ始まらない、感謝を込めて一曲<span class=\"rhyme\">奏で</span>",
+       "end_kana": "かなで"
+      },
+      {
+       "text": "香りを<span class=\"rhyme\">高め</span>、味わいは<span class=\"rhyme\">甘め</span>、並行複発酵で二つの夢を<span class=\"rhyme\">叶え</span>",
+       "end_kana": "かなえ"
+      },
+      {
+       "text": "香りか味かじゃない、麹と酵母は共に醸す仲間、グラスを掲げて乾杯の<span class=\"rhyme\">構え</span>",
+       "end_kana": "かまえ"
+      }
+     ]
+    }
+   ],
+   "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
+  },
+  "expect": {
+   "ok": false,
+   "structural": true,
+   "codes": [
+    "V3:sig3"
+   ]
+  }
+ },
+ {
+  "name": "長音は直前の母音をくり返す（o-o-a）",
+  "card": {
+   "aId": "koji",
+   "bId": "yeast",
+   "bars": 8
+  },
+  "data": {
+   "verses": [
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "o-u-a",
+     "lines": [
+      {
+       "text": "香りか味か？ 答えは米を甘く解く、俺の<span class=\"rhyme\">糖化</span>",
+       "end_kana": "こーか"
+      },
+      {
+       "text": "味の芯なき一杯なんて、見かけ倒しの<span class=\"rhyme\">豪華</span>",
+       "end_kana": "ごうか"
+      },
+      {
+       "text": "糖がなけりゃお前は飢えて踊れない、泡も香りも俺の<span class=\"rhyme\">効果</span>",
+       "end_kana": "こうか"
+      },
+      {
+       "text": "味わいを<span class=\"rhyme\">強化</span>してから名乗れ、その自慢の<span class=\"rhyme\">吟醸香</span>",
+       "end_kana": "ぎんじょうか"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-a",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">吟醸香</span>なら俺の領分！ 立ちのぼるりんごの香りは<span class=\"rhyme\">鮮やか</span>",
+       "end_kana": "あざやか"
+      },
+      {
+       "text": "糖を作るだけじゃ酒じゃない、アルコールと香りで咲かす<span class=\"rhyme\">華やかさ</span>",
+       "end_kana": "はなやかさ"
+      },
+      {
+       "text": "香りのない甘い水じゃ、お前の味わいも<span class=\"rhyme\">ささやか</span>",
+       "end_kana": "ささやか"
+      },
+      {
+       "text": "セレビシエ二億の同胞、泡立てる声は<span class=\"rhyme\">高らか</span>！",
+       "end_kana": "たからか"
+      }
+     ]
+    },
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "i-a-i",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">高らか</span>に吠えても、グラスに残るのは俺が仕込んだ<span class=\"rhyme\">味わい</span>",
+       "end_kana": "あじわい"
+      },
+      {
+       "text": "破精込む菌糸は米の芯まで、糖化の深さは蔵で<span class=\"rhyme\">最大</span>",
+       "end_kana": "さいだい"
+      },
+      {
+       "text": "糖を作る俺を抜きに語れるか、酒の<span class=\"rhyme\">未来</span>",
+       "end_kana": "みらい"
+      },
+      {
+       "text": "だが香りとアルコールはお前の仕事、糖を託す相手として<span class=\"rhyme\">期待</span>",
+       "end_kana": "きたい"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-e",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">期待</span>に応えるぜ！ お前の糖こそ俺の<span class=\"rhyme\">支え</span>",
+       "end_kana": "ささえ"
+      },
+      {
+       "text": "糖をくれるお前なしじゃ始まらない、感謝を込めて一曲<span class=\"rhyme\">奏で</span>",
+       "end_kana": "かなで"
+      },
+      {
+       "text": "香りを<span class=\"rhyme\">高め</span>、味わいは<span class=\"rhyme\">甘め</span>、並行複発酵で二つの夢を<span class=\"rhyme\">叶え</span>",
+       "end_kana": "かなえ"
+      },
+      {
+       "text": "香りか味かじゃない、麹と酵母は共に醸す仲間、グラスを掲げて乾杯の<span class=\"rhyme\">構え</span>",
+       "end_kana": "かまえ"
+      }
+     ]
+    }
+   ],
+   "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
+  },
+  "expect": {
+   "ok": false,
+   "structural": true,
+   "codes": [
+    "V1:sig3"
+   ]
+  }
+ },
+ {
+  "name": "拗音は2母音（しょうか=i-o-u-a→o-u-a）",
+  "card": {
+   "aId": "koji",
+   "bId": "yeast",
+   "bars": 8
+  },
+  "data": {
+   "verses": [
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "o-u-a",
+     "lines": [
+      {
+       "text": "香りか味か？ 答えは米を甘く解く、俺の<span class=\"rhyme\">糖化</span>",
+       "end_kana": "しょうか"
+      },
+      {
+       "text": "味の芯なき一杯なんて、見かけ倒しの<span class=\"rhyme\">豪華</span>",
+       "end_kana": "ごうか"
+      },
+      {
+       "text": "糖がなけりゃお前は飢えて踊れない、泡も香りも俺の<span class=\"rhyme\">効果</span>",
+       "end_kana": "こうか"
+      },
+      {
+       "text": "味わいを<span class=\"rhyme\">強化</span>してから名乗れ、その自慢の<span class=\"rhyme\">吟醸香</span>",
+       "end_kana": "ぎんじょうか"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-a",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">吟醸香</span>なら俺の領分！ 立ちのぼるりんごの香りは<span class=\"rhyme\">鮮やか</span>",
+       "end_kana": "あざやか"
+      },
+      {
+       "text": "糖を作るだけじゃ酒じゃない、アルコールと香りで咲かす<span class=\"rhyme\">華やかさ</span>",
+       "end_kana": "はなやかさ"
+      },
+      {
+       "text": "香りのない甘い水じゃ、お前の味わいも<span class=\"rhyme\">ささやか</span>",
+       "end_kana": "ささやか"
+      },
+      {
+       "text": "セレビシエ二億の同胞、泡立てる声は<span class=\"rhyme\">高らか</span>！",
+       "end_kana": "たからか"
+      }
+     ]
+    },
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "i-a-i",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">高らか</span>に吠えても、グラスに残るのは俺が仕込んだ<span class=\"rhyme\">味わい</span>",
+       "end_kana": "あじわい"
+      },
+      {
+       "text": "破精込む菌糸は米の芯まで、糖化の深さは蔵で<span class=\"rhyme\">最大</span>",
+       "end_kana": "さいだい"
+      },
+      {
+       "text": "糖を作る俺を抜きに語れるか、酒の<span class=\"rhyme\">未来</span>",
+       "end_kana": "みらい"
+      },
+      {
+       "text": "だが香りとアルコールはお前の仕事、糖を託す相手として<span class=\"rhyme\">期待</span>",
+       "end_kana": "きたい"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-e",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">期待</span>に応えるぜ！ お前の糖こそ俺の<span class=\"rhyme\">支え</span>",
+       "end_kana": "ささえ"
+      },
+      {
+       "text": "糖をくれるお前なしじゃ始まらない、感謝を込めて一曲<span class=\"rhyme\">奏で</span>",
+       "end_kana": "かなで"
+      },
+      {
+       "text": "香りを<span class=\"rhyme\">高め</span>、味わいは<span class=\"rhyme\">甘め</span>、並行複発酵で二つの夢を<span class=\"rhyme\">叶え</span>",
+       "end_kana": "かなえ"
+      },
+      {
+       "text": "香りか味かじゃない、麹と酵母は共に醸す仲間、グラスを掲げて乾杯の<span class=\"rhyme\">構え</span>",
+       "end_kana": "かまえ"
+      }
+     ]
+    }
+   ],
+   "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
+  },
+  "expect": {
+   "ok": true,
+   "structural": true,
+   "codes": []
+  }
+ },
+ {
+  "name": "end_kanaに漢字・カタカナ",
+  "card": {
+   "aId": "koji",
+   "bId": "yeast",
+   "bars": 8
+  },
+  "data": {
+   "verses": [
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "o-u-a",
+     "lines": [
+      {
+       "text": "香りか味か？ 答えは米を甘く解く、俺の<span class=\"rhyme\">糖化</span>",
+       "end_kana": "とうか"
+      },
+      {
+       "text": "味の芯なき一杯なんて、見かけ倒しの<span class=\"rhyme\">豪華</span>",
+       "end_kana": "ごうか"
+      },
+      {
+       "text": "糖がなけりゃお前は飢えて踊れない、泡も香りも俺の<span class=\"rhyme\">効果</span>",
+       "end_kana": "こうか"
+      },
+      {
+       "text": "味わいを<span class=\"rhyme\">強化</span>してから名乗れ、その自慢の<span class=\"rhyme\">吟醸香</span>",
+       "end_kana": "ぎんじょうか"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-a",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">吟醸香</span>なら俺の領分！ 立ちのぼるりんごの香りは<span class=\"rhyme\">鮮やか</span>",
+       "end_kana": "鮮やか"
+      },
+      {
+       "text": "糖を作るだけじゃ酒じゃない、アルコールと香りで咲かす<span class=\"rhyme\">華やかさ</span>",
+       "end_kana": "はなやかさ"
+      },
+      {
+       "text": "香りのない甘い水じゃ、お前の味わいも<span class=\"rhyme\">ささやか</span>",
+       "end_kana": "ササヤカ"
+      },
+      {
+       "text": "セレビシエ二億の同胞、泡立てる声は<span class=\"rhyme\">高らか</span>！",
+       "end_kana": "たからか"
+      }
+     ]
+    },
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "i-a-i",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">高らか</span>に吠えても、グラスに残るのは俺が仕込んだ<span class=\"rhyme\">味わい</span>",
+       "end_kana": "あじわい"
+      },
+      {
+       "text": "破精込む菌糸は米の芯まで、糖化の深さは蔵で<span class=\"rhyme\">最大</span>",
+       "end_kana": "さいだい"
+      },
+      {
+       "text": "糖を作る俺を抜きに語れるか、酒の<span class=\"rhyme\">未来</span>",
+       "end_kana": "みらい"
+      },
+      {
+       "text": "だが香りとアルコールはお前の仕事、糖を託す相手として<span class=\"rhyme\">期待</span>",
+       "end_kana": "きたい"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-e",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">期待</span>に応えるぜ！ お前の糖こそ俺の<span class=\"rhyme\">支え</span>",
+       "end_kana": "ささえ"
+      },
+      {
+       "text": "糖をくれるお前なしじゃ始まらない、感謝を込めて一曲<span class=\"rhyme\">奏で</span>",
+       "end_kana": "かなで"
+      },
+      {
+       "text": "香りを<span class=\"rhyme\">高め</span>、味わいは<span class=\"rhyme\">甘め</span>、並行複発酵で二つの夢を<span class=\"rhyme\">叶え</span>",
+       "end_kana": "かなえ"
+      },
+      {
+       "text": "香りか味かじゃない、麹と酵母は共に醸す仲間、グラスを掲げて乾杯の<span class=\"rhyme\">構え</span>",
+       "end_kana": "かまえ"
+      }
+     ]
+    }
+   ],
+   "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
+  },
+  "expect": {
+   "ok": false,
+   "structural": true,
+   "codes": [
+    "V2L1:kana",
+    "V2L3:kana"
+   ]
+  }
+ },
+ {
+  "name": "母音が3つ未満",
+  "card": {
+   "aId": "koji",
+   "bId": "yeast",
+   "bars": 8
+  },
+  "data": {
+   "verses": [
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "o-u-a",
+     "lines": [
+      {
+       "text": "香りか味か？ 答えは米を甘く解く、俺の<span class=\"rhyme\">糖化</span>",
+       "end_kana": "とうか"
+      },
+      {
+       "text": "味の芯なき一杯なんて、見かけ倒しの<span class=\"rhyme\">豪華</span>",
+       "end_kana": "ごうか"
+      },
+      {
+       "text": "糖がなけりゃお前は飢えて踊れない、泡も香りも俺の<span class=\"rhyme\">効果</span>",
+       "end_kana": "こうか"
+      },
+      {
+       "text": "味わいを<span class=\"rhyme\">強化</span>してから名乗れ、その自慢の<span class=\"rhyme\">吟醸香</span>",
+       "end_kana": "ぎんじょうか"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-a",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">吟醸香</span>なら俺の領分！ 立ちのぼるりんごの香りは<span class=\"rhyme\">鮮やか</span>",
+       "end_kana": "あざやか"
+      },
+      {
+       "text": "糖を作るだけじゃ酒じゃない、アルコールと香りで咲かす<span class=\"rhyme\">華やかさ</span>",
+       "end_kana": "はなやかさ"
+      },
+      {
+       "text": "香りのない甘い水じゃ、お前の味わいも<span class=\"rhyme\">ささやか</span>",
+       "end_kana": "ささやか"
+      },
+      {
+       "text": "セレビシエ二億の同胞、泡立てる声は<span class=\"rhyme\">高らか</span>！",
+       "end_kana": "たからか"
+      }
+     ]
+    },
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "i-a-i",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">高らか</span>に吠えても、グラスに残るのは俺が仕込んだ<span class=\"rhyme\">味わい</span>",
+       "end_kana": "あじわい"
+      },
+      {
+       "text": "破精込む菌糸は米の芯まで、糖化の深さは蔵で<span class=\"rhyme\">最大</span>",
+       "end_kana": "さいだい"
+      },
+      {
+       "text": "糖を作る俺を抜きに語れるか、酒の<span class=\"rhyme\">未来</span>",
+       "end_kana": "みらい"
+      },
+      {
+       "text": "だが香りとアルコールはお前の仕事、糖を託す相手として<span class=\"rhyme\">期待</span>",
+       "end_kana": "きたい"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-e",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">期待</span>に応えるぜ！ お前の糖こそ俺の<span class=\"rhyme\">支え</span>",
+       "end_kana": "ささえ"
+      },
+      {
+       "text": "糖をくれるお前なしじゃ始まらない、感謝を込めて一曲<span class=\"rhyme\">奏で</span>",
+       "end_kana": "かえ"
+      },
+      {
+       "text": "香りを<span class=\"rhyme\">高め</span>、味わいは<span class=\"rhyme\">甘め</span>、並行複発酵で二つの夢を<span class=\"rhyme\">叶え</span>",
+       "end_kana": "かなえ"
+      },
+      {
+       "text": "香りか味かじゃない、麹と酵母は共に醸す仲間、グラスを掲げて乾杯の<span class=\"rhyme\">構え</span>",
+       "end_kana": "かまえ"
+      }
+     ]
+    }
+   ],
+   "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
+  },
+  "expect": {
+   "ok": false,
+   "structural": true,
+   "codes": [
+    "V4L2:kana"
+   ]
+  }
+ },
+ {
+  "name": "行末が印で終わらない",
+  "card": {
+   "aId": "koji",
+   "bId": "yeast",
+   "bars": 8
+  },
+  "data": {
+   "verses": [
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "o-u-a",
+     "lines": [
+      {
+       "text": "香りか味か？ 答えは米を甘く解く、俺の<span class=\"rhyme\">糖化</span>だぜ",
+       "end_kana": "とうか"
+      },
+      {
+       "text": "味の芯なき一杯なんて、見かけ倒しの<span class=\"rhyme\">豪華</span>",
+       "end_kana": "ごうか"
+      },
+      {
+       "text": "糖がなけりゃお前は飢えて踊れない、泡も香りも俺の<span class=\"rhyme\">効果</span>",
+       "end_kana": "こうか"
+      },
+      {
+       "text": "味わいを<span class=\"rhyme\">強化</span>してから名乗れ、その自慢の<span class=\"rhyme\">吟醸香</span>",
+       "end_kana": "ぎんじょうか"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-a",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">吟醸香</span>なら俺の領分！ 立ちのぼるりんごの香りは<span class=\"rhyme\">鮮やか</span>",
+       "end_kana": "あざやか"
+      },
+      {
+       "text": "糖を作るだけじゃ酒じゃない、アルコールと香りで咲かす<span class=\"rhyme\">華やかさ</span>",
+       "end_kana": "はなやかさ"
+      },
+      {
+       "text": "香りのない甘い水じゃ、お前の味わいも<span class=\"rhyme\">ささやか</span>",
+       "end_kana": "ささやか"
+      },
+      {
+       "text": "セレビシエ二億の同胞、泡立てる声は<span class=\"rhyme\">高らか</span>！",
+       "end_kana": "たからか"
+      }
+     ]
+    },
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "i-a-i",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">高らか</span>に吠えても、グラスに残るのは俺が仕込んだ<span class=\"rhyme\">味わい</span>",
+       "end_kana": "あじわい"
+      },
+      {
+       "text": "破精込む菌糸は米の芯まで、糖化の深さは蔵で<span class=\"rhyme\">最大</span>",
+       "end_kana": "さいだい"
+      },
+      {
+       "text": "糖を作る俺を抜きに語れるか、酒の<span class=\"rhyme\">未来</span>",
+       "end_kana": "みらい"
+      },
+      {
+       "text": "だが香りとアルコールはお前の仕事、糖を託す相手として<span class=\"rhyme\">期待</span>",
+       "end_kana": "きたい"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-e",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">期待</span>に応えるぜ！ お前の糖こそ俺の<span class=\"rhyme\">支え</span>",
+       "end_kana": "ささえ"
+      },
+      {
+       "text": "糖をくれるお前なしじゃ始まらない、感謝を込めて一曲<span class=\"rhyme\">奏で</span>",
+       "end_kana": "かなで"
+      },
+      {
+       "text": "香りを<span class=\"rhyme\">高め</span>、味わいは<span class=\"rhyme\">甘め</span>、並行複発酵で二つの夢を<span class=\"rhyme\">叶え</span>",
+       "end_kana": "かなえ"
+      },
+      {
+       "text": "香りか味かじゃない、麹と酵母は共に醸す仲間、グラスを掲げて乾杯の<span class=\"rhyme\">構え</span>",
+       "end_kana": "かまえ"
+      }
+     ]
+    }
+   ],
+   "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
+  },
+  "expect": {
+   "ok": false,
+   "structural": true,
+   "codes": [
+    "V1L1:endmark"
+   ]
+  }
+ },
+ {
+  "name": "印以外のタグ",
+  "card": {
+   "aId": "koji",
+   "bId": "yeast",
+   "bars": 8
+  },
+  "data": {
+   "verses": [
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "o-u-a",
+     "lines": [
+      {
+       "text": "香りか味か？ 答えは米を甘く解く、俺の<span class=\"rhyme\">糖化</span>",
+       "end_kana": "とうか"
+      },
+      {
+       "text": "<b>味の芯</b>なき一杯なんて、見かけ倒しの<span class=\"rhyme\">豪華</span>",
+       "end_kana": "ごうか"
+      },
+      {
+       "text": "糖がなけりゃお前は飢えて踊れない、泡も香りも俺の<span class=\"rhyme\">効果</span>",
+       "end_kana": "こうか"
+      },
+      {
+       "text": "味わいを<span class=\"rhyme\">強化</span>してから名乗れ、その自慢の<span class=\"rhyme\">吟醸香</span>",
+       "end_kana": "ぎんじょうか"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-a",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">吟醸香</span>なら俺の領分！ 立ちのぼるりんごの香りは<span class=\"rhyme\">鮮やか</span>",
+       "end_kana": "あざやか"
+      },
+      {
+       "text": "糖を作るだけじゃ酒じゃない、アルコールと香りで咲かす<span class=\"rhyme\">華やかさ</span>",
+       "end_kana": "はなやかさ"
+      },
+      {
+       "text": "香りのない甘い水じゃ、お前の味わいも<span class=\"rhyme\">ささやか</span>",
+       "end_kana": "ささやか"
+      },
+      {
+       "text": "セレビシエ二億の同胞、泡立てる声は<span class=\"rhyme\">高らか</span>！",
+       "end_kana": "たからか"
+      }
+     ]
+    },
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "i-a-i",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">高らか</span>に吠えても、グラスに残るのは俺が仕込んだ<span class=\"rhyme\">味わい</span>",
+       "end_kana": "あじわい"
+      },
+      {
+       "text": "破精込む菌糸は米の芯まで、糖化の深さは蔵で<span class=\"rhyme\">最大</span>",
+       "end_kana": "さいだい"
+      },
+      {
+       "text": "糖を作る俺を抜きに語れるか、酒の<span class=\"rhyme\">未来</span>",
+       "end_kana": "みらい"
+      },
+      {
+       "text": "だが香りとアルコールはお前の仕事、糖を託す相手として<span class=\"rhyme\">期待</span>",
+       "end_kana": "きたい"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-e",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">期待</span>に応えるぜ！ お前の糖こそ俺の<span class=\"rhyme\">支え</span>",
+       "end_kana": "ささえ"
+      },
+      {
+       "text": "糖をくれるお前なしじゃ始まらない、感謝を込めて一曲<span class=\"rhyme\">奏で</span>",
+       "end_kana": "かなで"
+      },
+      {
+       "text": "香りを<span class=\"rhyme\">高め</span>、味わいは<span class=\"rhyme\">甘め</span>、並行複発酵で二つの夢を<span class=\"rhyme\">叶え</span>",
+       "end_kana": "かなえ"
+      },
+      {
+       "text": "香りか味かじゃない、麹と酵母は共に醸す仲間、グラスを掲げて乾杯の<span class=\"rhyme\">構え</span>",
+       "end_kana": "かまえ"
+      }
+     ]
+    }
+   ],
+   "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
+  },
+  "expect": {
+   "ok": false,
+   "structural": true,
+   "codes": [
+    "V1L2:html"
+   ]
+  }
+ },
+ {
+  "name": "行が3行",
+  "card": {
+   "aId": "koji",
+   "bId": "yeast",
+   "bars": 8
+  },
+  "data": {
+   "verses": [
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "o-u-a",
+     "lines": [
+      {
+       "text": "香りか味か？ 答えは米を甘く解く、俺の<span class=\"rhyme\">糖化</span>",
+       "end_kana": "とうか"
+      },
+      {
+       "text": "味の芯なき一杯なんて、見かけ倒しの<span class=\"rhyme\">豪華</span>",
+       "end_kana": "ごうか"
+      },
+      {
+       "text": "糖がなけりゃお前は飢えて踊れない、泡も香りも俺の<span class=\"rhyme\">効果</span>",
+       "end_kana": "こうか"
+      },
+      {
+       "text": "味わいを<span class=\"rhyme\">強化</span>してから名乗れ、その自慢の<span class=\"rhyme\">吟醸香</span>",
+       "end_kana": "ぎんじょうか"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-a",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">吟醸香</span>なら俺の領分！ 立ちのぼるりんごの香りは<span class=\"rhyme\">鮮やか</span>",
+       "end_kana": "あざやか"
+      },
+      {
+       "text": "糖を作るだけじゃ酒じゃない、アルコールと香りで咲かす<span class=\"rhyme\">華やかさ</span>",
+       "end_kana": "はなやかさ"
+      },
+      {
+       "text": "香りのない甘い水じゃ、お前の味わいも<span class=\"rhyme\">ささやか</span>",
+       "end_kana": "ささやか"
+      }
+     ]
+    },
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "i-a-i",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">高らか</span>に吠えても、グラスに残るのは俺が仕込んだ<span class=\"rhyme\">味わい</span>",
+       "end_kana": "あじわい"
+      },
+      {
+       "text": "破精込む菌糸は米の芯まで、糖化の深さは蔵で<span class=\"rhyme\">最大</span>",
+       "end_kana": "さいだい"
+      },
+      {
+       "text": "糖を作る俺を抜きに語れるか、酒の<span class=\"rhyme\">未来</span>",
+       "end_kana": "みらい"
+      },
+      {
+       "text": "だが香りとアルコールはお前の仕事、糖を託す相手として<span class=\"rhyme\">期待</span>",
+       "end_kana": "きたい"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-e",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">期待</span>に応えるぜ！ お前の糖こそ俺の<span class=\"rhyme\">支え</span>",
+       "end_kana": "ささえ"
+      },
+      {
+       "text": "糖をくれるお前なしじゃ始まらない、感謝を込めて一曲<span class=\"rhyme\">奏で</span>",
+       "end_kana": "かなで"
+      },
+      {
+       "text": "香りを<span class=\"rhyme\">高め</span>、味わいは<span class=\"rhyme\">甘め</span>、並行複発酵で二つの夢を<span class=\"rhyme\">叶え</span>",
+       "end_kana": "かなえ"
+      },
+      {
+       "text": "香りか味かじゃない、麹と酵母は共に醸す仲間、グラスを掲げて乾杯の<span class=\"rhyme\">構え</span>",
+       "end_kana": "かまえ"
+      }
+     ]
+    }
+   ],
+   "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
+  },
+  "expect": {
+   "ok": false,
+   "structural": false,
+   "codes": [
+    "V2:lines",
+    "V3L1:retort"
+   ]
+  }
+ },
+ {
+  "name": "返しの頭はかぎ括弧で始まってもよい",
+  "card": {
+   "aId": "koji",
+   "bId": "yeast",
+   "bars": 8
+  },
+  "data": {
+   "verses": [
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "o-u-a",
+     "lines": [
+      {
+       "text": "香りか味か？ 答えは米を甘く解く、俺の<span class=\"rhyme\">糖化</span>",
+       "end_kana": "とうか"
+      },
+      {
+       "text": "味の芯なき一杯なんて、見かけ倒しの<span class=\"rhyme\">豪華</span>",
+       "end_kana": "ごうか"
+      },
+      {
+       "text": "糖がなけりゃお前は飢えて踊れない、泡も香りも俺の<span class=\"rhyme\">効果</span>",
+       "end_kana": "こうか"
+      },
+      {
+       "text": "味わいを<span class=\"rhyme\">強化</span>してから名乗れ、その自慢の<span class=\"rhyme\">吟醸香</span>",
+       "end_kana": "ぎんじょうか"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-a",
+     "lines": [
+      {
+       "text": "「<span class=\"rhyme\">吟醸香</span>」なら俺の領分！ 立ちのぼるりんごの香りは<span class=\"rhyme\">鮮やか</span>",
+       "end_kana": "あざやか"
+      },
+      {
+       "text": "糖を作るだけじゃ酒じゃない、アルコールと香りで咲かす<span class=\"rhyme\">華やかさ</span>",
+       "end_kana": "はなやかさ"
+      },
+      {
+       "text": "香りのない甘い水じゃ、お前の味わいも<span class=\"rhyme\">ささやか</span>",
+       "end_kana": "ささやか"
+      },
+      {
+       "text": "セレビシエ二億の同胞、泡立てる声は<span class=\"rhyme\">高らか</span>！",
+       "end_kana": "たからか"
+      }
+     ]
+    },
+    {
+     "characterId": "koji",
+     "characterName": "麹菌",
+     "displayRhyme": "i-a-i",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">高らか</span>に吠えても、グラスに残るのは俺が仕込んだ<span class=\"rhyme\">味わい</span>",
+       "end_kana": "あじわい"
+      },
+      {
+       "text": "破精込む菌糸は米の芯まで、糖化の深さは蔵で<span class=\"rhyme\">最大</span>",
+       "end_kana": "さいだい"
+      },
+      {
+       "text": "糖を作る俺を抜きに語れるか、酒の<span class=\"rhyme\">未来</span>",
+       "end_kana": "みらい"
+      },
+      {
+       "text": "だが香りとアルコールはお前の仕事、糖を託す相手として<span class=\"rhyme\">期待</span>",
+       "end_kana": "きたい"
+      }
+     ]
+    },
+    {
+     "characterId": "yeast",
+     "characterName": "清酒酵母",
+     "displayRhyme": "a-a-e",
+     "lines": [
+      {
+       "text": "<span class=\"rhyme\">期待</span>に応えるぜ！ お前の糖こそ俺の<span class=\"rhyme\">支え</span>",
+       "end_kana": "ささえ"
+      },
+      {
+       "text": "糖をくれるお前なしじゃ始まらない、感謝を込めて一曲<span class=\"rhyme\">奏で</span>",
+       "end_kana": "かなで"
+      },
+      {
+       "text": "香りを<span class=\"rhyme\">高め</span>、味わいは<span class=\"rhyme\">甘め</span>、並行複発酵で二つの夢を<span class=\"rhyme\">叶え</span>",
+       "end_kana": "かなえ"
+      },
+      {
+       "text": "香りか味かじゃない、麹と酵母は共に醸す仲間、グラスを掲げて乾杯の<span class=\"rhyme\">構え</span>",
+       "end_kana": "かまえ"
+      }
+     ]
+    }
+   ],
+   "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
+  },
+  "expect": {
+   "ok": true,
+   "structural": true,
+   "codes": []
+  }
+ }
+]
