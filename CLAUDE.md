@@ -18,7 +18,7 @@
 ## 現状（2026-09-27時点）
 総語220／役割68。韻100%全キャラ・意味lint 0件・クロス10/10・rep最大0.3%・**全語出現**（死に語ゼロ）。
 エンジンは各フィルタ（hardDeep/フレーム形/音数・子音/softDeep）を確率化済み。
-**既定エンジンは「名勝負ミックス」**（2026-09-27〜：コーパスの2行組を同じ相手・同じ韻で組み替える。検証は `node mix_test.js`。コーパスが読めない file:// では旧・単語シグネチャ方式）。B/C案（Claude/Ollama）とペルソナ・ビート・呼応（旧方式側の踏み返し2型＋先攻側）も実装済み。画面上の呼び名は見出し「つくり方」＝蔵出し（すぐ出る・中身は名勝負ミックス）／しぼりたて（お題で・1〜2分・中身はClaude）（2026-10-15改名）。Ollamaは ?dev のときだけ出る。
+**既定エンジンは「名勝負ミックス」**（2026-09-27〜：コーパスの2行組を同じ相手・同じ韻で組み替える。検証は `node mix_test.js`。コーパスが読めない file:// では旧・単語シグネチャ方式）。B/C案（Claude/Ollama）とペルソナ・ビート・呼応（旧方式側の踏み返し2型＋先攻側）も実装済み。画面上の呼び名は見出し「つくり方」＝蔵出し（すぐ出る・中身は名勝負ミックス）／しぼりたて（お題で・中身はClaude）（2026-10-15改名）。Ollamaは ?dev のときだけ出る。
 AIエンジンは生成中ボタン無効・タイムアウト付き（Ollama 60秒〜・Claude 200秒）。
 **B案 Claude（2026-10-08 Gemini から置き換え）**: 画面→中継 `worker/`（claude-opus-5-5・effort low・プロンプト/スキーマ/韻検査は `live/` を Python 試作 `tools/live_trial.py` と共有）。中継は**実際に使った金額**を Durable Object 1個（SQLite・`worker/src/budget.js`）に1件ずつ積み（同時要求でも素通りしない）、日0.66ドル・月20ドル（wrangler.toml の vars）に見込み0.15ドルを足して超えるなら 429、IPごと1日3回。`index.html` の `LIVE_API_URL` が空のあいだは選択肢に出ない（未デプロイ）。検証は `cd worker && npm test`・`node gate_test.js`（4節が Claude 画面側）。
 Ollamaを公開URLから使うには `OLLAMA_ORIGINS` に `https://y-kanno-sakenote.github.io` が必要（素のOllamaは github.io を403で拒否。このMacは launchctl で設定済み）。
