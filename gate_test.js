@@ -182,7 +182,7 @@ async function claude() {
   const sent = e.calls[0] && JSON.parse(e.calls[0].opt.body);
   check('(L1) 中継へ1回 POST・送るのは対戦カード/小節数/作風/お題だけ', e.calls.length === 1 && e.calls[0].url === 'https://live.example/' && e.calls[0].opt.method === 'POST'
     && JSON.stringify(sent) === JSON.stringify({ aId: 'koji', bId: 'yeast', bars: 4, style: 'savage', theme: '梅雨の夜' }), JSON.stringify(sent));
-  check('(L1) 生成中の表示が出てから描画される', e.battle.history.some(h => h.includes('醸造中')));
+  check('(L1) 生成中の表示が出てから描画される', e.battle.history.some(h => h.includes('しぼっています')));
   const txt = e.battle.textContent;
   check('(L1) 返ってきた行・韻の印・乾杯が出る（印のタグは文字として出ない）', txt.includes('蔵に舞う糖化') && txt.includes('効果なら俺') && txt.includes('mic drop') && txt.includes('吟醸酒') && !txt.includes('<span'), txt.slice(0, 80));
   const rhymes = e.battle.children.flatMap(v => (v.children[1] || { children: [] }).children).filter(c => c.className === 'rhyme').map(c => c.textContent);
@@ -193,12 +193,12 @@ async function claude() {
   e = loadClaude();
   e.fetchHolder.fn = reply(200, { ...LIVE_OK, meta: { model: 'claude-opus-5-5', tries: 2, ok: false } });
   await e.renderBattleClaude('koji', 'yeast', 4);
-  check('(L2) meta.ok:false（2回とも韻が外れた）でもそのまま出す', e.battle.textContent.includes('蔵に舞う糖化') && !e.battle._html.includes('名勝負ミックスで遊ぶ'));
+  check('(L2) meta.ok:false（2回とも韻が外れた）でもそのまま出す', e.battle.textContent.includes('蔵に舞う糖化') && !e.battle._html.includes('蔵出しで遊ぶ'));
 
   e = loadClaude();
   e.fetchHolder.fn = reply(429, { error: 'budget_day', message: '今日の分は終わりました' });
   await e.renderBattleClaude('koji', 'yeast', 4);
-  check('(L3) 429：中継の文言を出し、名勝負ミックスに戻す・コーパスに残さない', e.battle.textContent.includes('今日の分は終わりました') && e.engineSel.value === 'template' && e.battle._html.includes('名勝負ミックスで遊ぶ') && e.loadCorpus().length === 0, e.battle.textContent);
+  check('(L3) 429：中継の文言を出し、名勝負ミックスに戻す・コーパスに残さない', e.battle.textContent.includes('今日の分は終わりました') && e.engineSel.value === 'template' && e.battle._html.includes('蔵出しで遊ぶ') && e.loadCorpus().length === 0, e.battle.textContent);
 
   e = loadClaude();
   e.fetchHolder.fn = reply(502, { error: 'generation_failed', message: 'うまく書けませんでした。もう一度押してください' });

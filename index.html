@@ -111,8 +111,8 @@
     <div class="grid" id="roster"></div>
     <p class="hint" id="selHint">上から2体を選ぶと対戦成立。1体目が <span style="color:var(--red)">赤コーナー</span>、2体目が <span style="color:var(--blue)">青コーナー</span>。</p>
     <div class="controls">
-      <label class="opt">生成エンジン
-        <select id="engine"><option value="template" selected>名勝負ミックス（そのまま遊べる）</option><option value="ollama">Ollama（手元のPCで）</option><option value="claude">Claude（お題でつくる）</option></select>
+      <label class="opt">つくり方
+        <select id="engine"><option value="template" selected>蔵出し（すぐ出る）</option><option value="ollama">Ollama（手元のPCで）</option><option value="claude">しぼりたて（お題で・1〜2分）</option></select>
       </label>
       <label class="opt">小節数
         <select id="bars"><option value="4">4小節（ショート）</option><option value="8" selected>8小節（スタンダード）</option><option value="12">12小節（ロング）</option></select>
@@ -184,7 +184,7 @@
   </div>
 
   <footer>
-    名勝負ミックス ── Claudeが書いた名勝負を2行ずつに切り、同じ相手・同じ韻の2行を別の試合から繋いで1バースに。用語は麹菌・清酒酵母・生酛の乳酸菌・酒造好適米など醸造の実際にもとづく。<br>
+    蔵出し ── Claudeが書いた名勝負を2行ずつに切り、同じ相手・同じ韻の2行を別の試合から繋いで1バースに。用語は麹菌・清酒酵母・生酛の乳酸菌・酒造好適米など醸造の実際にもとづく。<br>
     © SAKENOTE ｜ <a href="docs/corpus_viewer.html" style="color:inherit;text-decoration:none;cursor:text">遊び心</a>の社内ツール<br>
     <span class="updated" id="updated">最終更新: 2026-09-28 09:58</span>
   </footer>
@@ -1321,13 +1321,13 @@ function aiError(message, backToMix){
   if(backToMix){ engineSel.value = 'template'; engineSel.dispatchEvent(new Event('change')); }
   battle.innerHTML = `<div class="cheer" style="color:var(--red);">
       <span class="errmsg"></span><br>
-      <button class="btn btn-ghost" onclick="engineSel.value='template'; engineSel.dispatchEvent(new Event('change')); renderBattle();" style="margin-top: 10px;">名勝負ミックスで遊ぶ</button>
+      <button class="btn btn-ghost" onclick="engineSel.value='template'; engineSel.dispatchEvent(new Event('change')); renderBattle();" style="margin-top: 10px;">蔵出しで遊ぶ</button>
     </div>`;
   battle.querySelector('.errmsg').textContent = message;
 }
 
 async function renderBattleClaude(aId, bId, bars) {
-  aiLoading(`🍶 Claudeがリリックを醸造中...<br><span style="font-size:12px; color:var(--sub);">（韻を練っています。1〜2分）</span>`);
+  aiLoading(`🍶 しぼっています...<br><span style="font-size:12px; color:var(--sub);">（韻を練っています。1〜2分）</span>`);
   const style = (document.getElementById('battleStyle')||{}).value || 'standard';
   const theme = currentTheme();
   try {
@@ -1468,7 +1468,7 @@ async function renderBattleOllama(aId, bId, bars){
       : error.message.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     battle.innerHTML = `<div class="cheer" style="color:var(--red);">
       ⚠️ Ollamaでエラー。<br>${hint}<br>
-      <button class="btn btn-ghost" onclick="engineSel.value='template'; engineSel.dispatchEvent(new Event('change')); renderBattle();" style="margin-top:10px;">名勝負ミックスで遊ぶ</button>
+      <button class="btn btn-ghost" onclick="engineSel.value='template'; engineSel.dispatchEvent(new Event('change')); renderBattle();" style="margin-top:10px;">蔵出しで遊ぶ</button>
     </div>`;
   }
 }
@@ -1521,6 +1521,8 @@ refreshCorpusTray();
 try { localStorage.removeItem('gemini_api_key'); } catch(e) {}
 // Claude（お題でつくる）は中継の URL が入るまで選択肢に出さない
 if (!LIVE_API_URL) { const o = engineSel.querySelector('option[value="claude"]'); if (o) o.remove(); }
+// Ollama（手元のPC）は公開画面に出さない（2026-10-15 オーナー判断：精度が足りず、使えるのは手元に Ollama がある人だけ）。?dev のときだけ残す
+if (!CORPUS_DEV) { const o = engineSel.querySelector('option[value="ollama"]'); if (o) o.remove(); }
 
 // C案(ローカルLLM)の設定を復元（デフォルト: gemma4:12b / localhost:11434）
 // 旧既定の qwen2.5:7b が保存されたままなら新既定へ移す（意図した選択とは限らず、qwen は後で消す予定のため）。他のモデルを自分で入れた設定は触らない
