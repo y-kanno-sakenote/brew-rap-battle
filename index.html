@@ -58,6 +58,9 @@
   .hint{font-size:12px;color:var(--sub);margin-top:12px;text-align:center}
   .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:18px}
   .opt{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--sub)}
+  .kodawari{flex-basis:100%;text-align:center;font-size:13px;color:var(--sub)}
+  .kodawari summary{cursor:pointer}
+  .kodawari .controls{margin-top:10px}
   select{background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:8px;
          padding:7px 10px;font-family:var(--sans);font-size:13px}
   .btn{border:none;border-radius:999px;padding:14px 30px;font-size:16px;font-weight:800;cursor:pointer;
@@ -117,18 +120,6 @@
       <label class="opt">つくり方
         <select id="engine"><option value="template" selected>蔵出し（すぐ出る）</option><option value="ollama">Ollama（手元のPCで）</option><option value="claude">しぼりたて（お題で）</option></select>
       </label>
-      <label class="opt">小節数
-        <select id="bars"><option value="4">4小節（ショート）</option><option value="8" selected>8小節（スタンダード）</option><option value="12">12小節（ロング）</option></select>
-      </label>
-      <label class="opt">ビート
-        <select id="beatSel"><option value="off">なし</option><option value="boombap" selected>ブンバップ</option><option value="lofi">ローファイ</option><option value="trap">トラップ</option><option value="funk">ファンク</option></select>
-      </label>
-      <label class="opt" id="modeOpt">韻モード
-        <select id="mode"><option value="solo" selected>ソロ（各自の韻）</option><option value="cross">キャラ跨ぎ韻（踏み返し）</option></select>
-      </label>
-      <label class="opt" id="styleOpt" style="display:none;">バトルスタイル
-        <select id="battleStyle"><option value="standard" selected>標準（敬意で締め）</option><option value="savage">ガチ煽り（フルディス）</option></select>
-      </label>
       <label class="opt" id="themeOpt" style="display:none;">お題
         <input type="text" id="battleTheme" list="themeList" placeholder="例：夏酒 vs 燗酒" autocomplete="off" maxlength="30"
                style="background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;width:190px;">
@@ -148,6 +139,22 @@
         </datalist>
       </label>
       <button class="btn btn-main" id="go" disabled>▶ バトル開始</button>
+      <details class="kodawari"><summary>こだわり</summary>
+        <div class="controls">
+          <label class="opt">長さ
+            <select id="bars"><option value="4">短い</option><option value="8" selected>ふつう</option><option value="12">長い</option></select>
+          </label>
+          <label class="opt" id="modeOpt">韻の踏み方
+            <select id="mode"><option value="solo" selected>自分の韻</option><option value="cross">相手に返す</option></select>
+          </label>
+          <label class="opt" id="styleOpt" style="display:none;">締め方
+            <select id="battleStyle"><option value="standard" selected>認め合う</option><option value="savage">煽りきる</option></select>
+          </label>
+          <label class="opt">音
+            <select id="beatSel"><option value="off" selected>なし</option><option value="boombap">ブンバップ</option><option value="lofi">ローファイ</option><option value="trap">トラップ</option><option value="funk">ファンク</option></select>
+          </label>
+        </div>
+      </details>
     </div>
 
     <div class="controls" id="ollamaArea" style="display:none; margin-top: 14px; width: 100%; justify-content: center; gap: 8px; flex-wrap: wrap;">
@@ -1193,8 +1200,8 @@ async function renderBattle(){
     if(cb){
       CP_RECENT.clear(); cb.used.forEach(c=>CP_RECENT.add(c));
       let html = "", delay = 0;
-      if(modeSel.value==='cross' && !cb.crossOK) html += `<div class="cheer" style="animation-delay:0s">※ この2体は共通の韻がないため、今回はソロ韻で生成します</div>`;
-      else if(modeSel.value==='cross' && cb.crossMiss) html += `<div class="cheer" style="animation-delay:0s">※ 共通の韻が尽きたラウンドはソロ韻で生成します</div>`;
+      if(modeSel.value==='cross' && !cb.crossOK) html += `<div class="cheer" style="animation-delay:0s">※ この2体は共通の韻がないため、今回は自分の韻で踏みます</div>`;
+      else if(modeSel.value==='cross' && cb.crossMiss) html += `<div class="cheer" style="animation-delay:0s">※ 共通の韻が尽きたラウンドは自分の韻で踏みます</div>`;
       cb.verses.forEach(([id,v],i)=>{
         const f=FIGHTERS[id];
         html += `<div class="verse ${i%2?'b':'a'}" style="animation-delay:${delay}s">
@@ -1222,7 +1229,7 @@ async function renderBattle(){
   const rounds = Math.max(1, Math.round(bars/4)); // 4小節×往復で1ラウンド
   let html = "", delay = 0, lastB = null;
   if(cross && !crossOK){
-    html += `<div class="cheer" style="animation-delay:0s">※ この2体は共通の韻がないため、今回はソロ韻で生成します</div>`;
+    html += `<div class="cheer" style="animation-delay:0s">※ この2体は共通の韻がないため、今回は自分の韻で踏みます</div>`;
   }
   for(let r=0;r<rounds;r++){
     // キャラ跨ぎ韻ONなら、このラウンドの共通母音を1つ選び、両者に踏ませる（踏み返し）
