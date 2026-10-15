@@ -1,6 +1,6 @@
 [
  {
-  "name": "コーパス1本目そのまま（3本目の返しが頭で拾っていない）",
+  "name": "コーパス1本目そのまま（3本目の返しが頭で拾っていない＝2026-10-15から任意なので通る）",
   "card": {
    "aId": "koji",
    "bId": "yeast",
@@ -104,15 +104,13 @@
    "flavor": "純米吟醸（果実の香りと米の甘みが肩を並べる、香りと味の握手）"
   },
   "expect": {
-   "ok": false,
+   "ok": true,
    "structural": true,
-   "codes": [
-    "V3L1:retort"
-   ]
+   "codes": []
   }
  },
  {
-  "name": "返しを直した版（全部通る）",
+  "name": "返しを全部頭で拾った版（これも通る）",
   "card": {
    "aId": "koji",
    "bId": "yeast",
@@ -1447,13 +1445,12 @@
    "ok": false,
    "structural": false,
    "codes": [
-    "V2:lines",
-    "V3L1:retort"
+    "V2:lines"
    ]
   }
  },
  {
-  "name": "返しの頭はかぎ括弧で始まってもよい",
+  "name": "返しの頭がかぎ括弧で始まっても通る",
   "card": {
    "aId": "koji",
    "bId": "yeast",

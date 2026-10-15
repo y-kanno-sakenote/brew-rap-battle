@@ -9,3 +9,4 @@ docs/rhyme_pairs_ledger.txt
 .dev.vars
 worker/node_modules/
 worker/.wrangler/
+__pycache__/

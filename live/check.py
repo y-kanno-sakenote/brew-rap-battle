@@ -1,5 +1,6 @@
 """「Claude リクエスト生成」の出力検査（Python 試作 tools/live_trial.py が使う）。JS 版 live/check.mjs と同じ規則。
 規則を変えたら両方を直し、live/check_cases.json を両方で回す（node --test worker/test ／ python3 tools/live_trial.py --self-test）。
+返しで相手の締め語を頭で拾うのは 2026-10-15 から任意（拾っていないことは不合格にしない）。
 """
 import re
 
@@ -31,7 +32,6 @@ def vowels(s):
 
 SPAN = re.compile(r'<span class="rhyme">([^<]*)</span>')
 END_MARK = re.compile(r'<span class="rhyme">([^<]+)</span>[\s!?！？。、，,．.…・」』）)〜ー♪]*$')
-HEAD_MARK = re.compile(r'^[\s「『（(]*<span class="rhyme">([^<]+)</span>')
 
 
 def check_battle(data, a_id, b_id, bars):
@@ -80,18 +80,6 @@ def check_battle(data, a_id, b_id, bars):
                 add(f"{V}:last", f"行末の最後の母音が割れた（{show}）")
             elif len(sig3) > 1:
                 add(f"{V}:sig3", f"末尾3母音が一致しない（{show}）")
-        if i > 0:
-            prev = verses[i - 1]
-            prev_last = None
-            if isinstance(prev, dict) and isinstance(prev.get("lines"), list) and len(prev["lines"]) > 3 \
-                    and isinstance(prev["lines"][3], dict) and isinstance(prev["lines"][3].get("text"), str):
-                found = SPAN.findall(prev["lines"][3]["text"])
-                prev_last = found[-1] if found else None
-            m = HEAD_MARK.search(lines[0]["text"])
-            head = m.group(1).strip() if m else ""
-            ok = bool(head and prev_last and (head == prev_last or prev_last in head or head in prev_last))
-            if not ok:
-                add(f"{V}L1:retort", f"1行目の頭で相手の締め語「{prev_last or '?'}」を拾っていない")
     structural = not any(re.search(r":(count|speaker|lines)$", c) for c in codes)
     return {"ok": not codes, "structural": structural, "codes": codes, "reasons": reasons}
 

@@ -3,7 +3,7 @@
 //   - verses の数 = 小節数 / 2（4小節=2本・8小節=4本・12小節=6本）、先攻・後攻が交互、各4行
 //   - 各バースで end_kana の最後の母音が4行で一致し、末尾3母音も一致（数え方は index.html の vowels() と同じ）
 //   - 各行の行末は韻の印（<span class="rhyme">…</span>）で終わる（後ろは記号だけ可）。印以外のタグは不可
-//   - 2番目以降のバースの1行目は、直前のバースの締め語を頭で拾って印を付ける
+//   - 返しで相手の締め語を頭で拾うのは 2026-10-15 から任意（拾っていないことは不合格にしない）
 
 export const IDS = ["koji", "yeast", "toji", "lactic", "rice"];
 export const NAMES = { koji: "麹菌", yeast: "清酒酵母", toji: "杜氏", lactic: "乳酸菌", rice: "酒米" };
@@ -27,9 +27,7 @@ export function vowels(s) {
 
 const SPAN_G = /<span class="rhyme">([^<]*)<\/span>/g;
 const END_MARK = /<span class="rhyme">([^<]+)<\/span>[\s!?！？。、，,．.…・」』）)〜ー♪]*$/;
-const HEAD_MARK = /^[\s「『（(]*<span class="rhyme">([^<]+)<\/span>/;
 
-function spans(text) { return [...String(text).matchAll(SPAN_G)].map((m) => m[1]); }
 
 /** 検査。data は構造化出力そのまま（lines[] は {text, end_kana}）。戻り値 {ok, structural, codes, reasons} */
 export function checkBattle(data, { aId, bId, bars }) {
@@ -67,14 +65,6 @@ export function checkBattle(data, { aId, bId, bars }) {
       const show = sigs.map((s) => `${lines[s.j].end_kana}=${s.vs.slice(-3).split("").join("-")}`).join("／");
       if (lasts.size > 1) add(`${V}:last`, `行末の最後の母音が割れた（${show}）`);
       else if (sig3.size > 1) add(`${V}:sig3`, `末尾3母音が一致しない（${show}）`);
-    }
-    if (i > 0) {
-      const prev = verses[i - 1];
-      const prevLast = prev && Array.isArray(prev.lines) && prev.lines[3] && typeof prev.lines[3].text === "string" ? spans(prev.lines[3].text).pop() : undefined;
-      const m = HEAD_MARK.exec(lines[0].text);
-      const head = m ? m[1].trim() : "";
-      const ok = head && prevLast && (head === prevLast || head.includes(prevLast) || prevLast.includes(head));
-      if (!ok) add(`${V}L1:retort`, `1行目の頭で相手の締め語「${prevLast || "?"}」を拾っていない`);
     }
   });
   const structural = !codes.some((c) => /:(count|speaker|lines)$/.test(c));

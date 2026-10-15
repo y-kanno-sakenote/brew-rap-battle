@@ -3,8 +3,8 @@
 const fs=require('fs');
 const html=fs.readFileSync(__dirname+'/index.html','utf8');
 const script=html.slice(html.indexOf('<script>')+8, html.indexOf('// ---- 選択UI ----'));
-const sb={}; new Function('sandbox',script+'\n;Object.assign(sandbox,{FIGHTERS,parseCorpus,corpusBattle,rng,CP_RESP,CP_CONN});')(sb);
-const {FIGHTERS,parseCorpus,corpusBattle,rng,CP_RESP,CP_CONN}=sb;
+const sb={}; new Function('sandbox',script+'\n;Object.assign(sandbox,{FIGHTERS,parseCorpus,corpusBattle,rng,CP_RESP,CP_CONN,cpPicked,cpQuotes});')(sb);
+const {FIGHTERS,parseCorpus,corpusBattle,rng,CP_RESP,CP_CONN,cpPicked,cpQuotes}=sb;
 const text=fs.readFileSync(__dirname+'/docs/claude_corpus.jsonl','utf8');
 const WEAK=new Set(fs.existsSync(__dirname+'/docs/weak_verses.json') ? JSON.parse(fs.readFileSync(__dirname+'/docs/weak_verses.json','utf8')).weak : []);
 const C=parseCorpus(text, WEAK);
@@ -13,9 +13,9 @@ const sb2={}; new Function('sandbox','__C',script+'\n;CORPUS=__C;Object.assign(s
 const battleOf=(...a)=>{ sb2.CP_RECENT.clear(); return sb2.corpusBattle(...a); };   // 規則検査は毎回まっさらで
 
 const strip=s=>String(s).replace(/<[^>]*>/g,'');
-// 元バトルで「相手の締め語への返し」だった行（2番目以降のバースの冒頭2行）＝組み替えに出てはいけない
+// 元バトルで相手の締め語を頭で拾った返し・相手の印の語を1行目で引いた返しの冒頭2行＝組み替えに出てはいけない（2026-10-15〜拾うのは任意。拾わない返しの冒頭は素材にしてよい）
 const RESP_LINES=new Set();
-text.split('\n').forEach(l=>{ try{ const d=JSON.parse(l); d.data.verses.forEach((v,vi)=>{ if(vi>0){ RESP_LINES.add(strip(v.lines[0])); RESP_LINES.add(strip(v.lines[1])); } }); }catch(e){} });
+text.split('\n').forEach(l=>{ try{ const d=JSON.parse(l); d.data.verses.forEach((v,vi)=>{ if(vi>0 && (cpPicked(v.lines[0], d.data.verses[vi-1]) || cpQuotes(v.lines[0], d.data.verses[vi-1]))){ RESP_LINES.add(strip(v.lines[0])); RESP_LINES.add(strip(v.lines[1])); } }); }catch(e){} });
 const fb={};
 const ids=Object.keys(FIGHTERS);
 let dupAll=0, looseB=0, missSum=0, battles=0, fails=0, verses=0, dupEnd=0, badHead=0, resp=0, recomb=0, multiTheme=0, crossR=0, crossHit=0;

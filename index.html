@@ -996,6 +996,21 @@ function cpGeneric(sp, opp, t){
   const theirs = [...(CP_DOMAIN[opp]||[]), ...((typeof PERSONA!=='undefined' && PERSONA[opp]) ? PERSONA[opp].signature : [])].filter(w=>w!=='蔵' && !own.includes(w));   // 自分の領分と完全一致する語だけ外す（部分一致だと「甘い水」が相手の「甘」まで消した）
   return !theirs.some(w=>t.includes(w));
 }
+// 返しの1行目が、直前のバース（prev）の締め語（最後の行の最後の印）を頭で拾っているか。どちらかがもう一方を含むでも可
+// （2026-10-15〜拾うのは任意。tools/factory.py の picks_head と同じ判定）
+function cpPicked(line, prev){
+  const m=String(line).match(/^[\s「『（(]*<span class="rhyme">([^<]+)<\/span>/);
+  const f=(prev && Array.isArray(prev.lines) && prev.lines[3]) ? [...String(prev.lines[3]).matchAll(/<span class="rhyme">([^<]*)<\/span>/g)] : [];
+  if(!m || !f.length) return false;
+  const h=m[1].trim(), last=f[f.length-1][1].trim();
+  return !!(h && last && (h===last || h.includes(last) || last.includes(h)));
+}
+// 返しの1行目が直前のバースの印の語（行末・中韻どれでも）を含むか＝相手の言葉を引いて受けている（別の試合に移ると何を受けているか分からなくなる）
+function cpQuotes(line, prev){
+  const t=String(line).replace(/<[^>]*>/g,'');
+  const ws=(prev && Array.isArray(prev.lines)) ? prev.lines.flatMap(l=>[...String(l).matchAll(/<span class="rhyme">([^<]*)<\/span>/g)].map(m=>m[1].trim())) : [];
+  return ws.some(w=>w && t.includes(w));
+}
 function parseCorpus(text, weak){
   const pools = {};
   weak = weak || new Set();   // 甘いバース（docs/weak_verses.json・キー「L行番号V バース番号」）
@@ -1009,7 +1024,7 @@ function parseCorpus(text, weak){
       const key=String(v.displayRhyme||'').replace(/[^aiueo]/g,'').slice(-3);
       if(!FIGHTERS[sp] || !FIGHTERS[opp] || sp===opp || key.length<3 || !Array.isArray(v.lines) || v.lines.length!==4) return;
       for(const c of [0,2]){
-        if(c===0 && vi>0) continue;   // 2番目以降のバースの冒頭＝相手の締め語を拾う返し（コーパスの97%が尻取り型）。他の文脈には移せない
+        if(c===0 && vi>0 && (cpPicked(v.lines[0], d.data.verses[vi-1]) || cpQuotes(v.lines[0], d.data.verses[vi-1]))) continue;   // 相手の締め語を頭で拾った返し・相手の印の語を引いた返しの冒頭は他の文脈に移せない（拾わない返しの冒頭は普通の素材。問い返しは下の CP_RESP、相手向けかは cpGeneric）
         const L=v.lines.slice(c,c+2), t0=strip(L[0]);
         if(CP_RESP.test(t0) || CP_RESP.test(strip(L[1]))) continue;
         const ends=L.map(l=>{ const m=[...String(l).matchAll(/<span class="rhyme">([^<]*)<\/span>/g)]; return m.length?m[m.length-1][1]:''; });

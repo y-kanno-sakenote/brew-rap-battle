@@ -130,7 +130,7 @@ def plan():
 LEDGER = ROOT / "docs" / "rhyme_pairs_ledger.txt"
 
 def row_pairs(r, ends=None):
-    """1バトルの韻語の組（同じバースの印の語＝行末＋中韻の2語の組）。2番目以降のバースの冒頭の最初の印は返しなので除く"""
+    """1バトルの韻語の組（同じバースの印の語＝行末＋中韻の2語の組）。返しが頭で拾った相手の語（picks_head）は除く"""
     import itertools, re
     span = re.compile(r'<span class="rhyme">([^<]*)</span>')
     out = []
@@ -143,7 +143,7 @@ def row_pairs(r, ends=None):
             if ends is not None:
                 ends[ms[-1]] += 1
             for k, w in enumerate(ms):
-                if vi > 0 and li == 0 and k == 0 and len(ms) > 1:
+                if vi > 0 and li == 0 and k == 0 and len(ms) > 1 and picks_head(l, r["data"]["verses"][vi - 1]):
                     continue
                 words.add(w)
         out += [f"{a}|{b}" for a, b in itertools.combinations(sorted(words), 2)]
@@ -163,11 +163,23 @@ def ledger():
     print(f"台帳を作り直した: {len(pairs)}組・多用語{sum(1 for c in ends.values() if c >= 5)}語")
 
 
-HEAD_SPAN = re.compile(r'^<span class="rhyme">[^<]*</span>')
+HEAD_SPAN = re.compile(r'^[\s「『（(]*<span class="rhyme">([^<]+)</span>')
+SPAN_ALL = re.compile(r'<span class="rhyme">([^<]*)</span>')
+
+
+def picks_head(line, prev):
+    """返しの1行目が、直前のバース（prev）の最後の行の最後の印の語を頭で拾っているか。
+    どちらかがもう一方を含むでも可。live/check.* ・index.html の cpPicked と同じ判定"""
+    m = HEAD_SPAN.match(line)
+    found = SPAN_ALL.findall(prev["lines"][3]) if prev and len(prev.get("lines", [])) > 3 else []
+    if not m or not found:
+        return False
+    h, last = m.group(1).strip(), found[-1].strip()
+    return bool(h and last and (h == last or h in last or last in h))
 
 
 def head_form(line):
-    """返しの1行目で、拾った語の直後の形（「？」「なら」「と呼」…）。拾った語で始まっていなければ None"""
+    """返しの1行目で、拾った語の直後の形（「？」「なら」「と呼」…）。印で始まっていなければ None"""
     m = HEAD_SPAN.match(line)
     if not m:
         return None
@@ -176,14 +188,24 @@ def head_form(line):
 
 
 def head_problems(rows):
-    """返しの頭の形が単調になっていないか（2026-10-15：工場分が全部「〇〇？」に固まった）。
-    1バトルに「〇〇？」は1回まで／バッチ全体で同じ形は返しの3分の1まで"""
-    bad, forms = [], Counter()
+    """返しの頭（2026-10-15 改定：頭で相手の締め語を拾うのは任意）。
+    頭で拾う返しは1バトルの返しの半分（切り上げ）まで・バッチ全体でも返しの半分まで。
+    拾った返しの中で「〇〇？」は1バトル1回まで／同じ受け方はバッチ全体の拾った返しの3分の1まで"""
+    bad, forms, picked_all, resp_all = [], Counter(), 0, 0
     for i, r in enumerate(rows, 1):
-        fs = [head_form(v["lines"][0]) for v in r["data"]["verses"][1:]]
-        if fs.count("？") > 1:
-            bad.append(f"バッチ{i}行目が不正: 返しの頭が「〇〇？」で{fs.count('？')}回始まっている（1バトル1回まで）")
-        forms.update(f for f in fs if f)
+        vs = r["data"]["verses"]
+        picked = [head_form(v["lines"][0]) for k, v in enumerate(vs) if k > 0 and picks_head(v["lines"][0], vs[k - 1])]
+        n = len(vs) - 1
+        resp_all += n
+        picked_all += len(picked)
+        cap = (n + 1) // 2
+        if len(picked) > cap:
+            bad.append(f"バッチ{i}行目が不正: 頭で相手の締め語を拾う返しが{len(picked)}本（返し{n}本なら{cap}本まで。残りは相手の言い分に中身で答える）")
+        if picked.count("？") > 1:
+            bad.append(f"バッチ{i}行目が不正: 返しの頭が「〇〇？」で{picked.count('？')}回始まっている（1バトル1回まで）")
+        forms.update(f for f in picked if f)
+    if resp_all and picked_all * 2 > resp_all:
+        bad.append(f"バッチ全体で頭で拾う返しが多すぎる（{picked_all}/{resp_all}・返しの半分まで）")
     total = sum(forms.values())
     for f, c in forms.items():
         if total >= 6 and c * 3 > total:
@@ -214,7 +236,7 @@ def append(batch_path, style_label):
     bad += head_problems([json.loads(l) for l in new])
     if bad:
         print("\n".join(bad))
-        print(f"→ 上の{len(bad)}件を全件まとめて直すこと（韻語の組はどちらかの語を別の語に、返しの頭は形を変える）。マスターは触っていない。")
+        print(f"→ 上の{len(bad)}件を全件まとめて直すこと（韻語の組はどちらかの語を別の語に、返しの頭は形を変えるか、拾わずに相手の言い分へ中身で答える）。マスターは触っていない。")
         sys.exit(1)
     before = CORPUS.read_bytes()
     body = before if before.endswith(b"\n") or not before else before + b"\n"
