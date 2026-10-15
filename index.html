@@ -142,7 +142,7 @@
       <details class="kodawari"><summary>こだわり</summary>
         <div class="controls">
           <label class="opt">長さ
-            <select id="bars"><option value="4">短い</option><option value="8" selected>ふつう</option><option value="12">長い</option></select>
+            <select id="bars"><option value="2">最短</option><option value="4">短い</option><option value="8" selected>ふつう</option><option value="12">長い</option></select>
           </label>
           <label class="opt" id="modeOpt">韻の踏み方
             <select id="mode"><option value="solo" selected>自分の韻</option><option value="cross">相手に返す</option></select>
@@ -847,7 +847,8 @@ function usableFrames(me){
 function availableSigs(me){ return [...new Set(usableFrames(me).map(fr=>ROLE_SOFT[fr.ra]))]; }
 
 // 1バース生成。forcedKey を渡すと、その母音バケットで踏む（キャラ跨ぎ韻＝相手と同じ母音で返す）
-function buildVerse(me, rnd, forcedKey, echoWord){
+// maxLines（長さ「最短」は2）を渡すと、組んだ行の頭から maxLines 行だけ使う
+function buildVerse(me, rnd, forcedKey, echoWord, maxLines){
   const rpk = fr => fr.ra+"|"+(fr.rb||"")+"|"+(fr.rc||"");
   const usable = usableFrames(me);
   const sigs = [...new Set(usable.map(fr=>ROLE_SOFT[fr.ra]))];
@@ -951,6 +952,7 @@ function buildVerse(me, rnd, forcedKey, echoWord){
     lineLast[li]=used[used.length-1]; ctx.lastRhyme=lineLast[li]||ctx.lastRhyme;
     return t;
   });
+  if(maxLines && lines.length>maxLines){ lines.length=maxLines; lineLast.length=maxLines; }
   // 踏み返しの呼応: 相手バースの締め語を頭行で引用し、同じ響きバケットの自語で踏み返す（キャラ跨ぎ韻のときだけ）
   if(echoWord && lines.length){
     const pool2=[...new Set(me.roles.filter(inBucket).flatMap(r=>ROLE_WORDS[r]||[]))].filter(w=>w!==echoWord);
@@ -974,9 +976,9 @@ function buildVerse(me, rnd, forcedKey, echoWord){
   return {key, disp, fam, wide, lines, lastWord: lineLast.filter(Boolean).pop()};
 }
 
-function verseHTML(meId, side, delay, rnd, forcedKey, echoWord){
+function verseHTML(meId, side, delay, rnd, forcedKey, echoWord, maxLines){
   const me = FIGHTERS[meId];
-  const {disp, lines, lastWord} = buildVerse(me, rnd, forcedKey, echoWord);
+  const {disp, lines, lastWord} = buildVerse(me, rnd, forcedKey, echoWord, maxLines);
   const rk = me.wordRhyme ? `単語韻:-${disp}` : `韻:-${disp}`;
   const html = `<div class="verse ${side}" style="animation-delay:${delay}s">
     <div class="head"><span class="em">${me.emoji}</span>${me.name}<span class="rk">${rk}</span></div>
@@ -1061,7 +1063,7 @@ const cpFits = (c,opp) => c.opp===opp || c.gen;   // この相手に向けて使
 function corpusKeys(sp,opp){ const p=sp+'|'; return Object.keys(CORPUS.pools).filter(k=>k.startsWith(p) && CORPUS.pools[k].some(c=>cpFits(c,opp))).map(k=>k.slice(p.length)); }
 // その韻で頭に置ける2行組＋繋げる2行組が揃うか（副作用なし）
 const CP_RECENT = new Set();   // 直前のバトルで使った2行組（「もう一本」で同じ歌詞が続かないよう、なるべく避ける）
-function corpusPair(sp,opp,key,rnd,st,allowSaid,allowWeak){
+function corpusPair(sp,opp,key,rnd,st,allowSaid,allowWeak,half){
   // お題は1バトル1種（st.theme）。お題なしの2行組はどのバトルにも使える
   const ok = c => cpFits(c,opp) && !st.used.has(c) && (!c.theme || c.theme===st.theme);
   const all=(CORPUS.pools[sp+'|'+key]||[]).filter(ok);
@@ -1069,10 +1071,12 @@ function corpusPair(sp,opp,key,rnd,st,allowSaid,allowWeak){
   const said=st.said&&st.said[sp], clean=c=>!said || ![...c.g6].some(g=>said.has(g));
   const pool=allowWeak ? all : all.filter(c=>!c.weak);   // 甘いバース由来の2行組は、どの韻でも組めない時だけ使う
   const fresh=pool.filter(c=>!CP_RECENT.has(c));
-  if(!allowSaid) return corpusPairFrom(fresh.filter(clean),rnd) || corpusPairFrom(pool.filter(clean),rnd);
-  return corpusPairFrom(fresh,rnd) || corpusPairFrom(pool,rnd);
+  if(!allowSaid) return corpusPairFrom(fresh.filter(clean),rnd,half) || corpusPairFrom(pool.filter(clean),rnd,half);
+  return corpusPairFrom(fresh,rnd,half) || corpusPairFrom(pool,rnd,half);
 }
-function corpusPairFrom(pool,rnd){
+// half（長さ「最短」）は頭に置ける2行組を1つだけ＝1バース2行
+function corpusPairFrom(pool,rnd,half){
+  if(half){ const hs=pool.filter(c=>c.head); return hs.length ? [hs[Math.floor(rnd()*hs.length)]] : null; }
   for(const h of shuffle(pool.filter(c=>c.head),rnd)){
     const rest=pool.filter(c=>c!==h && !c.words.some(w=>h.words.includes(w)) && ![...c.g6].some(g=>h.g6.has(g)) && (!h.theme||!c.theme||c.theme===h.theme));
     if(!rest.length) continue;
@@ -1082,22 +1086,23 @@ function corpusPairFrom(pool,rnd){
   }
   return null;
 }
-function corpusVerse(sp,opp,rnd,st,allowKeys,saidModes){
+function corpusVerse(sp,opp,rnd,st,allowKeys,saidModes,half){
   let keys=shuffle(allowKeys||corpusKeys(sp,opp),rnd);
   keys=[...keys.filter(k=>!st.keys.has(sp+k)), ...keys.filter(k=>st.keys.has(sp+k))];   // 同じ韻を続けない
   // まず全部の韻で「言い回しの重複なし・甘くない2行組」を探し、どの韻でも組めない時だけ甘い2行組→言い回しの重複の順に許す
   for(const allowSaid of (saidModes||[false,true])) for(const allowWeak of [false,true]) for(const key of keys){
-    const pr=corpusPair(sp,opp,key,rnd,st,allowSaid,allowWeak);
+    const pr=corpusPair(sp,opp,key,rnd,st,allowSaid,allowWeak,half);
     if(!pr) continue;
     pr.forEach(c=>{ st.used.add(c); st.said=st.said||{}; const z=(st.said[sp]=st.said[sp]||new Set()); c.g6.forEach(g=>z.add(g)); });
     if(allowSaid) st.saidHit=(st.saidHit||0)+1;   // 言い回しの重複を許して組んだ回数（お題選びの減点に使う）
     st.keys.add(sp+key);
-    return {key, lines:[...pr[0].lines, ...pr[1].lines]};
+    return {key, lines:pr.flatMap(c=>c.lines)};
   }
   return null;
 }
 // お題を先に1つ決めて（お題なしも候補）、そのお題で最後まで組めたら採用。組めなければ次のお題を試す
-function corpusBattle(aId,bId,rounds,seed,cross){
+// half=true は長さ「最短」（1往復・1バース2行）
+function corpusBattle(aId,bId,rounds,seed,cross,half){
   const themes=new Set();
   for(const k in CORPUS.pools){ if(k.startsWith(aId+'|')||k.startsWith(bId+'|')) CORPUS.pools[k].forEach(c=>{ if(c.theme) themes.add(c.theme); }); }
   const cand=[null, ...shuffle([...themes],rng(seed^4242))];
@@ -1107,7 +1112,7 @@ function corpusBattle(aId,bId,rounds,seed,cross){
   const score = b => (cross && b.crossOK ? b.crossMiss*100 : 0) + b.saidHit*10 + b.used.filter(c=>c.weak).length*3 + b.used.filter(c=>CP_RECENT.has(c)).length;
   let best=null, bs=Infinity;
   for(const th of cand){
-    const b=corpusBattleWith(aId,bId,rounds,seed,cross,th);
+    const b=corpusBattleWith(aId,bId,rounds,seed,cross,th,half);
     if(!b) continue;
     const v=score(b);
     if(v===0) return b;
@@ -1115,7 +1120,7 @@ function corpusBattle(aId,bId,rounds,seed,cross){
   }
   return best;
 }
-function corpusBattleWith(aId,bId,rounds,seed,cross,theme){
+function corpusBattleWith(aId,bId,rounds,seed,cross,theme,half){
   const st={used:new Set(), keys:new Set(), theme}, out=[];
   const shared = cross ? corpusKeys(aId,bId).filter(k=>corpusKeys(bId,aId).includes(k)) : [];
   const clone = s => ({used:new Set(s.used), keys:new Set(s.keys), theme:s.theme, saidHit:s.saidHit||0, said:Object.fromEntries(Object.entries(s.said||{}).map(([k,v])=>[k,new Set(v)]))});
@@ -1129,16 +1134,16 @@ function corpusBattleWith(aId,bId,rounds,seed,cross,theme){
     for(const mode of [[false],[true]]){
       for(const k of ks){
         const t=clone(st);
-        const va=corpusVerse(aId,bId,ra,t,[k],mode); if(!va) continue;
-        const vb=corpusVerse(bId,aId,rb,t,[k],mode); if(!vb) continue;
+        const va=corpusVerse(aId,bId,ra,t,[k],mode,half); if(!va) continue;
+        const vb=corpusVerse(bId,aId,rb,t,[k],mode,half); if(!vb) continue;
         Object.assign(st,t); pair=[va,vb]; break;
       }
       if(pair) break;
     }
     if(!pair){
       if(shared.length) miss++;
-      const va=corpusVerse(aId,bId,ra,st,null); if(!va) return null;
-      const vb=corpusVerse(bId,aId,rb,st,null); if(!vb) return null;
+      const va=corpusVerse(aId,bId,ra,st,null,undefined,half); if(!va) return null;
+      const vb=corpusVerse(bId,aId,rb,st,null,undefined,half); if(!vb) return null;
       pair=[va,vb];
     }
     out.push([aId,pair[0]],[bId,pair[1]]);
@@ -1176,7 +1181,10 @@ async function renderBattle(){
   if(_generating) return;
   const [aId,bId] = selected;
   lastBattleTheme = (engineSel.value === 'claude' || engineSel.value === 'ollama') ? currentTheme() : '';
-  const bars = parseInt(barsSel.value,10);
+  let bars = parseInt(barsSel.value,10);
+  // 「最短」(2)は蔵出し専用。しぼりたて等のAIエンジンには送らない（念のためここでも「ふつう」に戻す）
+  if (bars < 4 && engineSel.value !== 'template') { bars = 8; barsSel.value = '8'; }
+  const half = bars === 2;   // 最短＝1往復・1バース2行
   const seed = (Date.now() ^ (bars*7)) >>> 0;
 
   const a = FIGHTERS[aId], b = FIGHTERS[bId];
@@ -1196,7 +1204,7 @@ async function renderBattle(){
 
   // 名勝負ミックス（コーパスが読めていればこちら。組めない時だけ下の単語シグネチャ方式へ）
   if(CORPUS){
-    const cb = corpusBattle(aId, bId, Math.max(1, Math.round(bars/4)), seed, modeSel.value==='cross');
+    const cb = corpusBattle(aId, bId, half ? 1 : Math.max(1, Math.round(bars/4)), seed, modeSel.value==='cross', half);
     if(cb){
       CP_RECENT.clear(); cb.used.forEach(c=>CP_RECENT.add(c));
       let html = "", delay = 0;
@@ -1236,9 +1244,9 @@ async function renderBattle(){
     const fk = crossOK ? shared[Math.floor(rng(seed^((r+7)*911))()*shared.length)] : undefined;
     // 先攻も、前ラウンドの後攻の締め語がこのラウンドの韻バケットと合えば5割で拾って踏み返す（呼応まみれ防止）
     const aEcho = (crossOK && lastB && VOCAB[lastB] && ROLE_SOFT[VOCAB[lastB].r]===fk && rng(seed^((r+3)*577))()<0.5) ? lastB : undefined;
-    const va = verseHTML(aId,'a',delay,rng(seed^((r*2+1)*131)),fk,aEcho); html += va.html; delay+=0.15;
+    const va = verseHTML(aId,'a',delay,rng(seed^((r*2+1)*131)),fk,aEcho,half?2:0); html += va.html; delay+=0.15;
     // 後攻は先攻の締め語を頭行で拾って踏み返す（キャラ跨ぎ韻のときだけ）
-    const vb = verseHTML(bId,'b',delay,rng(seed^((r*2+2)*197)),fk, crossOK ? va.lastWord : undefined); html += vb.html; delay+=0.15;
+    const vb = verseHTML(bId,'b',delay,rng(seed^((r*2+2)*197)),fk, crossOK ? va.lastWord : undefined, half?2:0); html += vb.html; delay+=0.15;
     lastB = vb.lastWord;
   }
   const flavor = FLAVORS[Math.floor(rng(seed^999)()*FLAVORS.length)];
@@ -1337,6 +1345,7 @@ function aiError(message, backToMix){
 }
 
 async function renderBattleClaude(aId, bId, bars) {
+  if (!(bars >= 4)) bars = 8;   // 「最短」(2)は蔵出し専用。中継には送らない
   aiLoading(`🍶 しぼっています...<br><span style="font-size:12px; color:var(--sub);">（韻を練っています。1〜2分）</span>`);
   const style = (document.getElementById('battleStyle')||{}).value || 'standard';
   const theme = currentTheme();
@@ -1552,6 +1561,10 @@ engineSel.onchange = () => {
   modeOpt.style.display = (v === 'template') ? 'flex' : 'none';   // キャラ跨ぎ韻はA案専用
   document.getElementById('styleOpt').style.display = (v === 'template') ? 'none' : 'flex';  // バトルスタイルはB案/C案(LLM)向け
   document.getElementById('themeOpt').style.display = (v === 'template') ? 'none' : 'flex';  // お題も同様（A案はテンプレなので対象外）
+  // 長さ「最短」は蔵出し専用。しぼりたて等では選べなくし、選ばれていたら「ふつう」に戻す
+  const shortest = barsSel.querySelector('option[value="2"]');
+  if (shortest) { shortest.disabled = shortest.hidden = (v !== 'template'); }
+  if (v !== 'template' && barsSel.value === '2') barsSel.value = '8';
 };
 engineSel.dispatchEvent(new Event('change'));
 

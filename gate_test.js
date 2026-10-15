@@ -218,6 +218,12 @@ async function claude() {
   check('(L7) 待ち時間の上限は約200秒（中継の持ち時間185秒より長い）', e.LIVE_TIMEOUT_MS >= 190000 && e.LIVE_TIMEOUT_MS <= 210000, e.LIVE_TIMEOUT_MS);
   check('(L8) 中継の URL が空のあいだは選択肢を出さない', /if \(!LIVE_API_URL\)[^\n]*option\[value="claude"\][^\n]*remove\(\)/.test(html));
   check('(L9) お題の入力欄は30字まで', /id="battleTheme"[^>]*maxlength="30"/.test(html));
+  e = loadClaude();
+  e.fetchHolder.fn = reply(200, LIVE_OK);
+  await e.renderBattleClaude('koji', 'yeast', 2);
+  const sent2 = e.calls[0] && JSON.parse(e.calls[0].opt.body);
+  check('(L11) 長さ「最短」(2)は中継に送らない（ふつう=8に戻す）・しぼりたてでは選べない', sent2 && sent2.bars === 8
+    && /shortest\.disabled = shortest\.hidden = \(v !== 'template'\)/.test(html) && /if \(v !== 'template' && barsSel\.value === '2'\) barsSel\.value = '8';/.test(html), JSON.stringify(sent2));
   check('(L10) Gemini の選択肢・キー入力欄・キーの保存が残っていない', !/value="gemini"|id="apiKey|setItem\('gemini_api_key'|generativelanguage/.test(html));
 }
 
