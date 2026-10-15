@@ -33,6 +33,9 @@
   .fighter .emoji{font-size:34px;line-height:1;display:block;margin-bottom:6px}
   .fighter .fname{display:block;font-family:var(--mincho);font-size:19px;font-weight:800}
   .fighter .fdesc{display:block;font-size:11px;color:var(--sub);margin-top:4px;min-height:28px}
+  /* 説明は1文1行（2行に揃える）。各文は句点込み11字以内（desc を短くした）。カードがそれより狭い時だけ字を小さくする */
+  .fighter{container-type:inline-size}
+  .fighter .fdesc .ln{display:block;white-space:nowrap;font-size:min(11px,calc(100cqi / 11.5))}
   .fighter.sel-a{border-color:var(--red);box-shadow:0 0 0 2px rgba(210,75,75,.35),0 0 24px rgba(210,75,75,.25)}
   .fighter.sel-b{border-color:var(--blue);box-shadow:0 0 0 2px rgba(91,140,201,.35),0 0 24px rgba(91,140,201,.25)}
   .fighter .badge{position:absolute;top:-9px;right:-9px;font-size:10px;font-weight:800;padding:3px 8px;
@@ -362,7 +365,7 @@ const ROLE_V2 = {}; for(const r in ROLE_SOFT) ROLE_V2[r]=ROLE_SOFT[r].slice(-2);
 // ---- ③ キャラクター：使う役割＋文テンプレ（フレーム）。b や母音キーは持たず、役割から自動導出 ----
 //   フレーム：{p:位置, ra:スロットaの役割, rb:スロットbの役割(省略可＝単一韻語), f:文型}
 const FIGHTERS = {
-  koji:{ name:"麹菌", emoji:"🌾", desc:"糖化を司る酒の設計者。国菌にして静かな実力者。", wordRhyme:true,
+  koji:{ name:"麹菌", emoji:"🌾", desc:"糖化の設計者。静かなる国菌。", wordRhyme:true,
     roles:["koji","person","mill","bitter","spirit","fruit","aroma","umami","junmai","hakumai","komeu","kojikin","kakemai","touka","kouka"], frames:[
       {p:"mid",ra:"kouka",f:`理屈じゃないぜ 見りゃわかる／数字に出るのが この{a}`},
       // 糖化×強化（oua・工程）─ 麹菌の看板工程バケット。※2語roleなので全フレーム単一スロット（5枠目=同語3回の罠回避）
@@ -436,7 +439,7 @@ const FIGHTERS = {
       {p:"multi",ra:"aroma",rb:"aroma",f:`{a}に{b} 立ちのぼる／糖化の土台 これぞ底力`},
       {p:"multi",ra:"fruit",rb:"fruit",f:`{a}に{b} 香り重ね／甘き誘惑 客を酔わす`},
     ]},
-  yeast:{ name:"清酒酵母", emoji:"🫧", desc:"香りとアルコールのスター。セレビシエの申し子。", wordRhyme:true,
+  yeast:{ name:"清酒酵母", emoji:"🫧", desc:"アルコールのスター。香りの申し子。", wordRhyme:true,
     roles:["fruit","aroma","type","gin","degree","koubo","hakkou","hanayaka","awa","toudo","shuyaku","katsuyaku","star","sugata","umasa"], frames:[
       // Claude教師コーパス第3弾（糖度・濃度・速度／主役・活躍／スター・姿・うまさ）
       {p:"head",ra:"toudo",f:`発酵任せろ 俺の領分／自在に操る この{a}`},
@@ -592,7 +595,7 @@ const FIGHTERS = {
       {p:"end", ra:"type",rb:"type",f:`濃く深く攻めりゃ 生む{a}／熟成任せりゃ 化ける{b}`},
       {p:"multi",ra:"type",rb:"type",f:`{a}に{b} 操る俺／蔵の頂 俺が獲る`},
     ]},
-  lactic:{ name:"乳酸菌", emoji:"🦠", desc:"生酛の守護神。雑菌を駆逐する縁の下の力持ち。", wordRhyme:true,
+  lactic:{ name:"乳酸菌", emoji:"🦠", desc:"生酛の守護神。縁の下の力持ち。", wordRhyme:true,
     roles:["type","bug","umami","junmai","pear","shukuhai","yamahai","sweet","banzai","moto","shubo","acid","moromi","zukuri","nyusan","sousan","ringosan","hokori","teppeki","utase","takuwae"], frames:[
       // Claude教師コーパス第2弾（鉄壁・徹底・天性・天命／打瀬・蓄え・言い伝え）
       {p:"head",ra:"teppeki",rb:"teppeki",f:`酸で築くは この{a}／揺るがぬ守りは 我が{b}`},
@@ -681,7 +684,7 @@ const FIGHTERS = {
       {p:"end", ra:"moto",f:`古式ゆかしき この{a}／それが乳酸の 生き様だ`},
       {p:"multi",ra:"moto",f:`{a}に宿る 受け継ぐ伝統／生酛の底力 深く残す`},
     ]},
-  rice:{ name:"酒米", emoji:"🍚", desc:"すべての原点。心白を抱く酒造好適米の王様。", wordRhyme:true,
+  rice:{ name:"酒米", emoji:"🍚", desc:"すべての原点。心白を抱く王様。", wordRhyme:true,
     roles:["mill","bitter","spirit","grain","sweet","banzai","umami","junmai","pear","shukuhai","variety","type","komeu","kakemai","shinshu","genshu","shinpaku","kihaku","dodai","butai","hinshu"], frames:[
       // Claude教師コーパス第2弾（舞台・品種）※uai/iiuは大バケット＝ソリッド形必須
       {p:"head",ra:"butai",rb:"dodai",f:`田から蔵まで 続く{a}／米が支える この{b}`},
@@ -1548,7 +1551,7 @@ engineSel.dispatchEvent(new Event('change'));
 Object.entries(FIGHTERS).forEach(([id,f])=>{
   const el = document.createElement('div');
   el.className='fighter'; el.dataset.id=id;
-  el.innerHTML=`<button class="pinfo" title="人格を見る">ⓘ</button><span class="emoji">${f.emoji}</span><span class="fname">${f.name}</span><span class="fdesc">${f.desc}</span>`;
+  el.innerHTML=`<button class="pinfo" title="人格を見る">ⓘ</button><span class="emoji">${f.emoji}</span><span class="fname">${f.name}</span><span class="fdesc">${f.desc.split('。').filter(Boolean).map(t=>`<span class="ln">${t}。</span>`).join('')}</span>`;
   el.onclick=()=>toggle(id);
   el.querySelector('.pinfo').onclick=(e)=>{ e.stopPropagation(); showPersona(id); };  // 選択と衝突させない
   roster.appendChild(el);
