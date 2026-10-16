@@ -25,7 +25,7 @@ Ollamaを公開URLから使うには `OLLAMA_ORIGINS` に `https://y-kanno-saken
 
 ## 名勝負ライブラリ（規格書: `docs/corpus_factory.md`）
 Claude教師バトルを毎朝12本自動生産（スケジュールタスク・半数以上お題なし）＋手動バッチ。既定エンジン「名勝負ミックス」の素材（2026-09-28時点196本）。
-コーパスは公開データ（`docs/claude_corpus.jsonl`）で、フッター「遊び心」の隠しリンクからビューアあり。
+公開URLは https://jozorap.sakenote.net/（2026-10-16 独自ドメイン化・Xserver DNS の CNAME→y-kanno-sakenote.github.io、リポジトリ直下の `CNAME`。旧 github.io は転送。中継 `worker/wrangler.toml` の ALLOWED_ORIGINS に新ドメインあり）。コーパスは公開データ（`docs/claude_corpus.jsonl`）で、フッター「遊び心」の隠しリンクからビューアあり。
 
 ## 残タスク
 - 補充のたびに `node mix_test.js`（DETAIL=1でペア別）と、相手違い（名指ししない当てこすり）の目視を1回。残る課題は看板語の繰り返し（12小節で1バトル3回以上が93%）＝工場の言い換えルールで改善待ち。詳細は `docs/dev_log.md`。
