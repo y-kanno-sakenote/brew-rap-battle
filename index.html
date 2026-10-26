@@ -108,10 +108,10 @@
   .verse .head{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-family:var(--mincho);font-weight:800}
   .verse .head .em{font-size:22px}
   /* 顔アイコン（結果の画面・人格の窓）：丸・生成りの地・白フチ2px＋薄い影＝キャラカードのステッカーと同じ系統。4サイト同じ値 */
-  .face{display:inline-block;vertical-align:middle;box-sizing:border-box;border-radius:50%;background:#f4ecdc;
+  .ficon{display:inline-block;vertical-align:middle;box-sizing:border-box;border-radius:50%;background:#f4ecdc;
         border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);object-fit:cover}
-  .face-alt{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-  .verse .head .em>.face{display:block}
+  .ficon-alt{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .verse .head .em>.ficon{display:block}
   .vs-head .who{display:inline-flex;align-items:center;gap:8px}
   .verse .head .rk{font-size:10px;color:var(--sub);font-weight:600;letter-spacing:.05em;margin-left:auto}
   .verse.a .head{color:var(--red)} .verse.b .head{color:var(--blue)}
@@ -1007,7 +1007,7 @@ function buildVerse(me, rnd, forcedKey, echoWord, maxLines){
 // 絵文字は隠した文字で残す（リリックのコピー・画像で保存は今まで通り絵文字で出る）。絵が読めない時はその文字を見せる
 function faceIc(id, emoji, size){
   if(!Object.prototype.hasOwnProperty.call(FIGHTERS, id)) return emoji;
-  return `<img class="face" src="img/faces/${id}.png" alt="" width="${size}" height="${size}" onerror="this.nextSibling.className='';this.remove()"><span class="face-alt">${emoji}</span>`;
+  return `<img class="ficon" src="img/faces/${id}.png" alt="" width="${size}" height="${size}" onerror="this.nextSibling.className='';this.remove()"><span class="ficon-alt">${emoji}</span>`;
 }
 
 function verseHTML(meId, side, delay, rnd, forcedKey, echoWord, maxLines){
