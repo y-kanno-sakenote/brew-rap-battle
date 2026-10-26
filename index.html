@@ -31,6 +31,15 @@
            padding:14px 12px;cursor:pointer;transition:.18s;text-align:center;user-select:none}
   .fighter:hover{transform:translateY(-3px);border-color:var(--gold2)}
   .fighter .emoji{font-size:34px;line-height:1;display:block;margin-bottom:6px}
+  /* キャラ絵（読めない時は onerror で絵文字に戻る） */
+  /* ステッカー風：白いフチ（drop-shadowを上下左右に重ねる）＋外に薄い影。大きさはカード幅に合わせる（PC≒80px・スマホ1列≒112px）。カードごとに少し傾け、選ぶとまっすぐ少し大きく。4サイト同じ値 */
+  .fighter .emoji img{display:block;width:80px;width:clamp(80px,46cqi,112px);max-width:100%;height:auto;margin:4px auto 2px;
+    transform:rotate(var(--tilt,0deg));transition:transform .18s;
+    filter:drop-shadow(2.5px 0 0 #fff) drop-shadow(-2.5px 0 0 #fff) drop-shadow(0 2.5px 0 #fff) drop-shadow(0 -2.5px 0 #fff)
+           drop-shadow(0 0 1px rgba(0,0,0,.35)) drop-shadow(0 3px 4px rgba(0,0,0,.3))}
+  .fighter:nth-child(5n+1){--tilt:-3deg} .fighter:nth-child(5n+2){--tilt:2deg} .fighter:nth-child(5n+3){--tilt:-2deg}
+  .fighter:nth-child(5n+4){--tilt:3deg} .fighter:nth-child(5n){--tilt:-1deg}
+  .fighter.sel-a .emoji img,.fighter.sel-b .emoji img{transform:rotate(0deg) scale(1.06)}
   .fighter .fname{display:block;font-family:var(--mincho);font-size:19px;font-weight:800}
   .fighter .fdesc{display:block;font-size:11px;color:var(--sub);margin-top:4px;min-height:28px}
   /* 説明は1文1行（2行に揃える）。各文は句点込み11字以内（desc を短くした）。カードがそれより狭い時だけ字を小さくする */
@@ -1571,7 +1580,9 @@ engineSel.dispatchEvent(new Event('change'));
 Object.entries(FIGHTERS).forEach(([id,f])=>{
   const el = document.createElement('div');
   el.className='fighter'; el.dataset.id=id;
-  el.innerHTML=`<button class="pinfo" title="人格を見る">ⓘ</button><span class="emoji">${f.emoji}</span><span class="fname">${f.name}</span><span class="fdesc">${f.desc.split('。').filter(Boolean).map(t=>`<span class="ln">${t}。</span>`).join('')}</span>`;
+  el.innerHTML=`<button class="pinfo" title="人格を見る">ⓘ</button><span class="emoji"><img src="img/chars/${id}.png" alt="${f.name}" width="52" height="52"></span><span class="fname">${f.name}</span><span class="fdesc">${f.desc.split('。').filter(Boolean).map(t=>`<span class="ln">${t}。</span>`).join('')}</span>`;
+  const pic = el.querySelector('.emoji img');
+  pic.onerror = () => pic.replaceWith(f.emoji);  // 絵が読めない時は絵文字に戻す
   el.onclick=()=>toggle(id);
   el.querySelector('.pinfo').onclick=(e)=>{ e.stopPropagation(); showPersona(id); };  // 選択と衝突させない
   roster.appendChild(el);
