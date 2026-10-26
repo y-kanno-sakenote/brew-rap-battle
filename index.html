@@ -15,7 +15,7 @@
   *{box-sizing:border-box}
   body{margin:0;background:radial-gradient(120% 80% at 50% -10%,#241a2e 0%,var(--bg) 55%) fixed;
        color:var(--ink);font-family:var(--sans);line-height:1.7;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:900px;margin:0 auto;padding:28px 20px 80px}
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 20px 80px}
   header{text-align:center;margin-bottom:22px}
   .brand{letter-spacing:.5em;font-size:12px;color:var(--gold);margin:0 0 8px;font-weight:700}
   h1{font-family:var(--mincho);font-size:clamp(28px,6vw,46px);margin:0;font-weight:900;
@@ -26,21 +26,33 @@
   .panel{background:linear-gradient(180deg,var(--card),#151019);border:1px solid var(--line);
          border-radius:18px;padding:20px;margin-top:18px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
   .panel h2{font-size:13px;letter-spacing:.2em;color:var(--gold);margin:0 0 14px;font-weight:700}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-  .fighter{position:relative;background:var(--bg2);border:1.5px solid var(--line);border-radius:14px;
-           padding:14px 12px;cursor:pointer;transition:.18s;text-align:center;user-select:none}
-  .fighter:hover{transform:translateY(-3px);border-color:var(--gold2)}
-  .fighter .emoji{font-size:34px;line-height:1;display:block;margin-bottom:6px}
-  /* キャラ絵（読めない時は onerror で絵文字に戻る） */
-  /* ステッカー風：白いフチ（drop-shadowを上下左右に重ねる）＋外に薄い影。大きさはカード幅に合わせる（PC≒80px・スマホ1列≒112px）。カードごとに少し傾け、選ぶとまっすぐ少し大きく。4サイト同じ値 */
-  .fighter .emoji img{display:block;width:80px;width:clamp(80px,46cqi,112px);max-width:100%;height:auto;margin:4px auto 2px;
+  /* 並び：PC＝5枚横並び／中くらい＝3枚／スマホ＝2列。余った1枚は中央に寄せる（flexの中央寄せで奇数も自然に収まる） */
+  .grid{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+  .grid>.fighter{flex:0 0 calc((100% - 40px) / 5)}
+  @media (max-width:759px){ .grid>.fighter{flex-basis:calc((100% - 20px) / 3)} }
+  @media (max-width:559px){
+    .panel{padding:16px 12px}
+    .grid{gap:6px;margin-inline:-8px}  /* 絵を大きくするため、パネルの内側の余白を少し借りる */
+    .grid>.fighter{flex-basis:calc((100% - 6px) / 2);padding:8px 4px 10px}
+  }
+  /* カードは控えめ（地も枠も出さない）。絵＝ステッカーが主役。枠は触れた時と選んだ時だけ */
+  .fighter{position:relative;background:none;border:1.5px solid transparent;border-radius:14px;
+           padding:10px 8px 12px;cursor:pointer;transition:.18s;text-align:center;user-select:none}
+  .fighter:hover{transform:translateY(-3px);border-color:var(--line)}
+  /* キャラ絵は .emoji の中の img（読めない時は onerror で .emoji の中身が絵文字に戻る＝72px） */
+  .fighter .emoji{font-size:72px;line-height:1.4;display:block;margin-bottom:4px}
+  /* ステッカー風：白いフチ3.5px（drop-shadowを上下左右に重ねる）＋外に影。カード幅いっぱい（原寸200px）。カードごとに少し傾け、選ぶとまっすぐ少し大きく。4サイト同じ値 */
+  .fighter .emoji img{display:block;width:min(190px,100%);aspect-ratio:1;height:auto;margin:6px auto 4px;
     transform:rotate(var(--tilt,0deg));transition:transform .18s;
-    filter:drop-shadow(2.5px 0 0 #fff) drop-shadow(-2.5px 0 0 #fff) drop-shadow(0 2.5px 0 #fff) drop-shadow(0 -2.5px 0 #fff)
-           drop-shadow(0 0 1px rgba(0,0,0,.35)) drop-shadow(0 3px 4px rgba(0,0,0,.3))}
-  .fighter:nth-child(5n+1){--tilt:-3deg} .fighter:nth-child(5n+2){--tilt:2deg} .fighter:nth-child(5n+3){--tilt:-2deg}
-  .fighter:nth-child(5n+4){--tilt:3deg} .fighter:nth-child(5n){--tilt:-1deg}
-  .fighter.sel-a .emoji img,.fighter.sel-b .emoji img{transform:rotate(0deg) scale(1.06)}
-  .fighter .fname{display:block;font-family:var(--mincho);font-size:19px;font-weight:800}
+    filter:drop-shadow(3.5px 0 0 #fff) drop-shadow(-3.5px 0 0 #fff) drop-shadow(0 3.5px 0 #fff) drop-shadow(0 -3.5px 0 #fff)
+           drop-shadow(0 0 1px rgba(0,0,0,.4)) drop-shadow(0 6px 8px rgba(0,0,0,.35))}
+  .fighter:nth-child(5n+1){--tilt:-4deg} .fighter:nth-child(5n+2){--tilt:3deg} .fighter:nth-child(5n+3){--tilt:-2deg}
+  .fighter:nth-child(5n+4){--tilt:4deg} .fighter:nth-child(5n){--tilt:-3deg}
+  .fighter.sel-a .emoji img,.fighter.sel-b .emoji img{transform:rotate(0deg) scale(1.08)}
+  @media (prefers-reduced-motion: reduce){ .fighter,.fighter .emoji img{transition:none} }
+  /* 名前の行の右端に ⓘ（絵とも名前とも重ならない） */
+  .fighter .fhead{position:relative;display:block}
+  .fighter .fname{display:block;font-family:var(--mincho);font-size:19px;font-weight:800;line-height:1.35}
   .fighter .fdesc{display:block;font-size:11px;color:var(--sub);margin-top:4px;min-height:28px}
   /* 説明は1文1行（2行に揃える）。各文は句点込み11字以内（desc を短くした）。カードがそれより狭い時だけ字を小さくする */
   .fighter{container-type:inline-size}
@@ -50,7 +62,7 @@
   .fighter .badge{position:absolute;top:-9px;right:-9px;font-size:10px;font-weight:800;padding:3px 8px;
                   border-radius:20px;color:#fff}
   .badge.a{background:var(--red)} .badge.b{background:var(--blue)}
-  .pinfo{position:absolute;top:0;right:0;width:44px;height:44px;display:flex;align-items:flex-start;justify-content:flex-end;padding:6px 8px 0 0;background:none;border:none;color:var(--sub);font-size:15px;cursor:pointer;line-height:1;z-index:2;transition:color .15s}
+  .pinfo{position:absolute;top:50%;right:-4px;transform:translateY(-50%);width:40px;height:40px;display:flex;align-items:center;justify-content:center;padding:0;background:none;border:none;color:var(--sub);font-size:17px;cursor:pointer;line-height:1;z-index:2;transition:color .15s}
   .pinfo:hover{color:var(--gold)}
   .pmodal{position:fixed;inset:0;background:rgba(0,0,0,.66);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
   .pcard{background:var(--bg2);border:1px solid var(--line);border-radius:16px;max-width:640px;width:100%;max-height:85vh;overflow:auto;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
@@ -1580,9 +1592,9 @@ engineSel.dispatchEvent(new Event('change'));
 Object.entries(FIGHTERS).forEach(([id,f])=>{
   const el = document.createElement('div');
   el.className='fighter'; el.dataset.id=id;
-  el.innerHTML=`<button class="pinfo" title="人格を見る">ⓘ</button><span class="emoji"><img src="img/chars/${id}.png" alt="${f.name}" width="52" height="52"></span><span class="fname">${f.name}</span><span class="fdesc">${f.desc.split('。').filter(Boolean).map(t=>`<span class="ln">${t}。</span>`).join('')}</span>`;
+  el.innerHTML=`<span class="emoji"><img src="img/chars/${id}.png" alt="${f.name}" width="200" height="200"></span><span class="fhead"><span class="fname">${f.name}</span><button class="pinfo" title="人格を見る">ⓘ</button></span><span class="fdesc">${f.desc.split('。').filter(Boolean).map(t=>`<span class="ln">${t}。</span>`).join('')}</span>`;
   const pic = el.querySelector('.emoji img');
-  pic.onerror = () => pic.replaceWith(f.emoji);  // 絵が読めない時は絵文字に戻す
+  if(pic) pic.onerror = () => pic.replaceWith(f.emoji);  // 絵が読めない時は絵文字に戻す
   el.onclick=()=>toggle(id);
   el.querySelector('.pinfo').onclick=(e)=>{ e.stopPropagation(); showPersona(id); };  // 選択と衝突させない
   roster.appendChild(el);
