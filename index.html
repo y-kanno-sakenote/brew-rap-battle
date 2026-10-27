@@ -48,10 +48,10 @@
            drop-shadow(0 0 1px rgba(0,0,0,.4)) drop-shadow(0 6px 8px rgba(0,0,0,.35))}
   .fighter:nth-child(5n+1){--tilt:-4deg} .fighter:nth-child(5n+2){--tilt:3deg} .fighter:nth-child(5n+3){--tilt:-2deg}
   .fighter:nth-child(5n+4){--tilt:4deg} .fighter:nth-child(5n){--tilt:-3deg}
-  /* 選ぶとポーズ違いの絵に替わり（refreshSel）、軽く跳ねてまっすぐ×1.08に収まる */
-  .fighter.sel-a .emoji img,.fighter.sel-b .emoji img{transform:rotate(0deg) scale(1.08);animation:posehop .25s ease-out}
+  /* 選ぶとすぐにポーズ違いの絵（まっすぐ×1.08）に替わり、その場で軽く跳ねる。傾きを戻す動きは見せない */
+  .fighter.sel-a .emoji img,.fighter.sel-b .emoji img{transform:rotate(0deg) scale(1.08);transition:none;animation:posehop .25s ease-out}
   @keyframes posehop{
-    0%  {transform:translateY(0) rotate(var(--tilt,0deg)) scale(1)}
+    0%  {transform:translateY(0) rotate(0deg) scale(1.08)}
     45% {transform:translateY(-8px) rotate(0deg) scale(1.12)}
     100%{transform:translateY(0) rotate(0deg) scale(1.08)}
   }
@@ -1653,6 +1653,8 @@ function toggle(id){
   refreshSel();
 }
 // 選ばれたカードはポーズ違いの絵、外れたら元の絵（絵文字に戻ったカードは何もしない）
+// ポーズ絵は最初に読み込んでおく（選んだ瞬間に元の絵のまま傾き→遅れて切り替わる、を防ぐ）
+if(typeof Image!=="undefined") Object.keys(FIGHTERS).forEach(id=>{ const im=new Image(); im.src=`img/pose/${id}.png`; });
 function setPose(el, on){
   const img = el.querySelector('.emoji img'); if(!img) return;
   const src = `img/${on && !img.dataset.nopose ? 'pose' : 'chars'}/${el.dataset.id}.png`;
