@@ -48,8 +48,14 @@
            drop-shadow(0 0 1px rgba(0,0,0,.4)) drop-shadow(0 6px 8px rgba(0,0,0,.35))}
   .fighter:nth-child(5n+1){--tilt:-4deg} .fighter:nth-child(5n+2){--tilt:3deg} .fighter:nth-child(5n+3){--tilt:-2deg}
   .fighter:nth-child(5n+4){--tilt:4deg} .fighter:nth-child(5n){--tilt:-3deg}
-  .fighter.sel-a .emoji img,.fighter.sel-b .emoji img{transform:rotate(0deg) scale(1.08)}
-  @media (prefers-reduced-motion: reduce){ .fighter,.fighter .emoji img{transition:none} }
+  /* 選ぶとポーズ違いの絵に替わり（refreshSel）、軽く跳ねてまっすぐ×1.08に収まる */
+  .fighter.sel-a .emoji img,.fighter.sel-b .emoji img{transform:rotate(0deg) scale(1.08);animation:posehop .25s ease-out}
+  @keyframes posehop{
+    0%  {transform:translateY(0) rotate(var(--tilt,0deg)) scale(1)}
+    45% {transform:translateY(-8px) rotate(0deg) scale(1.12)}
+    100%{transform:translateY(0) rotate(0deg) scale(1.08)}
+  }
+  @media (prefers-reduced-motion: reduce){ .fighter,.fighter .emoji img{transition:none} .fighter.sel-a .emoji img,.fighter.sel-b .emoji img{animation:none} }
   /* 名前の行の右端に ⓘ（絵とも名前とも重ならない） */
   .fighter .fhead{position:relative;display:block}
   .fighter .fname{display:block;font-family:var(--mincho);font-size:19px;font-weight:800;line-height:1.35}
@@ -1608,7 +1614,11 @@ Object.entries(FIGHTERS).forEach(([id,f])=>{
   el.className='fighter'; el.dataset.id=id;
   el.innerHTML=`<span class="emoji"><img src="img/chars/${id}.png" alt="${f.name}" width="200" height="200"></span><span class="fhead"><span class="fname">${f.name}</span><button class="pinfo" title="人格を見る">ⓘ</button></span><span class="fdesc">${f.desc.split('。').filter(Boolean).map(t=>`<span class="ln">${t}。</span>`).join('')}</span>`;
   const pic = el.querySelector('.emoji img');
-  if(pic) pic.onerror = () => pic.replaceWith(f.emoji);  // 絵が読めない時は絵文字に戻す
+  if(pic) pic.onerror = () => {
+    // ポーズ絵が読めない時は元の絵のまま（以後このカードはポーズに替えない）。元の絵が読めない時だけ絵文字に戻す
+    if(pic.getAttribute('src').startsWith('img/pose/')){ pic.dataset.nopose='1'; pic.src=`img/chars/${id}.png`; return; }
+    pic.replaceWith(f.emoji);
+  };
   el.onclick=()=>toggle(id);
   el.querySelector('.pinfo').onclick=(e)=>{ e.stopPropagation(); showPersona(id); };  // 選択と衝突させない
   roster.appendChild(el);
@@ -1642,11 +1652,18 @@ function toggle(id){
   else { selected=[selected[1],id]; }
   refreshSel();
 }
+// 選ばれたカードはポーズ違いの絵、外れたら元の絵（絵文字に戻ったカードは何もしない）
+function setPose(el, on){
+  const img = el.querySelector('.emoji img'); if(!img) return;
+  const src = `img/${on && !img.dataset.nopose ? 'pose' : 'chars'}/${el.dataset.id}.png`;
+  if(img.getAttribute('src')!==src) img.src = src;
+}
 function refreshSel(){
   document.querySelectorAll('.fighter').forEach(el=>{
     el.classList.remove('sel-a','sel-b');
     const oldBadge = el.querySelector('.badge'); if(oldBadge) oldBadge.remove();
     const i = selected.indexOf(el.dataset.id);
+    setPose(el, i>=0);
     if(i===0){ el.classList.add('sel-a'); el.insertAdjacentHTML('beforeend','<span class="badge a">赤</span>'); }
     if(i===1){ el.classList.add('sel-b'); el.insertAdjacentHTML('beforeend','<span class="badge b">青</span>'); }
   });
